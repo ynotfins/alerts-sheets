@@ -234,10 +234,29 @@ class MainActivity : AppCompatActivity() {
         val pm = getSystemService(POWER_SERVICE) as PowerManager
         val batteryIgnored = pm.isIgnoringBatteryOptimizations(packageName)
         
+        // Check Accessibility Service
+        val accessibilityEnabled = isAccessibilityServiceEnabled(this, NotificationAccessibilityService::class.java)
+        
         val status = StringBuilder()
         if (notificationEnabled) status.append("✓ Notifications Active\n") else status.append("✗ Notifications Disabled\n")
+        if (accessibilityEnabled) status.append("✓ Accessibility Active\n") else status.append("✗ Accessibility Disabled\n")
         if (batteryIgnored) status.append("✓ Background Unrestricted\n") else status.append("✗ Background Restricted\n")
         
         textView.text = status.toString().trim()
+    }
+
+    private fun isAccessibilityServiceEnabled(context: Context, service: Class<*>): Boolean {
+        val am = context.getSystemService(Context.ACCESSIBILITY_SERVICE) as android.view.accessibility.AccessibilityManager
+        val enabledServices = Settings.Secure.getString(context.contentResolver, Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES)
+        val colonSplitter = android.text.TextUtils.SimpleStringSplitter(':')
+        colonSplitter.setString(enabledServices ?: "")
+        val myComponentName = android.content.ComponentName(context, service).flattenToString()
+        while (colonSplitter.hasNext()) {
+            val componentName = colonSplitter.next()
+            if (componentName.equals(myComponentName, ignoreCase = true)) {
+                return true
+            }
+        }
+        return false
     }
 }

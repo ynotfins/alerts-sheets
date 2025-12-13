@@ -30,9 +30,29 @@ class MainActivity : AppCompatActivity() {
         val recycler = findViewById<RecyclerView>(R.id.recycler_endpoints)
         val recyclerApps = findViewById<RecyclerView>(R.id.recycler_apps)
         val btnAdd = findViewById<Button>(R.id.btn_add_endpoint)
-        // ...
+        val btnPermissions = findViewById<Button>(R.id.btn_permissions)
+        val btnAppFilter = findViewById<Button>(R.id.btn_app_filter)
+        val statusText = findViewById<TextView>(R.id.status_text)
         
-        // ... Endpoints Adapter Setup ...
+        // Migration: Check for legacy URL
+        migrateLegacyUrl()
+
+        // Load Data
+        endpoints = PrefsManager.getEndpoints(this).toMutableList()
+        
+        // Adapter Setup
+        adapter = EndpointsAdapter(endpoints, 
+            onToggle = { endpoint, isEnabled ->
+                endpoint.isEnabled = isEnabled
+                saveEndpoints()
+            },
+            onDelete = { endpoint ->
+                confirmDelete(endpoint)
+            }
+        )
+        
+        recycler.layoutManager = LinearLayoutManager(this)
+        recycler.adapter = adapter
         
         // Apps Adapter Setup
         val targetApps = PrefsManager.getTargetApps(this).toList()
@@ -43,17 +63,8 @@ class MainActivity : AppCompatActivity() {
         }
         recyclerApps.layoutManager = LinearLayoutManager(this)
         recyclerApps.adapter = appsAdapter
-        
-        // ... Listeners ...
-    }
-    
-    override fun onResume() {
-        super.onResume()
-        val statusText = findViewById<TextView>(R.id.status_text)
-        updateStatus(statusText)
-        // Refresh apps list
-        appsAdapter.updateData(PrefsManager.getTargetApps(this).toList())
-    }
+
+        // Listeners
         btnAdd.setOnClickListener { showAddDialog() }
         
         btnPermissions.setOnClickListener {
@@ -191,6 +202,9 @@ class MainActivity : AppCompatActivity() {
         super.onResume()
         val statusText = findViewById<TextView>(R.id.status_text)
         updateStatus(statusText)
+        if (::appsAdapter.isInitialized) {
+            appsAdapter.updateData(PrefsManager.getTargetApps(this).toList())
+        }
     }
     
     private fun updateStatus(textView: TextView) {

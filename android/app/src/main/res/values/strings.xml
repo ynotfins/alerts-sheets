@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">AlertsToSheets</string>
+    <string name="service_name">Alerts Listener Service</string>
+    <string name="url_hint">Google Apps Script Web App URL</string>
+    <string name="permission_button">Grant Notification Permission</string>
+    <string name="save_button">Save URL</string>
+    <string name="status_label">Status:</string>
+    <string name="accessibility_service_description">Reads notifications to send to Google Sheets.</string>
+    <string name="battery_button">Ignore Battery Opt</string>
+    <string name="accessibility_button">Enable Accessibility</string>
+</resources>

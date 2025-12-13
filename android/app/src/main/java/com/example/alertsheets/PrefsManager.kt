@@ -33,4 +33,22 @@ object PrefsManager {
          val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
          prefs.edit().putStringSet(KEY_TARGET_APPS, apps).apply()
     }
+    
+    // --- AppConfig Methods ---
+    
+    fun getAppConfig(context: Context, packageName: String): AppConfig {
+        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        val json = prefs.getString("config_$packageName", null)
+        return if (json != null) {
+            gson.fromJson(json, AppConfig::class.java)
+        } else {
+            AppConfig(packageName)
+        }
+    }
+
+    fun saveAppConfig(context: Context, config: AppConfig) {
+        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        val json = gson.toJson(config)
+        prefs.edit().putString("config_${config.packageName}", json).apply()
+    }
 }

@@ -122,6 +122,23 @@
         android:textAllCaps="false"
         style="@style/Widget.AppCompat.Button.Borderless"
         android:gravity="center_vertical|start"
-        android:paddingStart="16dp" />
+        android:paddingStart="16dp" 
+        android:layout_marginBottom="8dp"/>
+        
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Tap an app below to configure fields:"
+        android:textColor="@color/apple_text_secondary"
+        android:textSize="12sp"
+        android:layout_marginStart="12dp"
+        android:layout_marginBottom="8dp"/>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recycler_apps"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/bg_card"
+        android:nestedScrollingEnabled="false" />
 
 </LinearLayout>

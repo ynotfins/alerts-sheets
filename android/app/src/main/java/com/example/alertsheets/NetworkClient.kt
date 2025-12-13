@@ -17,7 +17,7 @@ object NetworkClient {
     private val gson = Gson()
     private val JSON = "application/json; charset=utf-8".toMediaType()
 
-    suspend fun sendData(context: Context, data: ParsedData): Boolean {
+    suspend fun sendData(context: Context, data: Any): Boolean {
         // Get ALL endpoints that are enabled
         val endpoints = PrefsManager.getEndpoints(context).filter { it.isEnabled }
 

@@ -28,11 +28,25 @@ class NotificationService : NotificationListenerService() {
 
         // 1. App Filter Check
         val targetApps = PrefsManager.getTargetApps(this)
+        // If filter is active and pkg not in list, ignore.
         if (targetApps.isNotEmpty() && !targetApps.contains(sbn.packageName)) {
-            // Filter is active, and this package is NOT in the list. Ignore.
             return
         }
 
+        // 2. Dynamic Config Check
+        val config = PrefsManager.getAppConfig(this, sbn.packageName)
+        if (config.mappings.isNotEmpty() || config.staticFields.isNotEmpty()) {
+            // Use Dynamic Logic
+            val dynamicData = DataExtractor.extract(this, sbn, config)
+             if (DeDuplicator.shouldProcess(dynamicData.toString())) {
+                 scope.launch {
+                     NetworkClient.sendData(this@NotificationService, dynamicData)
+                 }
+             }
+             return
+        }
+
+        // 3. Fallback: Legacy Pipe Logic (Only if no config exists)
         // Parse logic
         // We only proceed if it looks like one of our target notifications (contains pipes)
         if (fullContent.contains("|")) {

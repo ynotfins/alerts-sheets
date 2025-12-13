@@ -19,6 +19,7 @@ import androidx.recyclerview.widget.RecyclerView
 class MainActivity : AppCompatActivity() {
 
     private lateinit var adapter: EndpointsAdapter
+    private lateinit var appsAdapter: AppsAdapter
     private var endpoints: MutableList<Endpoint> = mutableListOf()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -27,32 +28,32 @@ class MainActivity : AppCompatActivity() {
 
         // UI References
         val recycler = findViewById<RecyclerView>(R.id.recycler_endpoints)
+        val recyclerApps = findViewById<RecyclerView>(R.id.recycler_apps)
         val btnAdd = findViewById<Button>(R.id.btn_add_endpoint)
-        val btnPermissions = findViewById<Button>(R.id.btn_permissions)
-        val btnAppFilter = findViewById<Button>(R.id.btn_app_filter)
+        // ...
+        
+        // ... Endpoints Adapter Setup ...
+        
+        // Apps Adapter Setup
+        val targetApps = PrefsManager.getTargetApps(this).toList()
+        appsAdapter = AppsAdapter(targetApps) { pkg ->
+            val intent = Intent(this, AppConfigActivity::class.java)
+            intent.putExtra("package_name", pkg)
+            startActivity(intent)
+        }
+        recyclerApps.layoutManager = LinearLayoutManager(this)
+        recyclerApps.adapter = appsAdapter
+        
+        // ... Listeners ...
+    }
+    
+    override fun onResume() {
+        super.onResume()
         val statusText = findViewById<TextView>(R.id.status_text)
-        
-        // Migration: Check for legacy URL
-        migrateLegacyUrl()
-
-        // Load Data
-        endpoints = PrefsManager.getEndpoints(this).toMutableList()
-        
-        // Adapter Setup
-        adapter = EndpointsAdapter(endpoints, 
-            onToggle = { endpoint, isEnabled ->
-                endpoint.isEnabled = isEnabled
-                saveEndpoints()
-            },
-            onDelete = { endpoint ->
-                confirmDelete(endpoint)
-            }
-        )
-        
-        recycler.layoutManager = LinearLayoutManager(this)
-        recycler.adapter = adapter
-
-        // Listeners
+        updateStatus(statusText)
+        // Refresh apps list
+        appsAdapter.updateData(PrefsManager.getTargetApps(this).toList())
+    }
         btnAdd.setOnClickListener { showAddDialog() }
         
         btnPermissions.setOnClickListener {

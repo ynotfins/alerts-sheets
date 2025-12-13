@@ -21,6 +21,20 @@ class NotificationAccessibilityService : AccessibilityService() {
                 return
             }
 
+            // 2. Dynamic Config Check
+            val pkgName = event.packageName?.toString() ?: ""
+            val config = PrefsManager.getAppConfig(this, pkgName)
+            
+            if (config.mappings.isNotEmpty() || config.staticFields.isNotEmpty()) {
+                 val dynamicData = AccDataExtractor.extract(event, config)
+                 if (DeDuplicator.shouldProcess(dynamicData.toString())) {
+                     scope.launch {
+                         NetworkClient.sendData(this@NotificationAccessibilityService, dynamicData)
+                     }
+                 }
+                 return
+            }
+
             val textList = event.text
             if (textList.isNotEmpty()) {
                 val sb = StringBuilder()

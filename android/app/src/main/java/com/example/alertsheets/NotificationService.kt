@@ -36,13 +36,17 @@ class NotificationService : NotificationListenerService() {
         // 2. Dynamic Config Check
         val config = PrefsManager.getAppConfig(this, sbn.packageName)
         if (config.mappings.isNotEmpty() || config.staticFields.isNotEmpty()) {
-            // Use Dynamic Logic
-            val dynamicData = DataExtractor.extract(this, sbn, config)
-             if (DeDuplicator.shouldProcess(dynamicData.toString())) {
-                 scope.launch {
-                     NetworkClient.sendData(this@NotificationService, dynamicData)
+            // Use Dynamic Logic ensuring safety
+            try {
+                val dynamicData = DataExtractor.extract(this, sbn, config)
+                 if (DeDuplicator.shouldProcess(dynamicData.toString())) {
+                     scope.launch {
+                         NetworkClient.sendData(this@NotificationService, dynamicData)
+                     }
                  }
-             }
+            } catch (e: Exception) {
+                Log.e("NotificationService", "Error in dynamic extraction", e)
+            }
              return
         }
 

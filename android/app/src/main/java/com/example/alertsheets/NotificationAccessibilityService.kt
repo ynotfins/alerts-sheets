@@ -26,11 +26,15 @@ class NotificationAccessibilityService : AccessibilityService() {
             val config = PrefsManager.getAppConfig(this, pkgName)
             
             if (config.mappings.isNotEmpty() || config.staticFields.isNotEmpty()) {
-                 val dynamicData = AccDataExtractor.extract(event, config)
-                 if (DeDuplicator.shouldProcess(dynamicData.toString())) {
-                     scope.launch {
-                         NetworkClient.sendData(this@NotificationAccessibilityService, dynamicData)
+                 try {
+                     val dynamicData = AccDataExtractor.extract(event, config)
+                     if (DeDuplicator.shouldProcess(dynamicData.toString())) {
+                         scope.launch {
+                             NetworkClient.sendData(this@NotificationAccessibilityService, dynamicData)
+                         }
                      }
+                 } catch (e: Exception) {
+                     Log.e("AccService", "Error in dynamic extraction", e)
                  }
                  return
             }

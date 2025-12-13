@@ -15,6 +15,12 @@ class NotificationAccessibilityService : AccessibilityService() {
         if (event == null) return
 
         if (event.eventType == AccessibilityEvent.TYPE_NOTIFICATION_STATE_CHANGED) {
+            // 1. App Filter Check
+            val targetApps = PrefsManager.getTargetApps(this)
+            if (targetApps.isNotEmpty() && event.packageName != null && !targetApps.contains(event.packageName.toString())) {
+                return
+            }
+
             val textList = event.text
             if (textList.isNotEmpty()) {
                 val sb = StringBuilder()

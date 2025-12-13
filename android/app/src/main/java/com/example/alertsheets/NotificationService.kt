@@ -26,6 +26,13 @@ class NotificationService : NotificationListenerService() {
 
         Log.d("NotificationService", "Received: $fullContent")
 
+        // 1. App Filter Check
+        val targetApps = PrefsManager.getTargetApps(this)
+        if (targetApps.isNotEmpty() && !targetApps.contains(sbn.packageName)) {
+            // Filter is active, and this package is NOT in the list. Ignore.
+            return
+        }
+
         // Parse logic
         // We only proceed if it looks like one of our target notifications (contains pipes)
         if (fullContent.contains("|")) {

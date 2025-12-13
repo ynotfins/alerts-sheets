@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="apple_bg_gray">#F2F2F7</color>
+    <color name="apple_card_white">#FFFFFF</color>
+    <color name="apple_blue">#007AFF</color>
+    <color name="apple_text_primary">#000000</color>
+    <color name="apple_text_secondary">#8E8E93</color>
+    <color name="apple_separator">#C6C6C8</color>
+    <color name="purple_500">#FF6200EE</color> <!-- Keeping for legacy theme compat if needed -->
+    <color name="purple_700">#FF3700B3</color>
+    <color name="teal_200">#FF03DAC5</color>
+    <color name="teal_700">#FF018786</color>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+</resources>

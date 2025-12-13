@@ -57,9 +57,22 @@ class MainActivity : AppCompatActivity() {
         // Apps Adapter Setup
         val targetApps = PrefsManager.getTargetApps(this).toList()
         appsAdapter = AppsAdapter(targetApps) { pkg ->
-            val intent = Intent(this, AppConfigActivity::class.java)
-            intent.putExtra("package_name", pkg)
-            startActivity(intent)
+            try {
+                val intent = Intent(this, AppConfigActivity::class.java)
+                intent.putExtra("package_name", pkg)
+                // Try to get app name
+                val pm = packageManager
+                val appName = try {
+                    pm.getApplicationLabel(pm.getApplicationInfo(pkg, 0)).toString()
+                } catch (e: Exception) {
+                    pkg
+                }
+                intent.putExtra("app_name", appName)
+                startActivity(intent)
+            } catch (e: Exception) {
+                Toast.makeText(this, "Error opening config: ${e.message}", Toast.LENGTH_SHORT).show()
+                e.printStackTrace()
+            }
         }
         recyclerApps.layoutManager = LinearLayoutManager(this)
         recyclerApps.adapter = appsAdapter

@@ -20,6 +20,10 @@
         "source": "com.example.alertsheets.app-main-33:/layout/item_endpoint.xml"
     },
     {
+        "merged": "com.example.alertsheets.app-mergeDebugResources-30:/layout/item_configured_app.xml",
+        "source": "com.example.alertsheets.app-main-33:/layout/item_configured_app.xml"
+    },
+    {
         "merged": "com.example.alertsheets.app-mergeDebugResources-30:/layout/item_mapping.xml",
         "source": "com.example.alertsheets.app-main-33:/layout/item_mapping.xml"
     }

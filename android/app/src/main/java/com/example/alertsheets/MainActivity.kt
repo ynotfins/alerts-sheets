@@ -145,14 +145,7 @@ class MainActivity : AppCompatActivity() {
             .setNegativeButton("Cancel", null)
             .show()
     }
-            .setPositiveButton("Save") { _, _ ->
-                val newTargets = selectedIndices.map { packageNames[it] }.toSet()
-                PrefsManager.saveTargetApps(this, newTargets)
-                Toast.makeText(this, "Saved ${newTargets.size} apps", Toast.LENGTH_SHORT).show()
-            }
-            .setNegativeButton("Cancel", null)
-            .show()
-    }
+
     
     private fun migrateLegacyUrl() {
         val prefs = getSharedPreferences("app_prefs", Context.MODE_PRIVATE)

@@ -32,6 +32,7 @@ id status_text
 id switch_enabled
 id text_app_name
 id text_name
+id text_package_name
 id text_source
 id text_target
 id text_url
@@ -39,6 +40,7 @@ layout activity_app_config
 layout activity_main
 layout dialog_add_endpoint
 layout dialog_add_mapping
+layout item_configured_app
 layout item_endpoint
 layout item_mapping
 string accessibility_button

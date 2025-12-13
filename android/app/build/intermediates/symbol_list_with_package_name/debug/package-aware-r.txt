@@ -3557,6 +3557,7 @@ id text_input_end_icon
 id text_input_error_icon
 id text_input_start_icon
 id text_name
+id text_package_name
 id text_source
 id text_target
 id text_url
@@ -3741,6 +3742,7 @@ layout dialog_add_endpoint
 layout dialog_add_mapping
 layout ime_base_split_test_activity
 layout ime_secondary_split_test_activity
+layout item_configured_app
 layout item_endpoint
 layout item_mapping
 layout m3_alert_dialog

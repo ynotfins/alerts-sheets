@@ -12,10 +12,6 @@
         "source": "com.example.alertsheets.app-main-33:/xml/accessibility_service_config.xml"
     },
     {
-        "merged": "com.example.alertsheets.app-merged_res-31:/layout_item_endpoint.xml.flat",
-        "source": "com.example.alertsheets.app-main-33:/layout/item_endpoint.xml"
-    },
-    {
         "merged": "com.example.alertsheets.app-merged_res-31:/layout_dialog_add_mapping.xml.flat",
         "source": "com.example.alertsheets.app-main-33:/layout/dialog_add_mapping.xml"
     },
@@ -42,5 +38,13 @@
     {
         "merged": "com.example.alertsheets.app-merged_res-31:/layout_activity_main.xml.flat",
         "source": "com.example.alertsheets.app-main-33:/layout/activity_main.xml"
+    },
+    {
+        "merged": "com.example.alertsheets.app-merged_res-31:/layout_item_endpoint.xml.flat",
+        "source": "com.example.alertsheets.app-main-33:/layout/item_endpoint.xml"
+    },
+    {
+        "merged": "com.example.alertsheets.app-merged_res-31:/layout_item_configured_app.xml.flat",
+        "source": "com.example.alertsheets.app-main-33:/layout/item_configured_app.xml"
     }
 ]

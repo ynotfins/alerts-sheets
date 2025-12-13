@@ -1,0 +1,46 @@
+[
+    {
+        "merged": "com.example.alertsheets.app-merged_res-31:/xml_backup_rules.xml.flat",
+        "source": "com.example.alertsheets.app-main-33:/xml/backup_rules.xml"
+    },
+    {
+        "merged": "com.example.alertsheets.app-merged_res-31:/layout_dialog_add_endpoint.xml.flat",
+        "source": "com.example.alertsheets.app-main-33:/layout/dialog_add_endpoint.xml"
+    },
+    {
+        "merged": "com.example.alertsheets.app-merged_res-31:/xml_accessibility_service_config.xml.flat",
+        "source": "com.example.alertsheets.app-main-33:/xml/accessibility_service_config.xml"
+    },
+    {
+        "merged": "com.example.alertsheets.app-merged_res-31:/layout_item_endpoint.xml.flat",
+        "source": "com.example.alertsheets.app-main-33:/layout/item_endpoint.xml"
+    },
+    {
+        "merged": "com.example.alertsheets.app-merged_res-31:/layout_dialog_add_mapping.xml.flat",
+        "source": "com.example.alertsheets.app-main-33:/layout/dialog_add_mapping.xml"
+    },
+    {
+        "merged": "com.example.alertsheets.app-merged_res-31:/xml_data_extraction_rules.xml.flat",
+        "source": "com.example.alertsheets.app-main-33:/xml/data_extraction_rules.xml"
+    },
+    {
+        "merged": "com.example.alertsheets.app-merged_res-31:/layout_item_mapping.xml.flat",
+        "source": "com.example.alertsheets.app-main-33:/layout/item_mapping.xml"
+    },
+    {
+        "merged": "com.example.alertsheets.app-merged_res-31:/drawable_ic_launcher_foreground.xml.flat",
+        "source": "com.example.alertsheets.app-main-33:/drawable/ic_launcher_foreground.xml"
+    },
+    {
+        "merged": "com.example.alertsheets.app-merged_res-31:/drawable_bg_card.xml.flat",
+        "source": "com.example.alertsheets.app-main-33:/drawable/bg_card.xml"
+    },
+    {
+        "merged": "com.example.alertsheets.app-merged_res-31:/layout_activity_app_config.xml.flat",
+        "source": "com.example.alertsheets.app-main-33:/layout/activity_app_config.xml"
+    },
+    {
+        "merged": "com.example.alertsheets.app-merged_res-31:/layout_activity_main.xml.flat",
+        "source": "com.example.alertsheets.app-main-33:/layout/activity_main.xml"
+    }
+]

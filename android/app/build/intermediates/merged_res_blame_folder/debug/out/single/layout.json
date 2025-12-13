@@ -1,0 +1,26 @@
+[
+    {
+        "merged": "com.example.alertsheets.app-mergeDebugResources-30:/layout/activity_main.xml",
+        "source": "com.example.alertsheets.app-main-33:/layout/activity_main.xml"
+    },
+    {
+        "merged": "com.example.alertsheets.app-mergeDebugResources-30:/layout/activity_app_config.xml",
+        "source": "com.example.alertsheets.app-main-33:/layout/activity_app_config.xml"
+    },
+    {
+        "merged": "com.example.alertsheets.app-mergeDebugResources-30:/layout/dialog_add_endpoint.xml",
+        "source": "com.example.alertsheets.app-main-33:/layout/dialog_add_endpoint.xml"
+    },
+    {
+        "merged": "com.example.alertsheets.app-mergeDebugResources-30:/layout/dialog_add_mapping.xml",
+        "source": "com.example.alertsheets.app-main-33:/layout/dialog_add_mapping.xml"
+    },
+    {
+        "merged": "com.example.alertsheets.app-mergeDebugResources-30:/layout/item_endpoint.xml",
+        "source": "com.example.alertsheets.app-main-33:/layout/item_endpoint.xml"
+    },
+    {
+        "merged": "com.example.alertsheets.app-mergeDebugResources-30:/layout/item_mapping.xml",
+        "source": "com.example.alertsheets.app-main-33:/layout/item_mapping.xml"
+    }
+]

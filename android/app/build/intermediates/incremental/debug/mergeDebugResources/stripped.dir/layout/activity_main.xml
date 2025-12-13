@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/apple_bg_gray"
+    android:padding="16dp">
+
+    <!-- Header -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Settings"
+        android:textColor="@color/black"
+        android:textSize="32sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="24dp" />
+
+    <!-- Status Card -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="SYSTEM STATUS"
+        android:textColor="@color/apple_text_secondary"
+        android:textSize="13sp"
+        android:layout_marginBottom="8dp"
+        android:layout_marginStart="12dp"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="@drawable/bg_card"
+        android:padding="16dp"
+        android:layout_marginBottom="24dp">
+
+        <TextView
+            android:id="@+id/status_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Status: Checking..."
+            android:textColor="@color/black"
+            android:lineSpacingExtra="4dp"/>
+            
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@color/apple_separator"
+            android:layout_marginTop="12dp"
+            android:layout_marginBottom="12dp"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+            
+            <Button
+                android:id="@+id/btn_permissions"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:text="Fix Permissions"
+                android:textColor="@color/apple_blue"
+                style="@style/Widget.AppCompat.Button.Borderless"
+                android:textAllCaps="false"/>
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- Endpoints Section -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="8dp">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="ENDPOINTS"
+            android:textColor="@color/apple_text_secondary"
+            android:textSize="13sp"
+            android:layout_marginStart="12dp"/>
+            
+        <Button
+            android:id="@+id/btn_add_endpoint"
+            android:layout_width="wrap_content"
+            android:layout_height="32dp"
+            android:text="+ Add"
+            android:background="@android:color/transparent"
+            android:textColor="@color/apple_blue"
+            android:textAllCaps="false"
+            style="@style/Widget.AppCompat.Button.Borderless"/>
+    </LinearLayout>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recycler_endpoints"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/bg_card"
+        android:elevation="0dp" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Notifications will be sent to all enabled endpoints."
+        android:textColor="@color/apple_text_secondary"
+        android:textSize="12sp"
+        android:layout_marginTop="8dp"
+        android:layout_marginStart="12dp"
+        android:layout_marginBottom="24dp"/>
+        
+    <!-- App Filter Button -->
+    <Button
+        android:id="@+id/btn_app_filter"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:text="Select Apps to Listen To"
+        android:background="@drawable/bg_card"
+        android:textColor="@color/apple_blue"
+        android:textAllCaps="false"
+        style="@style/Widget.AppCompat.Button.Borderless"
+        android:gravity="center_vertical|start"
+        android:paddingStart="16dp" 
+        android:layout_marginBottom="8dp"/>
+        
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Tap an app below to configure fields:"
+        android:textColor="@color/apple_text_secondary"
+        android:textSize="12sp"
+        android:layout_marginStart="12dp"
+        android:layout_marginBottom="8dp"/>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recycler_apps"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/bg_card"
+        android:nestedScrollingEnabled="false" />
+
+</LinearLayout>

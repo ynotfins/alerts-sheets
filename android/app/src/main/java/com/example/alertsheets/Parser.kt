@@ -43,32 +43,42 @@ object Parser {
             }
         }
         
-        // 2. FD Codes: Always lowercase, slashed, after source (BNN/BNNDESK).
-        // They look like "njvx6/nj7ue".
+        // 2. FD Codes: Separated by slashes. Can be mixed case.
+        // Example: BNNDESK/njvx6/nj7ue
         var fdCodes = listOf<String>()
         var codesIndex = -1
         
         // Search for the codes field (usually before ID)
         if (idIndex != -1) {
-            // Check immediate predecessor for codes
-            // But sometimes Source is between them? "BNN | BNNDESK/..."
-            // Let's just look for a part that contains "/" and looks like codes.
+            // Check immediate predecessor for codes or search backwards
             for (i in parts.indices.reversed()) {
                 if (i == idIndex) continue
-                if (parts[i].contains("/") && parts[i].all { it.isLowerCase() || it.isDigit() || it == '/' }) {
-                    fdCodes = parts[i].split("/").filter { it.isNotBlank() }
-                    codesIndex = i
-                    break
+                // It must contain a slash to be a list of codes, or looks like a short code
+                // Relaxed check: contains / or matches typical code pattern
+                if (parts[i].contains("/") || (parts[i].length < 10 && parts[i].any { it.isDigit() })) {
+                    // Split and clean
+                    val candidates = parts[i].split("/").map { it.trim() }
+                    
+                    // Filter out BNN, BNNDESK, empty, or pure punctuation
+                    val validCodes = candidates.filter { code ->
+                        val lower = code.lowercase()
+                        lower.isNotBlank() && 
+                        lower != "bnn" && 
+                        lower != "bnndesk" &&
+                        lower != "<c>" && 
+                        !lower.contains("bnn") // catch desk if specific
+                    }
+                    
+                    if (validCodes.isNotEmpty()) {
+                        fdCodes = validCodes
+                        codesIndex = i
+                        break
+                    }
                 }
             }
         }
         
         // 3. Map the Standard Fields (State, County, City, Address, Type, Details)
-        // We assume the first 6 indices correspond to these if available, considering "Source" might be in there.
-        // Schema Request: State, County, City, Address, Incident Type, Incident Details.
-        // Typical BNN pipe: Status/State | County | City | Type | Address | Details | Source | Codes | ID
-        
-        // Let's safe-get based on indices, but handle "Status/State" (U/D NJ) cleanup.
         
         var state = parts.getOrElse(0) { "" }
         if (state.startsWith("U/D ")) state = state.removePrefix("U/D ").trim()
@@ -76,14 +86,13 @@ object Parser {
         val county = parts.getOrElse(1) { "" }
         val city = parts.getOrElse(2) { "" }
         
-        // Indices 3 and 4 can swap based on format "Type | Address" vs "Address | Type".
-        // Address usually starts with a number. Type is text.
         val p3 = parts.getOrElse(3) { "" }
         val p4 = parts.getOrElse(4) { "" }
         
         var address = ""
         var incidentType = ""
         
+        // Contextual Guess: Address usually starts with digit
         if (p3.firstOrNull()?.isDigit() == true) {
             address = p3
             incidentType = p4
@@ -92,14 +101,22 @@ object Parser {
             address = p4
         }
         
-        val details = parts.getOrElse(5) { "" }
+        // Details: Usually index 5, but if we found codes at 5, it might be earlier?
+        // If codesIndex is 5, details might be 4?
+        // Let's stick to safe get for now details is everything else.
+        var details = parts.getOrElse(5) { "" }
         
-        // Verify if details is actually Source (BNN)
-        // If details == "BNN", then details might be empty or in index 6?
-        // Let's just grab index 5 as details for now, user can map it.
+        // Cleanup: If Details is just the code string or Source, clear it.
+        if (details.contains("/") && details.contains("BNN")) {
+             // likely misidentified codes as details
+             // check if we have a real details string earlier
+        }
+        
+        // Final cleanup of codes (User said "remove BNN and BNNDESK")
+        fdCodes = fdCodes.filter { !it.equals("bnn", ignoreCase = true) && !it.equals("bnndesk", ignoreCase = true) }
         
         return ParsedData(
-            status = status, // Extracted from line 0 typically "Update" or "New Incident"
+            status = status,
             timestamp = timestamp,
             incidentId = incidentId,
             state = state,

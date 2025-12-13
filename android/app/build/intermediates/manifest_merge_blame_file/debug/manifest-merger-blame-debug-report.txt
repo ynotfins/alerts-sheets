@@ -39,88 +39,90 @@
 22-->[androidx.core:core:1.12.0] C:\Users\ynotf\.gradle\caches\9.0-milestone-1\transforms\96a788d4b25d8546e5bf24497a2f7085\transformed\core-1.12.0\AndroidManifest.xml:26:22-94
 23
 24    <application
-24-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:14:5-59:19
-25        android:allowBackup="true"
-25-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:15:9-35
+24-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:14:5-62:19
+25        android:allowBackup="false"
+25-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:15:9-36
 26        android:appComponentFactory="androidx.core.app.CoreComponentFactory"
 26-->[androidx.core:core:1.12.0] C:\Users\ynotf\.gradle\caches\9.0-milestone-1\transforms\96a788d4b25d8546e5bf24497a2f7085\transformed\core-1.12.0\AndroidManifest.xml:28:18-86
 27        android:dataExtractionRules="@xml/data_extraction_rules"
 27-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:16:9-65
 28        android:debuggable="true"
+28-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:24:9-34
 29        android:extractNativeLibs="false"
-30        android:fullBackupContent="@xml/backup_rules"
-30-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:17:9-54
-31        android:icon="@drawable/ic_launcher_foreground"
-31-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:18:9-56
-32        android:label="@string/app_name"
-32-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:19:9-41
-33        android:roundIcon="@drawable/ic_launcher_foreground"
-33-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:20:9-61
-34        android:supportsRtl="true"
-34-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:21:9-35
-35        android:testOnly="true"
+30        android:fullBackupContent="false"
+30-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:17:9-42
+31        android:hasCode="true"
+31-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:23:9-31
+32        android:icon="@drawable/ic_launcher_foreground"
+32-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:18:9-56
+33        android:label="@string/app_name"
+33-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:19:9-41
+34        android:roundIcon="@drawable/ic_launcher_foreground"
+34-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:20:9-61
+35        android:supportsRtl="true"
+35-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:21:9-35
 36        android:theme="@style/Theme.AlertsToSheets" >
 36-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:22:9-52
 37        <activity
-37-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:25:9-31:20
+37-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:28:9-34:20
 38            android:name="com.example.alertsheets.MainActivity"
-38-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:26:13-41
+38-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:29:13-41
 39            android:exported="true" >
-39-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:27:13-36
+39-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:30:13-36
 40            <intent-filter>
-40-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:28:13-30:29
+40-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:31:13-33:29
 41                <category android:name="android.intent.category.LAUNCHER" />
-41-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:29:17-77
-41-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:29:27-74
+41-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:32:17-77
+41-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:32:27-74
 42            </intent-filter>
 43        </activity>
 44        <activity
-44-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:33:9-34:64
+44-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:36:9-37:64
 45            android:name="com.example.alertsheets.AppConfigActivity"
-45-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:33:19-52
+45-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:36:19-52
 46            android:parentActivityName="com.example.alertsheets.MainActivity" />
-46-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:34:19-61
+46-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:37:19-61
 47
 48        <service
-48-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:36:9-44:19
+48-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:39:9-47:19
 49            android:name="com.example.alertsheets.NotificationService"
-49-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:37:13-48
+49-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:40:13-48
 50            android:exported="true"
-50-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:40:13-36
+50-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:43:13-36
 51            android:label="@string/service_name"
-51-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:38:13-49
+51-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:41:13-49
 52            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE" >
-52-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:39:13-87
+52-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:42:13-87
 53            <intent-filter>
-53-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:41:13-43:29
+53-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:44:13-46:29
 54                <action android:name="android.service.notification.NotificationListenerService" />
-54-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:42:17-99
-54-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:42:25-96
+54-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:45:17-99
+54-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:45:25-96
 55            </intent-filter>
 56        </service>
 57        <service
-57-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:46:9-57:19
+57-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:49:9-60:19
 58            android:name="com.example.alertsheets.NotificationAccessibilityService"
-58-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:47:13-61
+58-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:50:13-61
 59            android:exported="true"
-59-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:50:13-36
+59-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:53:13-36
 60            android:label="@string/service_name"
-60-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:48:13-49
+60-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:51:13-49
 61            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE" >
-61-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:49:13-79
+61-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:52:13-79
 62            <intent-filter>
-62-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:51:13-53:29
+62-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:54:13-56:29
 63                <action android:name="android.accessibilityservice.AccessibilityService" />
-63-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:52:17-92
-63-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:52:25-89
+63-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:55:17-92
+63-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:55:25-89
 64            </intent-filter>
 65
 66            <meta-data
-66-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:54:13-56:72
+66-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:57:13-59:72
 67                android:name="android.accessibilityservice"
-67-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:55:17-60
+67-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:58:17-60
 68                android:resource="@xml/accessibility_service_config" />
-68-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:56:17-69
+68-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:59:17-69
 69        </service>
 70
 71        <provider

@@ -26,7 +26,7 @@ class MainActivity : AppCompatActivity() {
         val statusText = findViewById<TextView>(R.id.status_text)
 
         val prefs = getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
-        urlInput.setText(prefs.getString("script_url", ""))
+        urlInput.setText(prefs.getString("script_url", "https://script.google.com/macros/s/AKfycbymLXsm9yxh7xQoEBtJLu8KRVs2YPKlPc3BqV6JLNjTpjYhd0SeLqIHv2ms9p82CWGeDw/exec"))
 
         saveButton.setOnClickListener {
             val url = urlInput.text.toString().trim()

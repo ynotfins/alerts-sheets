@@ -81,28 +81,43 @@ class MainActivity : AppCompatActivity() {
     // ... migrateLegacyUrl ...
 
     private fun showAppFilterDialog() {
-        // In a real app we would load installed packages. 
-        // For this "autonomy level", we'll offer a text input or a few common presets + custom.
-        // Or better: Let's query installed apps!
-        
         val pm = packageManager
-        val mainIntent = Intent(Intent.ACTION_MAIN, null)
-        mainIntent.addCategory(Intent.CATEGORY_LAUNCHER)
-        val apps = pm.queryIntentActivities(mainIntent, 0)
+        // 1. Get ALL installed packages (requires QUERY_ALL_PACKAGES)
+        val allPackages = pm.getInstalledPackages(0)
         
         val appNames = mutableListOf<String>()
         val packageNames = mutableListOf<String>()
         
-        apps.sortedBy { it.loadLabel(pm).toString() }.forEach {
-            appNames.add(it.loadLabel(pm).toString())
-            packageNames.add(it.activityInfo.packageName)
+        // 2. Filter list to avoid showing 500+ system services
+        // We show:
+        // - Non-System Apps (User installed)
+        // - System Apps that have a launch intent (regular apps like Gallery, Phone)
+        // - Or explicitly whitelisted known system apps if needed.
+        
+        allPackages.forEach { pkgInfo ->
+            val isSystem = (pkgInfo.applicationInfo.flags and android.content.pm.ApplicationInfo.FLAG_SYSTEM) != 0
+            val intent = pm.getLaunchIntentForPackage(pkgInfo.packageName)
+            val hasLauncher = intent != null
+            
+            // Show if it's a user app OR a system app with a launcher
+            if (!isSystem || hasLauncher) {
+                appNames.add(pkgInfo.applicationInfo.loadLabel(pm).toString())
+                packageNames.add(pkgInfo.packageName)
+            }
         }
+        
+        // Sort alphabetically
+        val sortedIndices = appNames.mapIndexed { index, name -> index to name }
+            .sortedBy { it.second.lowercase() }
+        
+        val sortedAppNames = sortedIndices.map { it.second }
+        val sortedPackageNames = sortedIndices.map { packageNames[it.first] }
         
         val currentTargets = PrefsManager.getTargetApps(this)
         val selectedIndices = mutableListOf<Int>()
-        val checkedItems = BooleanArray(packageNames.size)
+        val checkedItems = BooleanArray(sortedPackageNames.size)
         
-        packageNames.forEachIndexed { index, pkg ->
+        sortedPackageNames.forEachIndexed { index, pkg ->
             if (currentTargets.contains(pkg)) {
                 checkedItems[index] = true
                 selectedIndices.add(index)
@@ -111,13 +126,25 @@ class MainActivity : AppCompatActivity() {
         
         AlertDialog.Builder(this)
             .setTitle("Select Apps to Listen To")
-            .setMultiChoiceItems(appNames.toTypedArray(), checkedItems) { _, which, isChecked ->
+            .setMultiChoiceItems(sortedAppNames.toTypedArray(), checkedItems) { _, which, isChecked ->
                 if (isChecked) {
                     selectedIndices.add(which)
                 } else {
                     selectedIndices.remove(which)
                 }
             }
+            .setPositiveButton("Save") { _, _ ->
+                val newTargets = selectedIndices.map { sortedPackageNames[it] }.toSet()
+                PrefsManager.saveTargetApps(this, newTargets)
+                Toast.makeText(this, "Saved ${newTargets.size} apps", Toast.LENGTH_SHORT).show()
+                // Refresh list
+                if (::appsAdapter.isInitialized) {
+                    appsAdapter.updateData(newTargets.toList())
+                }
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
             .setPositiveButton("Save") { _, _ ->
                 val newTargets = selectedIndices.map { packageNames[it] }.toSet()
                 PrefsManager.saveTargetApps(this, newTargets)

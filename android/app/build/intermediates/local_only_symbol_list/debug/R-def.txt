@@ -3,6 +3,9 @@ local
 color apple_bg_gray
 color apple_blue
 color apple_card_white
+color apple_green
+color apple_orange
+color apple_red
 color apple_separator
 color apple_text_primary
 color apple_text_secondary

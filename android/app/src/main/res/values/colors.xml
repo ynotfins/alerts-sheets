@@ -6,6 +6,9 @@
     <color name="apple_text_primary">#000000</color>
     <color name="apple_text_secondary">#8E8E93</color>
     <color name="apple_separator">#C6C6C8</color>
+    <color name="apple_red">#FF3B30</color>
+    <color name="apple_green">#34C759</color>
+    <color name="apple_orange">#FF9500</color>
     <color name="purple_500">#FF6200EE</color> <!-- Keeping for legacy theme compat if needed -->
     <color name="purple_700">#FF3700B3</color>
     <color name="teal_200">#FF03DAC5</color>

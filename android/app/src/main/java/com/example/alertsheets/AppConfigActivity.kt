@@ -14,117 +14,151 @@ import androidx.appcompat.app.AppCompatActivity
 class AppConfigActivity : AppCompatActivity() {
 
     private lateinit var config: AppConfig
-    private lateinit var mappingsContainer: LinearLayout
-    private lateinit var staticContainer: LinearLayout
+    private lateinit var editJson: EditText
+    private lateinit var spinnerTemplate: Spinner
+    private lateinit var btnSave: Button
+    
+    // Available Variables for User Reference
+    private val appVariables = listOf(
+        "{{package}}", "{{title}}", "{{text}}", "{{bigText}}", "{{time}}"
+    )
+    private val smsVariables = listOf(
+        "{{sender}}", "{{message}}", "{{time}}"
+    )
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_app_config)
-
-        val packageName = intent.getStringExtra("package_name") ?: return
-        val appName = intent.getStringExtra("app_name") ?: packageName
-        
-        config = PrefsManager.getAppConfig(this, packageName)
-
-        findViewById<TextView>(R.id.text_app_name).text = "Config: $appName"
-        mappingsContainer = findViewById(R.id.mappings_container)
-        staticContainer = findViewById(R.id.static_container)
-        
-        findViewById<Button>(R.id.btn_add_mapping).setOnClickListener {
-            showAddMappingDialog()
-        }
-        
-        findViewById<Button>(R.id.btn_add_static).setOnClickListener {
-            showAddStaticDialog()
-        }
-        
-        refreshUI()
-    }
-    
-    private fun refreshUI() {
-        mappingsContainer.removeAllViews()
-        staticContainer.removeAllViews()
-        
-        config.mappings.forEach { mapping ->
-            val view = LayoutInflater.from(this).inflate(R.layout.item_mapping, mappingsContainer, false)
-            view.findViewById<TextView>(R.id.text_source).text = mapping.sourceField.displayName
-            view.findViewById<TextView>(R.id.text_target).text = mapping.targetKey
-            view.findViewById<android.view.View>(R.id.btn_delete).setOnClickListener {
-                config.mappings.remove(mapping)
-                save()
-                refreshUI()
-            }
-            mappingsContainer.addView(view)
-        }
-        
-        config.staticFields.forEach { stat ->
-            val view = LayoutInflater.from(this).inflate(R.layout.item_mapping, staticContainer, false)
-            view.findViewById<TextView>(R.id.text_source).text = "${stat.key} (Static)"
-            view.findViewById<TextView>(R.id.text_target).text = stat.value
-            view.findViewById<android.view.View>(R.id.btn_delete).setOnClickListener {
-                config.staticFields.remove(stat)
-                save()
-                refreshUI()
-            }
-            staticContainer.addView(view)
-        }
-    }
-    
-    private fun save() {
-        PrefsManager.saveAppConfig(this, config)
-    }
-
-    private fun showAddMappingDialog() {
-        val view = LayoutInflater.from(this).inflate(R.layout.dialog_add_mapping, null)
-        val spinner = view.findViewById<Spinner>(R.id.spinner_source)
-        val inputKey = view.findViewById<EditText>(R.id.input_target_key)
-        
-        val fields = NotificationField.values()
-        val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, fields.map { it.displayName })
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        spinner.adapter = adapter
-        
-        AlertDialog.Builder(this)
-            .setTitle("Add Mapping")
-            .setView(view)
-            .setPositiveButton("Add") { _, _ ->
-                val selectedField = fields[spinner.selectedItemPosition]
-                val key = inputKey.text.toString().trim()
-                if (key.isNotEmpty()) {
-                    config.mappings.add(FieldMapping(selectedField, key))
-                    save()
-                    refreshUI()
-                }
-            }
-            .setNegativeButton("Cancel", null)
-            .show()
-    }
-
-    private fun showAddStaticDialog() {
-        // Recycle the same dialog layout but adapt inputs if possible, or make a new small one.
-        // For simplicity, let's make a quick dynamic dialog logic.
         val layout = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            setPadding(50, 40, 50, 10)
+            setPadding(32, 32, 32, 32)
         }
-        val inputKey = EditText(this).apply { hint = "JSON Key (e.g. source)" }
-        val inputValue = EditText(this).apply { hint = "Value (e.g. android)" }
-        layout.addView(inputKey)
-        layout.addView(inputValue)
+        
+        // Header
+        val packageName = intent.getStringExtra("package_name") ?: return
+        val appName = intent.getStringExtra("app_name") ?: packageName
+        config = PrefsManager.getAppConfig(this, packageName)
+        
+        val title = TextView(this).apply {
+            text = "Config: $appName"
+            textSize = 20f
+            setPadding(0, 0, 0, 24)
+        }
+        layout.addView(title)
 
-        AlertDialog.Builder(this)
-            .setTitle("Add Constant")
-            .setView(layout)
-            .setPositiveButton("Add") { _, _ ->
-                val key = inputKey.text.toString().trim()
-                val value = inputValue.text.toString().trim()
-                if (key.isNotEmpty() && value.isNotEmpty()) {
-                    config.staticFields.add(StaticField(key, value))
-                    save()
-                    refreshUI()
+        // Template Selector
+        val labelTemplate = TextView(this).apply { text = "Load Template:" }
+        layout.addView(labelTemplate)
+        
+        spinnerTemplate = Spinner(this)
+        val templates = listOf("Select...", "App Notification", "SMS Message", "Simple BNN")
+        val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, templates)
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        spinnerTemplate.adapter = adapter
+        layout.addView(spinnerTemplate)
+        
+        // JSON Editor
+        val labelJson = TextView(this).apply { text = "JSON Payload (Editable):" ; setPadding(0, 24, 0, 8) }
+        layout.addView(labelJson)
+        
+        editJson = EditText(this).apply {
+            hint = "{\n  \"key\": \"{{val}}\"\n}"
+            setLines(12)
+            gravity = android.view.Gravity.TOP
+            background = android.graphics.drawable.GradientDrawable().apply {
+                setStroke(2, android.graphics.Color.GRAY)
+                cornerRadius = 8f
+            }
+            setPadding(16, 16, 16, 16)
+            setText(PrefsManager.getJsonTemplate(this@AppConfigActivity))
+        }
+        layout.addView(editJson)
+        
+        // Helper Chips / Legend
+        val labelHelp = TextView(this).apply { 
+            text = "Available Variables: ${appVariables.joinToString(", ")}" 
+            textSize = 12f
+            setPadding(0, 16, 0, 16)
+            setTextColor(android.graphics.Color.DKGRAY)
+        }
+        layout.addView(labelHelp)
+
+        // Save Button
+        btnSave = Button(this).apply {
+            text = "Save Configuration"
+            setOnClickListener {
+                save()
+            }
+        }
+        layout.addView(btnSave)
+
+        // Template Selection Logic
+        spinnerTemplate.onItemSelectedListener = object : android.widget.AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: android.widget.AdapterView<*>?, view: android.view.View?, position: Int, id: Long) {
+                when (position) {
+                    1 -> editJson.setText(getAppTemplate()) // App
+                    2 -> editJson.setText(getSmsTemplate()) // SMS
+                    3 -> editJson.setText(getBnnTemplate()) // BNN
                 }
             }
-            .setNegativeButton("Cancel", null)
-            .show()
+            override fun onNothingSelected(parent: android.widget.AdapterView<*>?) {}
+        }
+        
+        setContentView(layout)
+    }
+
+    private fun save() {
+        val newJson = editJson.text.toString()
+        // Validate JSON
+        try {
+            // Simple check
+            if (!newJson.trim().startsWith("{")) throw Exception("Must start with {")
+            PrefsManager.saveJsonTemplate(this, newJson)
+            Toast.makeText(this, "Saved!", Toast.LENGTH_SHORT).show()
+            finish()
+        } catch (e: Exception) {
+            Toast.makeText(this, "Invalid JSON: ${e.message}", Toast.LENGTH_LONG).show()
+        }
+    }
+    
+    // Templates
+    private fun getAppTemplate(): String {
+        return """
+{
+  "source": "app",
+  "package": "{{package}}",
+  "title": "{{title}}",
+  "text": "{{text}}",
+  "bigText": "{{bigText}}",
+  "timestamp": "{{time}}"
+}
+        """.trimIndent()
+    }
+    
+    private fun getSmsTemplate(): String {
+        return """
+{
+  "source": "sms",
+  "sender": "{{sender}}",
+  "message": "{{message}}",
+  "timestamp": "{{time}}"
+}
+        """.trimIndent()
+    }
+    
+    private fun getBnnTemplate(): String {
+         return """
+{
+  "//": "Standard BNN Output",
+  "incidentId": "{{id}}",
+  "status": "{{status}}",
+  "state": "{{state}}",
+  "county": "{{county}}",
+  "city": "{{city}}",
+  "type": "{{type}}",
+  "address": "{{address}}",
+  "details": "{{details}}",
+  "codes": {{codes}}
+}
+         """.trimIndent()
     }
 }

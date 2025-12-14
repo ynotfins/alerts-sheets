@@ -12,6 +12,10 @@ class NotificationService : NotificationListenerService() {
 
     private val scope = CoroutineScope(Dispatchers.IO)
 
+    override fun onStartCommand(intent: android.content.Intent?, flags: Int, startId: Int): Int {
+        return START_STICKY
+    }
+
     override fun onNotificationPosted(sbn: StatusBarNotification?) {
         super.onNotificationPosted(sbn)
         if (sbn == null) return

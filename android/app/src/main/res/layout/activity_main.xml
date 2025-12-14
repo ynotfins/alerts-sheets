@@ -151,16 +151,26 @@
     <Button
         android:id="@+id/btn_app_filter"
         android:layout_width="match_parent"
-        android:layout_height="56dp"
+        android:layout_height="64dp"
         android:text="Select Apps to Listen To"
-        android:background="@drawable/bg_card"
-        android:textColor="@color/apple_blue"
+        android:backgroundTint="@color/purple_700"
+        android:textColor="@color/white"
+        android:textSize="16sp"
         android:textAllCaps="false"
-        style="@style/Widget.AppCompat.Button.Borderless"
-        android:gravity="center_vertical|start"
-        android:paddingStart="16dp" 
-        android:layout_marginBottom="8dp"/>
+        style="@style/Widget.AppCompat.Button.Colored"
+        android:gravity="center"
+        android:layout_marginBottom="16dp"/>
         
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Currently Monitoring:"
+        android:textColor="@color/black"
+        android:textStyle="bold"
+        android:textSize="14sp"
+        android:layout_marginStart="12dp"
+        android:layout_marginBottom="8dp"/>
+
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -168,7 +178,6 @@
         android:textColor="@color/apple_text_secondary"
         android:textSize="12sp"
         android:gravity="center"
-        android:layout_marginTop="8dp"
         android:layout_marginBottom="8dp"/>
 
     <androidx.recyclerview.widget.RecyclerView

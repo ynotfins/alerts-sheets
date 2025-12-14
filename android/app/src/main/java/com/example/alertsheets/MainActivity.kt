@@ -88,7 +88,12 @@ class MainActivity : AppCompatActivity() {
             showAppFilterDialog()
         }
         
-        updateStatus(statusText)
+        findViewById<Button>(R.id.btn_verify).setOnClickListener {
+            runVerification()
+        }
+        
+        // Initial Check
+        runVerification()
     }
     
     // ... migrateLegacyUrl ...
@@ -251,21 +256,65 @@ class MainActivity : AppCompatActivity() {
     }
     
     private fun updateStatus(textView: TextView) {
-        val listeners = Settings.Secure.getString(contentResolver, "enabled_notification_listeners")
-        val notificationEnabled = listeners != null && listeners.contains(packageName)
+        // Now handled by runVerification
+    }
+
+    private fun runVerification() {
+        val statusLight = findViewById<android.view.View>(R.id.status_light)
+        val statusText = findViewById<TextView>(R.id.status_text)
+        val statusDetail = findViewById<TextView>(R.id.status_detail)
+        val btnVerify = findViewById<Button>(R.id.btn_verify)
         
-        val pm = getSystemService(POWER_SERVICE) as PowerManager
-        val batteryIgnored = pm.isIgnoringBatteryOptimizations(packageName)
+        btnVerify.isEnabled = false
+        btnVerify.text = "Checking..."
+        statusText.text = "Verifying..."
+        statusLight.backgroundTintList = android.content.res.ColorStateList.valueOf(android.graphics.Color.YELLOW) // Orange/Yellow
         
-        // Check Accessibility Service
-        val accessibilityEnabled = isAccessibilityServiceEnabled(this, NotificationAccessibilityService::class.java)
-        
-        val status = StringBuilder()
-        if (notificationEnabled) status.append("✓ Notifications Active\n") else status.append("✗ Notifications Disabled\n")
-        if (accessibilityEnabled) status.append("✓ Accessibility Active\n") else status.append("✗ Accessibility Disabled\n")
-        if (batteryIgnored) status.append("✓ Background Unrestricted\n") else status.append("✗ Background Restricted\n")
-        
-        textView.text = status.toString().trim()
+        kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.Main).launch {
+            val sb = StringBuilder()
+            var allGood = true
+            
+            // 1. Check Permissions
+            val listeners = Settings.Secure.getString(contentResolver, "enabled_notification_listeners")
+            val notifEnabled = listeners != null && listeners.contains(packageName)
+            if (notifEnabled) sb.append("✓ Notification Access\n") else { sb.append("✗ Notification Access Missing\n"); allGood = false }
+            
+            // 2. Check Endpoints
+            val endpoints = PrefsManager.getEndpoints(this@MainActivity).filter { it.isEnabled }
+            if (endpoints.isNotEmpty()) sb.append("✓ ${endpoints.size} Endpoint(s) Configured\n") else { sb.append("✗ No Active Endpoints\n"); allGood = false }
+            
+            // 3. Check JSON Template
+            try {
+                val t = PrefsManager.getJsonTemplate(this@MainActivity)
+                if (t.startsWith("{")) sb.append("✓ JSON Template Valid\n") else { sb.append("✗ JSON Invalid\n"); allGood = false }
+            } catch (e: Exception) {
+                sb.append("✗ JSON Template Error\n")
+                allGood = false
+            }
+
+            // 4. Test Connectivity (Ping)
+            if (allGood && endpoints.isNotEmpty()) {
+                val pingSuccess = NetworkClient.sendVerificationPing(this@MainActivity)
+                if (pingSuccess) {
+                    sb.append("✓ Connectivity Verified (Green Light)\n")
+                } else {
+                    sb.append("✗ Connection Failed (Check URL/Internet)\n")
+                    allGood = false
+                }
+            }
+            
+            statusDetail.text = sb.toString()
+            btnVerify.isEnabled = true
+            btnVerify.text = "Verify"
+            
+            if (allGood) {
+                statusText.text = "System Online"
+                statusLight.backgroundTintList = android.content.res.ColorStateList.valueOf(android.graphics.Color.GREEN)
+            } else {
+                statusText.text = "Authentication / Config Error"
+                statusLight.backgroundTintList = android.content.res.ColorStateList.valueOf(android.graphics.Color.RED)
+            }
+        }
     }
 
     private fun isAccessibilityServiceEnabled(context: Context, service: Class<*>): Boolean {

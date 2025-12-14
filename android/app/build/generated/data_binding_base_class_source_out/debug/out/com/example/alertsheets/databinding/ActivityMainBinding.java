@@ -31,24 +31,36 @@ public final class ActivityMainBinding implements ViewBinding {
   public final Button btnPermissions;
 
   @NonNull
+  public final Button btnVerify;
+
+  @NonNull
   public final RecyclerView recyclerApps;
 
   @NonNull
   public final RecyclerView recyclerEndpoints;
 
   @NonNull
+  public final TextView statusDetail;
+
+  @NonNull
+  public final View statusLight;
+
+  @NonNull
   public final TextView statusText;
 
   private ActivityMainBinding(@NonNull LinearLayout rootView, @NonNull Button btnAddEndpoint,
-      @NonNull Button btnAppFilter, @NonNull Button btnPermissions,
+      @NonNull Button btnAppFilter, @NonNull Button btnPermissions, @NonNull Button btnVerify,
       @NonNull RecyclerView recyclerApps, @NonNull RecyclerView recyclerEndpoints,
-      @NonNull TextView statusText) {
+      @NonNull TextView statusDetail, @NonNull View statusLight, @NonNull TextView statusText) {
     this.rootView = rootView;
     this.btnAddEndpoint = btnAddEndpoint;
     this.btnAppFilter = btnAppFilter;
     this.btnPermissions = btnPermissions;
+    this.btnVerify = btnVerify;
     this.recyclerApps = recyclerApps;
     this.recyclerEndpoints = recyclerEndpoints;
+    this.statusDetail = statusDetail;
+    this.statusLight = statusLight;
     this.statusText = statusText;
   }
 
@@ -97,6 +109,12 @@ public final class ActivityMainBinding implements ViewBinding {
         break missingId;
       }
 
+      id = R.id.btn_verify;
+      Button btnVerify = ViewBindings.findChildViewById(rootView, id);
+      if (btnVerify == null) {
+        break missingId;
+      }
+
       id = R.id.recycler_apps;
       RecyclerView recyclerApps = ViewBindings.findChildViewById(rootView, id);
       if (recyclerApps == null) {
@@ -109,6 +127,18 @@ public final class ActivityMainBinding implements ViewBinding {
         break missingId;
       }
 
+      id = R.id.status_detail;
+      TextView statusDetail = ViewBindings.findChildViewById(rootView, id);
+      if (statusDetail == null) {
+        break missingId;
+      }
+
+      id = R.id.status_light;
+      View statusLight = ViewBindings.findChildViewById(rootView, id);
+      if (statusLight == null) {
+        break missingId;
+      }
+
       id = R.id.status_text;
       TextView statusText = ViewBindings.findChildViewById(rootView, id);
       if (statusText == null) {
@@ -116,7 +146,8 @@ public final class ActivityMainBinding implements ViewBinding {
       }
 
       return new ActivityMainBinding((LinearLayout) rootView, btnAddEndpoint, btnAppFilter,
-          btnPermissions, recyclerApps, recyclerEndpoints, statusText);
+          btnPermissions, btnVerify, recyclerApps, recyclerEndpoints, statusDetail, statusLight,
+          statusText);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

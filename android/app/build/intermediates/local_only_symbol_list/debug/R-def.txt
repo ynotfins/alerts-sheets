@@ -14,12 +14,14 @@ color teal_700
 color white
 drawable bg_card
 drawable ic_launcher_foreground
+drawable status_indicator
 id btn_add_endpoint
 id btn_add_mapping
 id btn_add_static
 id btn_app_filter
 id btn_delete
 id btn_permissions
+id btn_verify
 id input_name
 id input_target_key
 id input_url
@@ -28,6 +30,8 @@ id recycler_apps
 id recycler_endpoints
 id spinner_source
 id static_container
+id status_detail
+id status_light
 id status_text
 id switch_enabled
 id text_app_name

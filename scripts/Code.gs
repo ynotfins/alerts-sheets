@@ -9,6 +9,13 @@ function doPost(e) {
     // Parse Incoming Data
     const data = JSON.parse(e.postData.contents);
 
+    // 0. Verification Ping (App Health Check)
+    if (data.type === "verify") {
+      return ContentService.createTextOutput(
+        JSON.stringify({ result: "verified" })
+      ).setMimeType(ContentService.MimeType.JSON);
+    }
+
     // Key Fields
     const incidentId = data.incidentId ? data.incidentId.toString().trim() : "";
     const incomingCodes =

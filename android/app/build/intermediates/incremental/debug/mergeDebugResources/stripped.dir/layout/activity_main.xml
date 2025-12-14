@@ -34,13 +34,48 @@
         android:padding="16dp"
         android:layout_marginBottom="24dp">
 
-        <TextView
-            android:id="@+id/status_text"
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Status: Checking..."
-            android:textColor="@color/black"
-            android:lineSpacingExtra="4dp"/>
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+            
+            <View
+                android:id="@+id/status_light"
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:background="@drawable/status_indicator"
+                android:backgroundTint="@color/apple_red"
+                android:layout_marginEnd="12dp"/>
+
+            <TextView
+                android:id="@+id/status_text"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:text="System Offline"
+                android:textColor="@color/black"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+                
+            <Button
+                android:id="@+id/btn_verify"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Verify"
+                style="@style/Widget.AppCompat.Button.Colored" 
+                android:backgroundTint="@color/apple_blue"
+                android:textColor="@android:color/white"/>
+        </LinearLayout>
+        
+        <TextView
+             android:id="@+id/status_detail"
+             android:layout_marginTop="8dp"
+             android:layout_width="match_parent"
+             android:layout_height="wrap_content"
+             android:text="Checking configuration..."
+             android:textColor="@color/apple_text_secondary" 
+             android:textSize="12sp" />
             
         <View
             android:layout_width="match_parent"

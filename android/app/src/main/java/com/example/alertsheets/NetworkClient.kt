@@ -61,4 +61,8 @@ object NetworkClient {
         val jsonString = gson.toJson(data)
         return sendJson(context, jsonString)
     }
+    suspend fun sendVerificationPing(context: Context): Boolean {
+        val pingJson = "{\"type\": \"verify\"}"
+        return sendJson(context, pingJson)
+    }
 }

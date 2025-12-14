@@ -119,6 +119,25 @@
             android:layout_marginStart="12dp"/>
             
         <Button
+            android:id="@+id/btn_select_apps"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Select Apps"
+            android:backgroundTint="#673AB7"
+            android:textColor="#FFFFFF" />
+
+        <Button
+            android:id="@+id/btn_view_logs"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="View Logs"
+            android:layout_marginStart="8dp"
+            android:backgroundTint="#009688"
+            android:textColor="#FFFFFF" />
+
+        <Button
             android:id="@+id/btn_add_endpoint"
             android:layout_width="wrap_content"
             android:layout_height="48dp" 

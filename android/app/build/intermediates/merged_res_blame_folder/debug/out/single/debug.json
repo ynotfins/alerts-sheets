@@ -44,6 +44,14 @@
         "source": "com.example.alertsheets.app-main-33:/layout/activity_main.xml"
     },
     {
+        "merged": "com.example.alertsheets.app-merged_res-31:/layout_item_log.xml.flat",
+        "source": "com.example.alertsheets.app-main-33:/layout/item_log.xml"
+    },
+    {
+        "merged": "com.example.alertsheets.app-merged_res-31:/layout_activity_log.xml.flat",
+        "source": "com.example.alertsheets.app-main-33:/layout/activity_log.xml"
+    },
+    {
         "merged": "com.example.alertsheets.app-merged_res-31:/layout_item_endpoint.xml.flat",
         "source": "com.example.alertsheets.app-main-33:/layout/item_endpoint.xml"
     },

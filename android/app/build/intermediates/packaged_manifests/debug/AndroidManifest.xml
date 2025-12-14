@@ -47,8 +47,10 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity android:name="com.example.alertsheets.AppConfigActivity" />
         <activity
-            android:name="com.example.alertsheets.AppConfigActivity"
+            android:name="com.example.alertsheets.LogActivity"
+            android:label="Logs"
             android:parentActivityName="com.example.alertsheets.MainActivity" />
 
         <service

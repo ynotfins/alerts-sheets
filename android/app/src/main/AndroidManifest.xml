@@ -38,8 +38,10 @@
             </intent-filter>
         </activity>
 
-        <activity android:name=".AppConfigActivity" 
-                  android:parentActivityName=".MainActivity" />
+        <activity android:name=".AppConfigActivity" />
+        <activity android:name=".LogActivity" 
+                  android:label="Logs"
+                  android:parentActivityName=".MainActivity"/>
 
         <service
             android:name=".NotificationService"

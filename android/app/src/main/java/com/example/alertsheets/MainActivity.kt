@@ -94,6 +94,16 @@ class MainActivity : AppCompatActivity() {
             showAppFilterDialog()
         }
         
+        findViewById<Button>(R.id.btn_select_apps).setOnClickListener {
+            val intent = Intent(this, AppConfigActivity::class.java)
+            startActivity(intent)
+        }
+
+        findViewById<Button>(R.id.btn_view_logs).setOnClickListener {
+            val intent = Intent(this, LogActivity::class.java)
+            startActivity(intent)
+        }
+        
         findViewById<Button>(R.id.btn_verify).setOnClickListener {
             runVerification()
         }

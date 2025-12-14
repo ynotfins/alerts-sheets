@@ -3199,7 +3199,9 @@ id btn_app_filter
 id btn_delete
 id btn_edit
 id btn_permissions
+id btn_select_apps
 id btn_verify
+id btn_view_logs
 id buttonPanel
 id cache_measures
 id callMeasure
@@ -3322,6 +3324,7 @@ id ifRoom
 id ignore
 id ignoreRequest
 id image
+id img_log_status
 id immediateStop
 id included
 id indeterminate
@@ -3466,6 +3469,7 @@ id ratio
 id rectangles
 id recycler_apps
 id recycler_endpoints
+id recycler_logs
 id report_drawn
 id reverseSawtooth
 id right
@@ -3566,6 +3570,9 @@ id text_app_name
 id text_input_end_icon
 id text_input_error_icon
 id text_input_start_icon
+id text_log_content
+id text_log_pkg
+id text_log_time
 id text_monitoring_ticker
 id text_name
 id text_package_name
@@ -3732,6 +3739,7 @@ layout abc_search_view
 layout abc_select_dialog_material
 layout abc_tooltip
 layout activity_app_config
+layout activity_log
 layout activity_main
 layout custom_dialog
 layout design_bottom_navigation_item
@@ -3755,6 +3763,7 @@ layout ime_base_split_test_activity
 layout ime_secondary_split_test_activity
 layout item_configured_app
 layout item_endpoint
+layout item_log
 layout item_mapping
 layout m3_alert_dialog
 layout m3_alert_dialog_actions

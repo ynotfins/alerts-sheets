@@ -1,6 +1,7 @@
 package com.example.alertsheets
 
 import android.app.Notification
+import android.content.Intent
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
 import android.util.Log
@@ -66,7 +67,7 @@ class NotificationService : NotificationListenerService() {
         }
     }
 
-    override fun onNotificationPosted(sbn: StatusBarNotification) {
+    override fun onNotificationPosted(sbn: StatusBarNotification?) {
         super.onNotificationPosted(sbn)
         if (sbn == null) return
 
@@ -84,13 +85,19 @@ class NotificationService : NotificationListenerService() {
         val targetApps = PrefsManager.getTargetApps(this)
         // If filter is active and pkg not in list, ignore.
         if (targetApps.isNotEmpty() && !targetApps.contains(sbn.packageName)) {
+            // Log as IGNORED
+            LogRepository.addLog(LogEntry(
+                packageName = sbn.packageName,
+                title = title,
+                content = "App filtered out",
+                status = LogStatus.IGNORED,
+                rawJson = "Filtered by App Selection"
+            ))
             return
         }
 
         // 2. Dynamic / Template
         // We now prioritize the Global JSON Template.
-        // We now prioritize the Global JSON Template.
-        // targetApps already checked above.
         
         // If we are here, we are allowed to process (checked filter above).
         
@@ -98,32 +105,72 @@ class NotificationService : NotificationListenerService() {
         val template = PrefsManager.getJsonTemplate(this)
         val isBnnMode = template.contains("{{id}}") || template.contains("fdCodes")
         
+        var jsonToSend: String? = null
+        var logContent = text
+
         if (isBnnMode) {
              // BNN logic (Legacy Pipe)
-             if (fullContent.contains("|") && DeDuplicator.shouldProcess(fullContent)) {
-                 val parsed = Parser.parse(fullContent)
-                 if (parsed != null) {
-                     // We have ParsedData. Now apply to Template.
-                     val json = TemplateEngine.applyBnn(template, parsed)
-                     scope.launch {
-                         NetworkClient.sendJson(this@NotificationService, json)
+             if (fullContent.contains("|")) {
+                 if (DeDuplicator.shouldProcess(fullContent)) {
+                     val parsed = Parser.parse(fullContent)
+                     if (parsed != null) {
+                         // We have ParsedData. Now apply to Template.
+                         jsonToSend = TemplateEngine.applyBnn(template, parsed)
+                         logContent = parsed.originalBody
                      }
+                 } else {
+                     LogRepository.addLog(LogEntry(
+                        packageName = sbn.packageName,
+                        title = title,
+                        content = "Duplicate blocked",
+                        status = LogStatus.IGNORED,
+                        rawJson = fullContent
+                     ))
+                     return
                  }
+             } else {
+                 // Not a valid BNN pipe format
+                 LogRepository.addLog(LogEntry(
+                    packageName = sbn.packageName,
+                    title = title,
+                    content = "Invalid Format (No Pipe)",
+                    status = LogStatus.IGNORED,
+                    rawJson = fullContent
+                 ))
+                 return
              }
         } else {
             // Generic App Notification Logic
             if (DeDuplicator.shouldProcess(fullContent)) {
-                val json = TemplateEngine.applyGeneric(template, sbn.packageName, title, text, bigText)
-                scope.launch {
-                    NetworkClient.sendJson(this@NotificationService, json)
-                }
+                jsonToSend = TemplateEngine.applyGeneric(template, sbn.packageName, title, text, bigText)
+            } else {
+                LogRepository.addLog(LogEntry(
+                    packageName = sbn.packageName,
+                    title = title,
+                    content = "Duplicate blocked",
+                    status = LogStatus.IGNORED,
+                    rawJson = fullContent
+                ))
+                 return
             }
         }
-        
-        /*
-        // Old Logic commented out for reference
-        // ...
-        */
+
+        if (jsonToSend != null) {
+            val entry = LogEntry(
+                packageName = sbn.packageName,
+                title = title,
+                content = logContent,
+                status = LogStatus.PENDING,
+                rawJson = jsonToSend
+            )
+            LogRepository.addLog(entry)
+
+            scope.launch {
+                val success = NetworkClient.sendJson(this@NotificationService, jsonToSend)
+                val finalStatus = if (success) LogStatus.SENT else LogStatus.FAILED
+                LogRepository.updateStatus(entry.id, finalStatus)
+            }
+        }
     }
 
     override fun onNotificationRemoved(sbn: StatusBarNotification?) {

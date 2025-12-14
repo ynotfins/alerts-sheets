@@ -94,69 +94,79 @@ class MainActivity : AppCompatActivity() {
     // ... migrateLegacyUrl ...
 
     private fun showAppFilterDialog() {
-        val pm = packageManager
-        // 1. Get ALL installed packages (requires QUERY_ALL_PACKAGES)
-        val allPackages = pm.getInstalledPackages(0)
-        
-        val appNames = mutableListOf<String>()
-        val packageNames = mutableListOf<String>()
-        
-        // 2. Filter list to avoid showing 500+ system services
-        // We show:
-        // - Non-System Apps (User installed)
-        // - System Apps that have a launch intent (regular apps like Gallery, Phone)
-        // - Or explicitly whitelisted known system apps if needed.
-        
-        allPackages.forEach { pkgInfo ->
-            val isSystem = (pkgInfo.applicationInfo.flags and android.content.pm.ApplicationInfo.FLAG_SYSTEM) != 0
-            val intent = pm.getLaunchIntentForPackage(pkgInfo.packageName)
-            val hasLauncher = intent != null
-            
-            // Show if it's a user app OR a system app with a launcher
-            if (!isSystem || hasLauncher) {
-                appNames.add(pkgInfo.applicationInfo.loadLabel(pm).toString())
-                packageNames.add(pkgInfo.packageName)
-            }
-        }
-        
-        // Sort alphabetically
-        val sortedIndices = appNames.mapIndexed { index, name -> index to name }
-            .sortedBy { it.second.lowercase() }
-        
-        val sortedAppNames = sortedIndices.map { it.second }
-        val sortedPackageNames = sortedIndices.map { packageNames[it.first] }
-        
-        val currentTargets = PrefsManager.getTargetApps(this)
-        val selectedIndices = mutableListOf<Int>()
-        val checkedItems = BooleanArray(sortedPackageNames.size)
-        
-        sortedPackageNames.forEachIndexed { index, pkg ->
-            if (currentTargets.contains(pkg)) {
-                checkedItems[index] = true
-                selectedIndices.add(index)
-            }
-        }
-        
-        AlertDialog.Builder(this)
-            .setTitle("Select Apps to Listen To")
-            .setMultiChoiceItems(sortedAppNames.toTypedArray(), checkedItems) { _, which, isChecked ->
-                if (isChecked) {
-                    selectedIndices.add(which)
-                } else {
-                    selectedIndices.remove(which)
-                }
-            }
-            .setPositiveButton("Save") { _, _ ->
-                val newTargets = selectedIndices.map { sortedPackageNames[it] }.toSet()
-                PrefsManager.saveTargetApps(this, newTargets)
-                Toast.makeText(this, "Saved ${newTargets.size} apps", Toast.LENGTH_SHORT).show()
-                // Refresh list
-                if (::appsAdapter.isInitialized) {
-                    appsAdapter.updateData(newTargets.toList())
-                }
-            }
-            .setNegativeButton("Cancel", null)
+        val progressBar = android.widget.ProgressBar(this)
+        progressBar.isIndeterminate = true
+        val progressDialog = AlertDialog.Builder(this)
+            .setTitle("Loading Apps...")
+            .setView(progressBar)
+            .setCancelable(false)
             .show()
+
+        Thread {
+            val pm = packageManager
+            // 1. Get ALL installed packages (task may be heavy)
+            val allPackages = pm.getInstalledPackages(0)
+
+            val appNames = mutableListOf<String>()
+            val packageNames = mutableListOf<String>()
+
+            allPackages.forEach { pkgInfo ->
+                val isSystem = (pkgInfo.applicationInfo.flags and android.content.pm.ApplicationInfo.FLAG_SYSTEM) != 0
+                val intent = pm.getLaunchIntentForPackage(pkgInfo.packageName)
+                val hasLauncher = intent != null
+
+                if (!isSystem || hasLauncher) {
+                    try {
+                        appNames.add(pkgInfo.applicationInfo.loadLabel(pm).toString())
+                        packageNames.add(pkgInfo.packageName)
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
+                }
+            }
+
+            // Sort alphabetically
+            val sortedIndices = appNames.mapIndexed { index, name -> index to name }
+                .sortedBy { it.second.lowercase() }
+
+            val sortedAppNames = sortedIndices.map { it.second }
+            val sortedPackageNames = sortedIndices.map { packageNames[it.first] }
+
+            val currentTargets = PrefsManager.getTargetApps(this@MainActivity)
+            val selectedIndices = mutableListOf<Int>()
+            val checkedItems = BooleanArray(sortedPackageNames.size)
+
+            sortedPackageNames.forEachIndexed { index, pkg ->
+                if (currentTargets.contains(pkg)) {
+                    checkedItems[index] = true
+                    selectedIndices.add(index)
+                }
+            }
+            
+            runOnUiThread {
+                progressDialog.dismiss()
+                
+                AlertDialog.Builder(this@MainActivity)
+                    .setTitle("Select Apps to Listen To")
+                    .setMultiChoiceItems(sortedAppNames.toTypedArray(), checkedItems) { _, which, isChecked ->
+                        if (isChecked) {
+                            selectedIndices.add(which)
+                        } else {
+                            selectedIndices.remove(which)
+                        }
+                    }
+                    .setPositiveButton("Save") { _, _ ->
+                        val newTargets = selectedIndices.map { sortedPackageNames[it] }.toSet()
+                        PrefsManager.saveTargetApps(this@MainActivity, newTargets)
+                        Toast.makeText(this@MainActivity, "Saved ${newTargets.size} apps", Toast.LENGTH_SHORT).show()
+                        if (::appsAdapter.isInitialized) {
+                            appsAdapter.updateData(newTargets.toList())
+                        }
+                    }
+                    .setNegativeButton("Cancel", null)
+                    .show()
+            }
+        }.start()
     }
 
     

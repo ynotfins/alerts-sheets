@@ -61,33 +61,35 @@ function doPost(e) {
     }
 
     if (foundRow !== -1) {
-      // --- UPDATE EXISTING ROW ---
+      // --- UPDATE EXISTING ROW (APPEND MODE) ---
 
-      // 1. Update Incident Text (Column H -> Index 8 (Column I))
-      // User wants: APPEND " • [Date Time] Message"
-      // Wait, user said: "put a space bullet space then the update message".
+      // 1. Status (Col 1/A): Append "Update" on next line
+      const statusCell = sheet.getRange(foundRow, 1);
+      const currentStatus = statusCell.getValue();
+      const newStatus = data.status || "Update";
+      statusCell.setValue(currentStatus + "\n" + newStatus);
 
-      const incidentCell = sheet.getRange(foundRow, 9); // Column I
-      const currentText = incidentCell.getValue();
-      const appendText = ` • ${newIncidentText}`;
-      incidentCell.setValue(currentText + appendText);
+      // 2. Timestamp (Col 2/B): Append New Timestamp on next line
+      const timeCell = sheet.getRange(foundRow, 2);
+      const currentTime = timeCell.getValue();
+      timeCell.setValue(currentTime + "\n" + formattedTime);
 
-      // 2. Update Incident Type (Column G -> Index 7 (Column H))
-      // User said "Alert type should get added the same way"
-      const typeCell = sheet.getRange(foundRow, 8); // Column H
+      // 3. Incident Type (Col 8/H): Append only if different or just consistent
+      const typeCell = sheet.getRange(foundRow, 8);
       const currentType = typeCell.getValue();
       const newType = data.incidentType || "";
-      if (newType && !currentType.includes(newType)) {
-        typeCell.setValue(currentType + ` • ${newType}`);
+      if (newType) {
+        typeCell.setValue(currentType + "\n" + newType);
       }
 
-      // 3. Update Status (Column A -> Col 1) and Timestamp (Column B -> Col 2)
-      sheet.getRange(foundRow, 1).setValue("Update");
-      sheet.getRange(foundRow, 2).setValue(formattedTime);
+      // 4. Incident Details (Col 9/I): Append details on next line
+      const incidentCell = sheet.getRange(foundRow, 9);
+      const currentText = incidentCell.getValue();
+      // Only append the details content, timestamp is already in Col B
+      incidentCell.setValue(currentText + "\n" + cleanDetail);
 
-      // 4. Merge FD Codes (Column K onwards -> Col 11+)
+      // 5. FD Codes Logic (Col 11+/K+): Merge Unique ONLY
       const maxCols = sheet.getLastColumn();
-      // Only read if there are columns
       let existingCodeValues = [];
       if (maxCols >= 11) {
         const codeRange = sheet.getRange(foundRow, 11, 1, maxCols - 10);
@@ -95,22 +97,26 @@ function doPost(e) {
       }
 
       let allCodes = new Set(existingCodeValues.map(String));
-      incomingCodes.forEach((c) => allCodes.add(c));
 
-      // Filter BNN/BNNDESK just in case
+      incomingCodes.forEach((c) => {
+        // Only add if it's NOT just the ID again (sometimes parser duplication)
+        if (c !== incidentId) {
+          allCodes.add(c);
+        }
+      });
+
       const uniqueCodes = Array.from(allCodes).filter(
         (c) =>
+          c !== "" &&
           c.toLowerCase() !== "bnn" &&
           c.toLowerCase() !== "bnndesk" &&
           !c.toLowerCase().includes("bnn")
       );
 
-      // Clear old codes region first
+      // Clear & Write (Same as before, horizontal expansion ok for codes)
       if (maxCols >= 11) {
         sheet.getRange(foundRow, 11, 1, maxCols - 10).clearContent();
       }
-
-      // Write new set
       if (uniqueCodes.length > 0) {
         sheet
           .getRange(foundRow, 11, 1, uniqueCodes.length)

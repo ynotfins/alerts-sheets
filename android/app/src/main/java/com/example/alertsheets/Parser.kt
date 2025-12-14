@@ -5,119 +5,149 @@ import java.util.regex.Pattern
 object Parser {
 
     fun parse(fullText: String): ParsedData? {
-        // Normalize line breaks
         val text = fullText.replace("\r\n", "\n")
         val lines = text.split("\n").filter { it.isNotBlank() }
-
         if (lines.isEmpty()) return null
         
-        // Find the content line (contains pipes)
         val contentLine = lines.firstOrNull { it.contains("|") } ?: return null
-        
-        // Attempt to find status/date from lines before content
-        var status = ""
-        var timestamp = ""
-        val contentIndex = lines.indexOf(contentLine)
-        if (contentIndex > 0) status = lines[0]
-        if (contentIndex > 1) timestamp = lines[1]
-        
         val parts = contentLine.split("|").map { it.trim() }
         
-        // BNN Format Strategy:
-        // We anchor off the known distinct fields at the end: ID and FD Codes.
+        var status = if (lines.indexOf(contentLine) > 0) lines[0] else ""
+        if (status.isBlank() && fullText.startsWith("Update")) status = "Update"
+        if (status.isBlank() && fullText.startsWith("New Incident")) status = "New Incident"
         
-        // 1. Alert ID: Always 7 digit number starting with 1, usually with # prefix or just at the end.
-        // Regex: #?1\d{6}
-        val idPattern = Pattern.compile("#?(1\\d{6})")
-        var incidentId = ""
+        // --- 1. State & Location Parsing ---
+        // Ex: "NJ", "PA", "NY", "U/D NY"
+        var state = parts.getOrElse(0) { "" }
+        if (state.startsWith("U/D", ignoreCase = true)) {
+            state = state.removePrefix("U/D").trim()
+            if (status.isBlank()) status = "Update"
+        }
+        
+        // Borough Check for NY
+        // List of boroughs where county is skipped/implied
+        val boroughs = setOf("Queens", "Bronx", "Brooklyn", "Manhattan", "Staten Island", "New York")
+        var county = ""
+        var city = ""
+        var offset = 1
+
+        val loc1 = parts.getOrElse(1) { "" }
+        val loc2 = parts.getOrElse(2) { "" }
+
+        if (state.equals("NY", ignoreCase = true) && boroughs.any { loc1.equals(it, ignoreCase = true) }) {
+            // "NY | Queens | Type..." -> County skipped/merged
+            county = "" // Or use loc1 as county if preferred, but user said "missing county field"
+            city = loc1
+            offset = 2
+        } else {
+            // Standard: State | County | City
+            county = loc1
+            city = loc2
+            offset = 3
+        }
+
+        // --- 2. Anchor from End (ID, Codes, Source) ---
         var idIndex = -1
+        var incidentId = ""
         
-        // Scan from end to start to find ID
-        for (i in parts.indices.reversed()) {
-            val matcher = idPattern.matcher(parts[i])
-            if (matcher.find()) {
-                incidentId = matcher.group(1) ?: parts[i]
-                if (!incidentId.startsWith("#")) incidentId = "#$incidentId"
-                idIndex = i
-                break
+        // Find ID (last item usually)
+        if (parts.isNotEmpty()) {
+            val last = parts.last()
+            if (last.startsWith("#") || (last.length > 5 && last.all { it.isDigit() })) {
+                incidentId = if(last.startsWith("#")) last else "#$last"
+                idIndex = parts.lastIndex
             }
         }
         
-        // 2. FD Codes: Separated by slashes. Can be mixed case.
-        // Example: BNNDESK/njvx6/nj7ue
-        var fdCodes = listOf<String>()
-        var codesIndex = -1
+        // Find Incident Details vs Middle Fields
+        // Scan backwards from ID (or end) to Offset
+        // Look for the "Source" tag "<C> BNN" or split by length
         
-        // Search for the codes field (usually before ID)
-        if (idIndex != -1) {
-            // Check immediate predecessor for codes or search backwards
-            for (i in parts.indices.reversed()) {
-                if (i == idIndex) continue
-                // It must contain a slash to be a list of codes, or looks like a short code
-                // Relaxed check: contains / or matches typical code pattern
-                if (parts[i].contains("/") || (parts[i].length < 10 && parts[i].any { it.isDigit() })) {
-                    // Split and clean
-                    val candidates = parts[i].split("/").map { it.trim() }
-                    
-                    // Filter out BNN, BNNDESK, empty, or pure punctuation
-                    val validCodes = candidates.filter { code ->
-                        val lower = code.lowercase()
-                        lower.isNotBlank() && 
-                        lower != "bnn" && 
-                        lower != "bnndesk" &&
-                        lower != "<c>" && 
-                        !lower.contains("bnn") // catch desk if specific
-                    }
-                    
-                    if (validCodes.isNotEmpty()) {
-                        fdCodes = validCodes
-                        codesIndex = i
-                        break
-                    }
+        var sourceIndex = -1
+        var codesIndex = -1
+        var incidentIndex = -1
+        val endIndex = if (idIndex != -1) idIndex - 1 else parts.lastIndex
+        
+        // Heuristic: Incident details is usually the longest content block before the tags
+        var maxLen = 0
+        var maxLenIndex = -1
+        
+        for (i in offset..endIndex) {
+            val p = parts[i]
+            if (p.contains("BNN", ignoreCase = true) || p.contains("<C>", ignoreCase = true)) {
+                sourceIndex = i
+            }
+            // Codes often have slashes or look like "ny123"
+            if (p.contains("/") || (p.length < 10 && p.matches(Regex(".*\\d.*")) && !p.contains(" "))) {
+                 // Likely codes, but careful not to confuse with Box Number (e.g. QN-5610)
+                 // Codes are usually very late in the string
+                 if (i > offset + 2) codesIndex = i 
+            }
+            
+            if (p.length > maxLen && !p.contains("BNN") && !p.contains("#")) {
+                maxLen = p.length
+                maxLenIndex = i
+            }
+        }
+        
+        // Assume longest part is the Incident Details
+        if (maxLen > 20) {
+             incidentIndex = maxLenIndex
+        }
+        
+        // --- 3. Extract Middle Fields (Type, Address, Box) ---
+        // Everything between 'offset' and 'incidentIndex'
+        var address = ""
+        var incidentType = ""
+        var extra = "" // Box codes etc
+        
+        val middleEnd = if (incidentIndex != -1) incidentIndex else endIndex
+        
+        if (middleEnd > offset) {
+            val middleParts = parts.subList(offset, middleEnd)
+            
+            for (part in middleParts) {
+                // Heuristic: Address starts with Digit
+                if (part.matches(Regex("^\\d+.*"))) {
+                     if (part.length < 10 && part.contains("-")) {
+                         // Likely Box Number (QN-5610) -> Add to Type or Extra
+                         extra = if(extra.isEmpty()) part else "$extra $part"
+                     } else {
+                         address = part
+                     }
+                } else {
+                     // Likely Incident Type (Text)
+                     // Check if it's strictly alphanumeric codes
+                     if (part.matches(Regex("^[A-Z]+\\d+$"))) {
+                         extra = if(extra.isEmpty()) part else "$extra $part"
+                     } else {
+                         incidentType = if(incidentType.isEmpty()) part else "$incidentType - $part"
+                     }
                 }
             }
         }
         
-        // 3. Map the Standard Fields (State, County, City, Address, Type, Details)
+        val details = if (incidentIndex != -1) parts[incidentIndex] else ""
         
-        var state = parts.getOrElse(0) { "" }
-        if (state.startsWith("U/D ")) state = state.removePrefix("U/D ").trim()
-        
-        val county = parts.getOrElse(1) { "" }
-        val city = parts.getOrElse(2) { "" }
-        
-        val p3 = parts.getOrElse(3) { "" }
-        val p4 = parts.getOrElse(4) { "" }
-        
-        var address = ""
-        var incidentType = ""
-        
-        // Contextual Guess: Address usually starts with digit
-        if (p3.firstOrNull()?.isDigit() == true) {
-            address = p3
-            incidentType = p4
-        } else {
-            incidentType = p3
-            address = p4
+        // Append Box/Extra to Type for clarity
+        if (extra.isNotEmpty()) {
+            incidentType = if (incidentType.isNotEmpty()) "$incidentType ($extra)" else extra
         }
         
-        // Details: Usually index 5, but if we found codes at 5, it might be earlier?
-        // If codesIndex is 5, details might be 4?
-        // Let's stick to safe get for now details is everything else.
-        var details = parts.getOrElse(5) { "" }
-        
-        // Cleanup: If Details is just the code string or Source, clear it.
-        if (details.contains("/") && details.contains("BNN")) {
-             // likely misidentified codes as details
-             // check if we have a real details string earlier
+        // Extracted Codes
+        var fdCodesList = listOf<String>()
+        // If we found a block with slashes, strip it
+        for (i in offset..parts.lastIndex) {
+             if (i == incidentIndex) continue
+             if (parts[i].contains("/") && i != offset) { // Avoid city/county if they had slashes (rare)
+                  fdCodesList = parts[i].split("/").map { it.trim() }
+                         .filter { it.isNotBlank() && !it.equals("BNN", ignoreCase = true) && !it.equals("BNNDESK", ignoreCase = true) && !it.contains("BNN", ignoreCase = true) }
+             }
         }
-        
-        // Final cleanup of codes (User said "remove BNN and BNNDESK")
-        fdCodes = fdCodes.filter { !it.equals("bnn", ignoreCase = true) && !it.equals("bnndesk", ignoreCase = true) }
-        
+
         return ParsedData(
             status = status,
-            timestamp = timestamp,
+            timestamp = "", // Server handles time
             incidentId = incidentId,
             state = state,
             county = county,
@@ -126,7 +156,7 @@ object Parser {
             incidentType = incidentType,
             incidentDetails = details,
             originalBody = fullText,
-            fdCodes = fdCodes
+            fdCodes = fdCodesList
         )
     }
 }

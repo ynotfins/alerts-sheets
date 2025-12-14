@@ -1,6 +1,7 @@
 D:\github\alerts-sheets\android\app\src\main\java\com\example\alertsheets\AppConfigActivity.kt
 D:\github\alerts-sheets\android\app\src\main\java\com\example\alertsheets\DataExtractor.kt
 D:\github\alerts-sheets\android\app\src\main\java\com\example\alertsheets\EndpointsAdapter.kt
+D:\github\alerts-sheets\android\app\src\main\java\com\example\alertsheets\TemplateEngine.kt
 D:\github\alerts-sheets\android\app\src\main\java\com\example\alertsheets\NotificationService.kt
 D:\github\alerts-sheets\android\app\src\main\java\com\example\alertsheets\Endpoint.kt
 D:\github\alerts-sheets\android\app\src\main\java\com\example\alertsheets\DeDuplicator.kt

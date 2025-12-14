@@ -17,7 +17,7 @@ object NetworkClient {
     private val gson = Gson()
     private val JSON = "application/json; charset=utf-8".toMediaType()
 
-    suspend fun sendData(context: Context, data: Any): Boolean {
+    suspend fun sendJson(context: Context, jsonString: String): Boolean {
         // Get ALL endpoints that are enabled
         val endpoints = PrefsManager.getEndpoints(context).filter { it.isEnabled }
 
@@ -28,11 +28,10 @@ object NetworkClient {
 
         // Send to all in parallel
         return withContext(Dispatchers.IO) {
+            val body = jsonString.toRequestBody(JSON)
             val jobs = endpoints.map { endpoint ->
                 async {
                     try {
-                        val jsonBody = gson.toJson(data)
-                        val body = jsonBody.toRequestBody(JSON)
                         val request = Request.Builder()
                             .url(endpoint.url)
                             .post(body)
@@ -53,9 +52,13 @@ object NetworkClient {
                     }
                 }
             }
-            // Return true if at least one succeeded? Or all? Let's say at least one to count as "success".
             val results = jobs.awaitAll()
             results.any { it }
         }
+    }
+
+    suspend fun sendData(context: Context, data: Any): Boolean {
+        val jsonString = gson.toJson(data)
+        return sendJson(context, jsonString)
     }
 }

@@ -37,39 +37,42 @@ class NotificationService : NotificationListenerService() {
             return
         }
 
-        // 2. Dynamic Config Check
-        val config = PrefsManager.getAppConfig(this, sbn.packageName)
-        if (config.mappings.isNotEmpty() || config.staticFields.isNotEmpty()) {
-            // Use Dynamic Logic ensuring safety
-            try {
-                val dynamicData = DataExtractor.extract(this, sbn, config)
-                 if (DeDuplicator.shouldProcess(dynamicData.toString())) {
+        // 2. Dynamic / Template
+        // We now prioritize the Global JSON Template.
+        val targetApps = PrefsManager.getTargetApps(this)
+        
+        // If we are here, we are allowed to process (checked filter above).
+        
+        // Load Template
+        val template = PrefsManager.getJsonTemplate(this)
+        val isBnnMode = template.contains("{{id}}") || template.contains("fdCodes")
+        
+        if (isBnnMode) {
+             // BNN logic (Legacy Pipe)
+             if (fullContent.contains("|") && DeDuplicator.shouldProcess(fullContent)) {
+                 val parsed = Parser.parse(fullContent)
+                 if (parsed != null) {
+                     // We have ParsedData. Now apply to Template.
+                     val json = TemplateEngine.applyBnn(template, parsed)
                      scope.launch {
-                         NetworkClient.sendData(this@NotificationService, dynamicData)
+                         NetworkClient.sendJson(this@NotificationService, json)
                      }
                  }
-            } catch (e: Exception) {
-                Log.e("NotificationService", "Error in dynamic extraction", e)
-            }
-             return
-        }
-
-        // 3. Fallback: Legacy Pipe Logic (Only if no config exists)
-        // Parse logic
-        // We only proceed if it looks like one of our target notifications (contains pipes)
-        if (fullContent.contains("|")) {
+             }
+        } else {
+            // Generic App Notification Logic
             if (DeDuplicator.shouldProcess(fullContent)) {
-                val parsed = Parser.parse(fullContent)
-                if (parsed != null) {
-                    Log.d("NotificationService", "Parsed valid data: ${parsed.incidentId}")
-                    scope.launch {
-                        NetworkClient.sendData(this@NotificationService, parsed)
-                    }
+                val json = TemplateEngine.applyGeneric(template, sbn.packageName, title, text, bigText)
+                scope.launch {
+                    NetworkClient.sendJson(this@NotificationService, json)
                 }
-            } else {
-                Log.d("NotificationService", "Duplicate ignored: $title")
             }
         }
+        
+        /*
+        // Old Logic commented out for reference
+        // ...
+        */
     }
 
     override fun onNotificationRemoved(sbn: StatusBarNotification?) {

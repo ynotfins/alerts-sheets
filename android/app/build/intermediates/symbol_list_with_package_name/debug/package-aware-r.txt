@@ -3566,6 +3566,7 @@ id text_app_name
 id text_input_end_icon
 id text_input_error_icon
 id text_input_start_icon
+id text_monitoring_ticker
 id text_name
 id text_package_name
 id text_source

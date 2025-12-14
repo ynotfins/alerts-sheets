@@ -41,6 +41,7 @@ id status_light
 id status_text
 id switch_enable
 id text_app_name
+id text_monitoring_ticker
 id text_name
 id text_package_name
 id text_source

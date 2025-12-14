@@ -173,6 +173,7 @@ class MainActivity : AppCompatActivity() {
                         if (::appsAdapter.isInitialized) {
                             appsAdapter.updateData(newTargets.toList())
                         }
+                        updateMonitoringTicker()
                     }
                     .setNegativeButton("Cancel", null)
                     .show()
@@ -282,9 +283,44 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         val statusText = findViewById<TextView>(R.id.status_text)
-        updateStatus(statusText)
+        updateStatus(statusText) // Legacy placeholder for structure
         if (::appsAdapter.isInitialized) {
             appsAdapter.updateData(PrefsManager.getTargetApps(this).toList())
+        }
+        updateMonitoringTicker()
+    }
+    
+    private fun updateMonitoringTicker() {
+        val ticker = findViewById<TextView>(R.id.text_monitoring_ticker)
+        val apps = PrefsManager.getTargetApps(this)
+        val smsTargets = PrefsManager.getSmsTargets(this)
+        
+        val displayList = mutableListOf<String>()
+        
+        // 1. App Names
+        if (apps.isNotEmpty()) {
+            val pm = packageManager
+            val appNames = apps.map { pkg ->
+                try {
+                    pm.getApplicationLabel(pm.getApplicationInfo(pkg, 0)).toString()
+                } catch (e: Exception) {
+                    pkg
+                }
+            }
+            displayList.addAll(appNames)
+        }
+        
+        // 2. SMS Targets
+        if (smsTargets.isNotEmpty()) {
+             // In future, we can resolve contact names if permission READ_CONTACTS is granted
+             displayList.add("SMS (${smsTargets.size} numbers)")
+        }
+        
+        if (displayList.isEmpty()) {
+            ticker.text = "No apps selected for monitoring."
+        } else {
+            ticker.text = "Monitoring: ${displayList.joinToString(", ")}   ***   "
+            ticker.isSelected = true // Required for marquee to start
         }
     }
     

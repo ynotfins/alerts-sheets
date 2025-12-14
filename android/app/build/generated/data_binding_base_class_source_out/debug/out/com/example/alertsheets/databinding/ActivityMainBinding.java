@@ -48,10 +48,14 @@ public final class ActivityMainBinding implements ViewBinding {
   @NonNull
   public final TextView statusText;
 
+  @NonNull
+  public final TextView textMonitoringTicker;
+
   private ActivityMainBinding(@NonNull LinearLayout rootView, @NonNull Button btnAddEndpoint,
       @NonNull Button btnAppFilter, @NonNull Button btnPermissions, @NonNull Button btnVerify,
       @NonNull RecyclerView recyclerApps, @NonNull RecyclerView recyclerEndpoints,
-      @NonNull TextView statusDetail, @NonNull View statusLight, @NonNull TextView statusText) {
+      @NonNull TextView statusDetail, @NonNull View statusLight, @NonNull TextView statusText,
+      @NonNull TextView textMonitoringTicker) {
     this.rootView = rootView;
     this.btnAddEndpoint = btnAddEndpoint;
     this.btnAppFilter = btnAppFilter;
@@ -62,6 +66,7 @@ public final class ActivityMainBinding implements ViewBinding {
     this.statusDetail = statusDetail;
     this.statusLight = statusLight;
     this.statusText = statusText;
+    this.textMonitoringTicker = textMonitoringTicker;
   }
 
   @Override
@@ -145,9 +150,15 @@ public final class ActivityMainBinding implements ViewBinding {
         break missingId;
       }
 
+      id = R.id.text_monitoring_ticker;
+      TextView textMonitoringTicker = ViewBindings.findChildViewById(rootView, id);
+      if (textMonitoringTicker == null) {
+        break missingId;
+      }
+
       return new ActivityMainBinding((LinearLayout) rootView, btnAddEndpoint, btnAppFilter,
           btnPermissions, btnVerify, recyclerApps, recyclerEndpoints, statusDetail, statusLight,
-          statusText);
+          statusText, textMonitoringTicker);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

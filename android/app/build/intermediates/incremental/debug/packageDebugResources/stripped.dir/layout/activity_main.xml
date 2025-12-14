@@ -138,11 +138,18 @@
         android:elevation="0dp" />
 
     <TextView
+        android:id="@+id/text_monitoring_ticker"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Notifications will be sent to all enabled endpoints."
-        android:textColor="@color/apple_text_secondary"
-        android:textSize="12sp"
+        android:text="Select apps to monitor..."
+        android:textColor="@color/black"
+        android:textSize="14sp"
+        android:singleLine="true"
+        android:ellipsize="marquee"
+        android:marqueeRepeatLimit="marquee_forever"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
+        android:scrollHorizontally="true"
         android:layout_marginTop="8dp"
         android:layout_marginStart="12dp"
         android:layout_marginBottom="24dp"/>

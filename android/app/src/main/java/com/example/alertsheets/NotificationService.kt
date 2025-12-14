@@ -39,7 +39,8 @@ class NotificationService : NotificationListenerService() {
 
         // 2. Dynamic / Template
         // We now prioritize the Global JSON Template.
-        val targetApps = PrefsManager.getTargetApps(this)
+        // We now prioritize the Global JSON Template.
+        // targetApps already checked above.
         
         // If we are here, we are allowed to process (checked filter above).
         

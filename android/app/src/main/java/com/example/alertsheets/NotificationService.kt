@@ -12,11 +12,61 @@ class NotificationService : NotificationListenerService() {
 
     private val scope = CoroutineScope(Dispatchers.IO)
 
-    override fun onStartCommand(intent: android.content.Intent?, flags: Int, startId: Int): Int {
-        return START_STICKY
+    override fun onCreate() {
+        super.onCreate()
+        createNotificationChannel()
     }
 
-    override fun onNotificationPosted(sbn: StatusBarNotification?) {
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        // Run as Foreground Service to prevent system killing
+        val notification = androidx.core.app.NotificationCompat.Builder(this, "service_channel")
+            .setContentTitle("AlertsToSheets Service")
+            .setContentText("Monitoring notifications in the background")
+            .setSmallIcon(R.drawable.ic_launcher_foreground) // Ensure this icon exists or use android.R.drawable.ic_dialog_info
+            .setPriority(androidx.core.app.NotificationCompat.PRIORITY_LOW)
+            .build()
+            
+        // Service ID 101 for the foreground notification
+        try {
+            startForeground(101, notification)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+        
+        return START_STICKY
+    }
+    
+    override fun onListenerConnected() {
+        super.onListenerConnected()
+        // Optional: Broadcast connected state or log it
+        android.util.Log.d("NotificationService", "Listener Connected")
+    }
+
+    override fun onListenerDisconnected() {
+        super.onListenerDisconnected()
+        // Optional: Try to rebind if supported or log
+        android.util.Log.d("NotificationService", "Listener Disconnected - requesting rebind")
+        try {
+            requestRebind(android.content.ComponentName(this, NotificationService::class.java))
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
+    private fun createNotificationChannel() {
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            val channel = android.app.NotificationChannel(
+                "service_channel",
+                "Background Monitoring",
+                android.app.NotificationManager.IMPORTANCE_LOW
+            )
+            channel.description = "Keeps the monitoring service alive"
+            val manager = getSystemService(android.app.NotificationManager::class.java)
+            manager.createNotificationChannel(channel)
+        }
+    }
+
+    override fun onNotificationPosted(sbn: StatusBarNotification) {
         super.onNotificationPosted(sbn)
         if (sbn == null) return
 

@@ -12,6 +12,8 @@ color apple_text_secondary
 color black
 color purple_500
 color purple_700
+color selector_thumb
+color selector_track
 color teal_200
 color teal_700
 color white
@@ -23,6 +25,7 @@ id btn_add_mapping
 id btn_add_static
 id btn_app_filter
 id btn_delete
+id btn_edit
 id btn_permissions
 id btn_verify
 id input_name
@@ -36,7 +39,7 @@ id static_container
 id status_detail
 id status_light
 id status_text
-id switch_enabled
+id switch_enable
 id text_app_name
 id text_name
 id text_package_name

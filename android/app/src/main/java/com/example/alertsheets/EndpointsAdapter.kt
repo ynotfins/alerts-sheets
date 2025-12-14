@@ -16,7 +16,8 @@ class EndpointsAdapter(
     class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val name: TextView = view.findViewById(R.id.text_name)
         val url: TextView = view.findViewById(R.id.text_url)
-        val switchEnabled: Switch = view.findViewById(R.id.switch_enabled)
+        val switchEnabled: Switch = view.findViewById(R.id.switch_enable)
+        val btnEdit: android.widget.ImageButton = view.findViewById(R.id.btn_edit)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -29,13 +30,20 @@ class EndpointsAdapter(
         val item = endpoints[position]
         holder.name.text = item.name
         holder.url.text = item.url
-        holder.switchEnabled.setOnCheckedChangeListener(null) // Reset listener
+        
+        holder.switchEnabled.setOnCheckedChangeListener(null)
         holder.switchEnabled.isChecked = item.isEnabled
         
         holder.switchEnabled.setOnCheckedChangeListener { _, isChecked ->
             onToggle(item, isChecked)
         }
         
+        holder.btnEdit.setOnClickListener {
+            // Edit action
+             onDelete(item) // Re-using callback temporarily or we can add onEdit parameter
+        }
+        
+        // Long click to delete
         holder.itemView.setOnLongClickListener {
             onDelete(item)
             true

@@ -2095,6 +2095,8 @@ color secondary_text_default_material_dark
 color secondary_text_default_material_light
 color secondary_text_disabled_material_dark
 color secondary_text_disabled_material_light
+color selector_thumb
+color selector_track
 color switch_thumb_disabled_material_dark
 color switch_thumb_disabled_material_light
 color switch_thumb_material_dark
@@ -3195,6 +3197,7 @@ id btn_add_mapping
 id btn_add_static
 id btn_app_filter
 id btn_delete
+id btn_edit
 id btn_permissions
 id btn_verify
 id buttonPanel
@@ -3537,7 +3540,7 @@ id stretch
 id submenuarrow
 id submit_area
 id supportScrollUp
-id switch_enabled
+id switch_enable
 id tabMode
 id tag_accessibility_actions
 id tag_accessibility_clickable_spans

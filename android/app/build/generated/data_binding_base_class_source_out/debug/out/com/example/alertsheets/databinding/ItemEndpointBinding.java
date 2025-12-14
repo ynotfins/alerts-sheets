@@ -4,6 +4,7 @@ package com.example.alertsheets.databinding;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.Switch;
 import android.widget.TextView;
@@ -21,7 +22,10 @@ public final class ItemEndpointBinding implements ViewBinding {
   private final LinearLayout rootView;
 
   @NonNull
-  public final Switch switchEnabled;
+  public final ImageButton btnEdit;
+
+  @NonNull
+  public final Switch switchEnable;
 
   @NonNull
   public final TextView textName;
@@ -29,10 +33,11 @@ public final class ItemEndpointBinding implements ViewBinding {
   @NonNull
   public final TextView textUrl;
 
-  private ItemEndpointBinding(@NonNull LinearLayout rootView, @NonNull Switch switchEnabled,
-      @NonNull TextView textName, @NonNull TextView textUrl) {
+  private ItemEndpointBinding(@NonNull LinearLayout rootView, @NonNull ImageButton btnEdit,
+      @NonNull Switch switchEnable, @NonNull TextView textName, @NonNull TextView textUrl) {
     this.rootView = rootView;
-    this.switchEnabled = switchEnabled;
+    this.btnEdit = btnEdit;
+    this.switchEnable = switchEnable;
     this.textName = textName;
     this.textUrl = textUrl;
   }
@@ -64,9 +69,15 @@ public final class ItemEndpointBinding implements ViewBinding {
     // This is done to optimize the compiled bytecode for size and performance.
     int id;
     missingId: {
-      id = R.id.switch_enabled;
-      Switch switchEnabled = ViewBindings.findChildViewById(rootView, id);
-      if (switchEnabled == null) {
+      id = R.id.btn_edit;
+      ImageButton btnEdit = ViewBindings.findChildViewById(rootView, id);
+      if (btnEdit == null) {
+        break missingId;
+      }
+
+      id = R.id.switch_enable;
+      Switch switchEnable = ViewBindings.findChildViewById(rootView, id);
+      if (switchEnable == null) {
         break missingId;
       }
 
@@ -82,7 +93,8 @@ public final class ItemEndpointBinding implements ViewBinding {
         break missingId;
       }
 
-      return new ItemEndpointBinding((LinearLayout) rootView, switchEnabled, textName, textUrl);
+      return new ItemEndpointBinding((LinearLayout) rootView, btnEdit, switchEnable, textName,
+          textUrl);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

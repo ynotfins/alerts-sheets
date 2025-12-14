@@ -16,7 +16,7 @@
             android:id="@+id/text_name"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Sheet Endpoint"
+            android:text="Endpoint Name"
             android:textColor="@color/black"
             android:textStyle="bold"
             android:textSize="16sp" />
@@ -25,17 +25,28 @@
             android:id="@+id/text_url"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="https://script.google..."
+            android:text="https://..."
             android:ellipsize="end"
             android:maxLines="1"
             android:textColor="@color/apple_text_secondary"
-            android:textSize="14sp" />
+            android:textSize="12sp" />
 
     </LinearLayout>
 
+    <ImageButton
+        android:id="@+id/btn_edit"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:src="@android:drawable/ic_menu_edit"
+        android:background="?selectableItemBackgroundBorderless"
+        android:tint="@color/apple_text_secondary"
+        android:contentDescription="Edit" />
+
     <Switch
-        android:id="@+id/switch_enabled"
+        android:id="@+id/switch_enable"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content"
+        android:thumbTint="@color/selector_thumb"
+        android:trackTint="@color/selector_track" />
 
 </LinearLayout>

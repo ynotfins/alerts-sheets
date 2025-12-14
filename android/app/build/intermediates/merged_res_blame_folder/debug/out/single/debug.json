@@ -1,5 +1,9 @@
 [
     {
+        "merged": "com.example.alertsheets.app-merged_res-31:/color_selector_thumb.xml.flat",
+        "source": "com.example.alertsheets.app-main-33:/color/selector_thumb.xml"
+    },
+    {
         "merged": "com.example.alertsheets.app-merged_res-31:/xml_backup_rules.xml.flat",
         "source": "com.example.alertsheets.app-main-33:/xml/backup_rules.xml"
     },
@@ -46,6 +50,10 @@
     {
         "merged": "com.example.alertsheets.app-merged_res-31:/drawable_status_indicator.xml.flat",
         "source": "com.example.alertsheets.app-main-33:/drawable/status_indicator.xml"
+    },
+    {
+        "merged": "com.example.alertsheets.app-merged_res-31:/color_selector_track.xml.flat",
+        "source": "com.example.alertsheets.app-main-33:/color/selector_track.xml"
     },
     {
         "merged": "com.example.alertsheets.app-merged_res-31:/layout_item_configured_app.xml.flat",

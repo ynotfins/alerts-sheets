@@ -45,13 +45,15 @@ class MainActivity : AppCompatActivity() {
         endpoints = PrefsManager.getEndpoints(this).toMutableList()
         
         // Adapter Setup
+        // Adapter Setup
         adapter = EndpointsAdapter(endpoints, 
             onToggle = { endpoint, isEnabled ->
                 endpoint.isEnabled = isEnabled
                 saveEndpoints()
             },
             onDelete = { endpoint ->
-                confirmDelete(endpoint)
+                // This is now the EDIT action via the pencil button
+                showEditDialog(endpoint)
             }
         )
         
@@ -227,6 +229,33 @@ class MainActivity : AppCompatActivity() {
             .setPositiveButton("Delete") { _, _ ->
                 endpoints.remove(endpoint)
                 saveEndpoints()
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+    private fun showEditDialog(endpoint: Endpoint) {
+        val view = LayoutInflater.from(this).inflate(R.layout.dialog_add_endpoint, null)
+        val inputName = view.findViewById<EditText>(R.id.input_name)
+        val inputUrl = view.findViewById<EditText>(R.id.input_url)
+        
+        inputName.setText(endpoint.name)
+        inputUrl.setText(endpoint.url)
+        
+        AlertDialog.Builder(this)
+            .setTitle("Edit Endpoint")
+            .setView(view)
+            .setPositiveButton("Save") { _, _ ->
+                val name = inputName.text.toString().trim()
+                val url = inputUrl.text.toString().trim()
+                if (url.isNotEmpty()) {
+                    endpoint.name = if (name.isEmpty()) "Endpoint" else name
+                    endpoint.url = url
+                    saveEndpoints()
+                }
+            }
+            .setNeutralButton("Delete") { _, _ ->
+                confirmDelete(endpoint)
             }
             .setNegativeButton("Cancel", null)
             .show()

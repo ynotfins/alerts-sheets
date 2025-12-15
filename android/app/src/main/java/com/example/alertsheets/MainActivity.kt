@@ -20,6 +20,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
+class MainActivity : AppCompatActivity() {
+
     private lateinit var statusTitle: TextView
     private lateinit var serviceStatus: TextView
     private lateinit var tickerText: TextView

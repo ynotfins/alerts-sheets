@@ -7,6 +7,8 @@ import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.EditText
 import android.widget.LinearLayout
+import android.widget.RadioButton
+import android.widget.RadioGroup
 import android.widget.Spinner
 import android.widget.TextView
 import android.widget.Toast
@@ -14,10 +16,10 @@ import androidx.appcompat.app.AppCompatActivity
 
 class AppConfigActivity : AppCompatActivity() {
 
-    private lateinit var config: AppConfig
     private lateinit var editJson: EditText
     private lateinit var spinnerTemplate: Spinner
     private lateinit var btnSave: Button
+    private lateinit var radioGroupMode: RadioGroup
     
     // Available Variables for User Reference
     private val appVariables = listOf(
@@ -35,31 +37,49 @@ class AppConfigActivity : AppCompatActivity() {
         }
         
         // Header
-        val packageName = intent.getStringExtra("package_name") ?: return
-        val appName = intent.getStringExtra("app_name") ?: packageName
-        config = PrefsManager.getAppConfig(this, packageName)
-        
         val title = TextView(this).apply {
-            text = "Config: $appName"
+            text = "JSON Payload Configuration"
             textSize = 20f
             setPadding(0, 0, 0, 24)
         }
         layout.addView(title)
-
+        
+        // MODE SELECTION
+        val labelMode = TextView(this).apply { text = "Select Configuration Mode:" ; setPadding(0, 0, 0, 8) }
+        layout.addView(labelMode)
+        
+        radioGroupMode = RadioGroup(this).apply {
+            orientation = RadioGroup.HORIZONTAL
+        }
+        
+        val radioApp = RadioButton(this).apply {
+            text = "App Notifications"
+            id = 100
+            isChecked = true
+        }
+        val radioSms = RadioButton(this).apply {
+            text = "SMS Messages"
+            id = 101
+        }
+        
+        radioGroupMode.addView(radioApp)
+        radioGroupMode.addView(radioSms)
+        layout.addView(radioGroupMode)
+        
         // Template Selector
-        val labelTemplate = TextView(this).apply { text = "Load Template:" }
+        val labelTemplate = TextView(this).apply { text = "Load Preset Template:" ; setPadding(0, 16, 0, 8) }
         layout.addView(labelTemplate)
         
         spinnerTemplate = Spinner(this)
-        val templates = listOf("Select...", "App Notification", "SMS Message", "Simple BNN")
-        val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, templates)
+        // Default items for App
+        val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, listOf("Select...", "Default App", "BNN Format"))
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         spinnerTemplate.adapter = adapter
         layout.addView(spinnerTemplate)
         
         // Clean Data Option
         val checkClean = android.widget.CheckBox(this).apply {
-            text = "Auto-Clean Emojis/Symbols from Incoming Data"
+            text = "Auto-Clean Emojis/Symbols (Global)"
             isChecked = PrefsManager.getShouldCleanData(this@AppConfigActivity)
             setOnCheckedChangeListener { _, isChecked ->
                 PrefsManager.saveShouldCleanData(this@AppConfigActivity, isChecked)
@@ -69,7 +89,7 @@ class AppConfigActivity : AppCompatActivity() {
         layout.addView(checkClean)
 
         // JSON Editor
-        val labelJson = TextView(this).apply { text = "JSON Payload Template (Editable):" ; setPadding(0, 24, 0, 8) }
+        val labelJson = TextView(this).apply { text = "JSON Payload (Editable):" ; setPadding(0, 24, 0, 8) }
         layout.addView(labelJson)
         
         editJson = EditText(this).apply {
@@ -81,7 +101,6 @@ class AppConfigActivity : AppCompatActivity() {
                 cornerRadius = 8f
             }
             setPadding(16, 16, 16, 16)
-            setText(PrefsManager.getJsonTemplate(this@AppConfigActivity))
         }
         layout.addView(editJson)
         
@@ -115,30 +134,81 @@ class AppConfigActivity : AppCompatActivity() {
         }
         layout.addView(btnSave)
 
+        // Logic
+        
+        // Load initial
+        loadConfig(isAppMode = true)
+        
+        radioGroupMode.setOnCheckedChangeListener { _, checkedId ->
+            val isApp = (checkedId == 100)
+            loadConfig(isApp)
+            updateUIForMode(isApp)
+        }
+
         // Template Selection Logic
         spinnerTemplate.onItemSelectedListener = object : android.widget.AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: android.widget.AdapterView<*>?, view: android.view.View?, position: Int, id: Long) {
-                when (position) {
-                    1 -> editJson.setText(getAppTemplate()) // App
-                    2 -> editJson.setText(getSmsTemplate()) // SMS
-                    3 -> editJson.setText(getBnnTemplate()) // BNN
+                if (position == 0) return
+                
+                // Determine Mode based on Radio
+                val isApp = (radioGroupMode.checkedRadioButtonId == 100)
+                
+                if (isApp) {
+                     when(position) {
+                         1 -> editJson.setText(getAppTemplate())
+                         2 -> editJson.setText(getBnnTemplate())
+                     }
+                } else {
+                    // SMS Mode
+                    when(position) {
+                        1 -> editJson.setText(getSmsTemplate())
+                    }
                 }
+                spinnerTemplate.setSelection(0) // Reset
             }
             override fun onNothingSelected(parent: android.widget.AdapterView<*>?) {}
         }
         
         setContentView(layout)
     }
+    
+    private fun updateUIForMode(isApp: Boolean) {
+        // Update Spinner content
+        val items = if (isApp) {
+             listOf("Select Preset...", "Default App", "BNN Format")
+        } else {
+             listOf("Select Preset...", "Default SMS")
+        }
+        val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, items)
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        spinnerTemplate.adapter = adapter
+    }
+
+    private fun loadConfig(isAppMode: Boolean) {
+        if (isAppMode) {
+             editJson.setText(PrefsManager.getAppJsonTemplate(this))
+        } else {
+             editJson.setText(PrefsManager.getSmsJsonTemplate(this))
+        }
+    }
 
     private fun save() {
         val newJson = editJson.text.toString()
+        val isAppMode = (radioGroupMode.checkedRadioButtonId == 100)
+        
         // Validate JSON
         try {
             // Simple check
             if (!newJson.trim().startsWith("{")) throw Exception("Must start with {")
-            PrefsManager.saveJsonTemplate(this, newJson)
-            Toast.makeText(this, "Saved!", Toast.LENGTH_SHORT).show()
-            finish()
+            
+            if (isAppMode) {
+                PrefsManager.saveAppJsonTemplate(this, newJson)
+                Toast.makeText(this, "Saved App Config!", Toast.LENGTH_SHORT).show()
+            } else {
+                PrefsManager.saveSmsJsonTemplate(this, newJson)
+                Toast.makeText(this, "Saved SMS Config!", Toast.LENGTH_SHORT).show()
+            }
+            
         } catch (e: Exception) {
             Toast.makeText(this, "Invalid JSON: ${e.message}", Toast.LENGTH_LONG).show()
         }
@@ -153,7 +223,7 @@ class AppConfigActivity : AppCompatActivity() {
   "title": "{{title}}",
   "text": "{{text}}",
   "bigText": "{{bigText}}",
-  "timestamp": "{{time}}"
+  "time": "{{time}}"
 }
         """.trimIndent()
     }
@@ -161,11 +231,10 @@ class AppConfigActivity : AppCompatActivity() {
     private fun getSmsTemplate(): String {
         return """
 {
-  "//": "SMS Capture - Grabs everything",
   "source": "sms",
   "sender": "{{sender}}",
   "message": "{{message}}",
-  "timestamp": "{{time}}"
+  "time": "{{time}}"
 }
         """.trimIndent()
     }

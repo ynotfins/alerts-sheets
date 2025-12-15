@@ -101,8 +101,8 @@ class NotificationService : NotificationListenerService() {
         
         // If we are here, we are allowed to process (checked filter above).
         
-        // Load Template
-        val template = PrefsManager.getJsonTemplate(this)
+        // Load Template (APP Specific)
+        val template = PrefsManager.getAppJsonTemplate(this)
         val isBnnMode = template.contains("{{id}}") || template.contains("fdCodes")
         
         var jsonToSend: String? = null

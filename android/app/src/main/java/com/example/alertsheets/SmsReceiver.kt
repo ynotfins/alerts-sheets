@@ -101,7 +101,7 @@ class SmsReceiver : BroadcastReceiver() {
             val finalSender = if (shouldClean) TemplateEngine.cleanText(sender) else sender
             
             // 5. Template
-            val template = PrefsManager.getJsonTemplate(context)
+            val template = PrefsManager.getSmsJsonTemplate(context)
             
             // 6. Transform unique to SMS
             // We reuse applyGeneric but mapped for SMS

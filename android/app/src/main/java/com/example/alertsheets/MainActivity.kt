@@ -371,7 +371,7 @@ class MainActivity : AppCompatActivity() {
             
             // 3. Check JSON Template
             try {
-                val t = PrefsManager.getJsonTemplate(this@MainActivity)
+                val t = PrefsManager.getAppJsonTemplate(this@MainActivity)
                 if (t.startsWith("{")) sb.append("✓ JSON Template Valid\n") else { sb.append("✗ JSON Invalid\n"); allGood = false }
             } catch (e: Exception) {
                 sb.append("✗ JSON Template Error\n")

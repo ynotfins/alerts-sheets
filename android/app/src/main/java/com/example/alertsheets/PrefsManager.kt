@@ -70,30 +70,50 @@ object PrefsManager {
         prefs.edit().putBoolean("should_clean_data", shouldClean).apply()
     }
 
-    // JSON Template
-    fun getJsonTemplate(context: Context): String {
+    // JSON Templates
+    // Deprecated single template, splitting into App and SMS
+    
+    fun getAppJsonTemplate(context: Context): String {
         val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        // Default Template matching current Parser output
+        // Fallback to old key if new key missing (Migration)
+        val legacy = prefs.getString("json_template", null)
+        
         val default = """
             {
-              "incidentId": "{{id}}",
-              "status": "{{status}}",
-              "state": "{{state}}",
-              "county": "{{county}}",
-              "city": "{{city}}",
-              "address": "{{address}}",
-              "incidentType": "{{type}}",
-              "incidentDetails": "{{details}}",
-              "fdCodes": {{codes}},
-              "originalBody": "{{original}}"
+              "source": "app",
+              "package": "{{package}}",
+              "title": "{{title}}",
+              "text": "{{text}}",
+              "bigText": "{{bigText}}",
+              "time": "{{time}}"
             }
         """.trimIndent()
-        return prefs.getString("json_template", default) ?: default
+        
+        return prefs.getString("json_template_app", legacy ?: default) ?: default
     }
 
-    fun saveJsonTemplate(context: Context, template: String) {
+    fun saveAppJsonTemplate(context: Context, template: String) {
         val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        prefs.edit().putString("json_template", template).apply()
+        prefs.edit().putString("json_template_app", template).apply()
+    }
+
+    fun getSmsJsonTemplate(context: Context): String {
+        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        // Default SMS Template
+        val default = """
+            {
+              "source": "sms",
+              "sender": "{{sender}}",
+              "message": "{{message}}",
+              "time": "{{time}}"
+            }
+        """.trimIndent()
+        return prefs.getString("json_template_sms", default) ?: default
+    }
+
+    fun saveSmsJsonTemplate(context: Context, template: String) {
+         val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+         prefs.edit().putString("json_template_sms", template).apply()
     }
     
     // --- AppConfig Methods ---

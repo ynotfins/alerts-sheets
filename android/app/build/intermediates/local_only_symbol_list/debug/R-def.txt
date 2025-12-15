@@ -27,6 +27,7 @@ id btn_add_static
 id btn_app_filter
 id btn_delete
 id btn_edit
+id btn_master_status
 id btn_permissions
 id btn_pick_contact
 id btn_select_apps
@@ -37,9 +38,15 @@ id card_apps
 id card_config
 id card_endpoints
 id card_logs
+id card_permissions
 id card_sms
 id check_case
 id checkbox_app
+id dot_apps
+id dot_endpoints
+id dot_payloads
+id dot_permissions
+id dot_sms
 id fab_add
 id footer_ticker
 id header
@@ -51,6 +58,8 @@ id input_target_key
 id input_url
 id mappings_container
 id progress_loading
+id radio_app
+id radio_sms
 id recycler_all_apps
 id recycler_apps
 id recycler_endpoints

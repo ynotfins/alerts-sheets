@@ -1,156 +1,160 @@
 package com.example.alertsheets
 
-import android.app.AlertDialog
-import android.content.Context
+import android.Manifest
 import android.content.Intent
-import android.net.Uri
+import android.content.pm.PackageManager
+import android.graphics.Color
 import android.os.Bundle
 import android.os.PowerManager
 import android.provider.Settings
-import android.view.LayoutInflater
+import android.view.View
 import android.widget.Button
-import android.widget.EditText
+import android.widget.ImageView
 import android.widget.TextView
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import androidx.core.app.NotificationManagerCompat
+import androidx.core.content.ContextCompat
 
 class MainActivity : AppCompatActivity() {
 
-    private lateinit var statusTitle: TextView
-    private lateinit var serviceStatus: TextView
-    private lateinit var tickerText: TextView
+    private lateinit var tvServiceStatus: TextView
+    private lateinit var btnMaster: Button
+
+    // Dot Views
+    private lateinit var dotApps: ImageView
+    private lateinit var dotSms: ImageView
+    private lateinit var dotPayloads: ImageView
+    private lateinit var dotEndpoints: ImageView
+    private lateinit var dotPermissions: ImageView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main_dashboard)
 
-        statusTitle = findViewById(R.id.tv_status_title)
-        serviceStatus = findViewById(R.id.tv_service_status)
-        tickerText = findViewById(R.id.footer_ticker)
+        // Init Views
+        tvServiceStatus = findViewById(R.id.tv_service_status)
+        btnMaster = findViewById(R.id.btn_master_status)
 
-        // Card Bindings
-        findViewById<android.view.View>(R.id.card_apps).setOnClickListener {
-             startActivity(Intent(this, AppsListActivity::class.java))
+        dotApps = findViewById(R.id.dot_apps)
+        dotSms = findViewById(R.id.dot_sms)
+        dotPayloads = findViewById(R.id.dot_payloads)
+        dotEndpoints = findViewById(R.id.dot_endpoints)
+        dotPermissions = findViewById(R.id.dot_permissions)
+
+        // Card Click Listeners
+        findViewById<View>(R.id.card_apps).setOnClickListener {
+            startActivity(Intent(this, AppsListActivity::class.java))
         }
-
-        findViewById<android.view.View>(R.id.card_sms).setOnClickListener {
+        findViewById<View>(R.id.card_sms).setOnClickListener {
             startActivity(Intent(this, SmsConfigActivity::class.java))
         }
-        
-        findViewById<android.view.View>(R.id.card_config).setOnClickListener {
-            // "Payloads"
+        findViewById<View>(R.id.card_config).setOnClickListener {
             startActivity(Intent(this, AppConfigActivity::class.java))
         }
-        
-        findViewById<android.view.View>(R.id.card_endpoints).setOnClickListener {
-             // We need an EndpointConfigActivity. For now, let's reuse a simple dialog or new activity?
-             // Since we removed the recycler from main, we MUST have a way to manage endpoints.
-             // I will implement EndpointConfigActivity in next step if it doesn't exist.
-             // For now, I'll direct to a placeholder or create it.
-             // Let's create `EndpointActivity` later. I'll point to it now.
-             startActivity(Intent(this, EndpointActivity::class.java))
+        findViewById<View>(R.id.card_endpoints).setOnClickListener {
+            startActivity(Intent(this, EndpointActivity::class.java))
         }
-
-        findViewById<android.view.View>(R.id.card_logs).setOnClickListener {
+        findViewById<View>(R.id.card_logs).setOnClickListener {
             startActivity(Intent(this, LogActivity::class.java))
         }
-        
-        // Setup Ticker
-        tickerText.isSelected = true 
+        findViewById<View>(R.id.card_permissions).setOnClickListener {
+            startActivity(Intent(this, PermissionsActivity::class.java))
+        }
+
+        // Master Button Logic
+        updateMasterButtonVisuals()
+        btnMaster.setOnClickListener {
+            val current = PrefsManager.getMasterEnabled(this)
+            PrefsManager.setMasterEnabled(this, !current)
+            updateMasterButtonVisuals()
+            updateDashboardStatus()
+        }
     }
-    
+
     override fun onResume() {
         super.onResume()
-        checkPermissions()
-        updateServiceStatus()
-        updateMonitoringTicker()
-        
-        // Update Queue Status (Poll DB or just check Count)
-        updateQueueStatus()
-    }
-    
-    private fun updateQueueStatus() {
-        val tvQueue = findViewById<TextView>(R.id.tv_queue_status)
-        CoroutineScope(Dispatchers.IO).launch {
-             val db = com.example.alertsheets.data.QueueDbHelper(this@MainActivity)
-             val count = db.getPendingCount()
-             db.close()
-             
-             withContext(Dispatchers.Main) {
-                 if (count > 0) {
-                     tvQueue.text = "Queue: $count pending..."
-                     tvQueue.setTextColor(android.graphics.Color.YELLOW)
-                 } else {
-                     tvQueue.text = "Queue: Idle"
-                     tvQueue.setTextColor(android.graphics.Color.LTGRAY)
-                 }
-             }
-        }
-    }
-    
-    // ... migrateLegacyUrl ...
-
-    // --- Permissions & Status Helpers ---
-    private fun checkPermissions() {
-        // Status Light Logic
-        val light: android.view.View = findViewById(R.id.tv_service_status) // Wait, we reused tv_service_status as text. Do we have a light?
-        // Layout has tv_service_status text.
-        // Let's color the text.
-        
-        val listeners = Settings.Secure.getString(contentResolver, "enabled_notification_listeners")
-        val notifEnabled = listeners != null && listeners.contains(packageName)
-        
-        if (notifEnabled) {
-            serviceStatus.text = "● Service Active"
-            serviceStatus.setTextColor(android.graphics.Color.GREEN)
-        } else {
-            serviceStatus.text = "● Service Paused (Perm Missing)"
-            serviceStatus.setTextColor(android.graphics.Color.RED)
-            serviceStatus.setOnClickListener {
-                 startActivity(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS))
-            }
-        }
-    }
-    
-    private fun updateServiceStatus() {
-        // Redundant with checkPermissions for now
+        updateDashboardStatus()
     }
 
-    private fun updateMonitoringTicker() {
-        val apps = PrefsManager.getTargetApps(this)
-        val smsTargets = PrefsManager.getSmsTargets(this)
-        
-        val displayList = mutableListOf<String>()
-        
-        // 1. App Names
-        if (apps.isNotEmpty()) {
-            val pm = packageManager
-            val appNames = apps.map { pkg ->
-                try {
-                    pm.getApplicationLabel(pm.getApplicationInfo(pkg, 0)).toString()
-                } catch (e: Exception) {
-                    pkg
-                }
-            }
-            displayList.addAll(appNames)
-        }
-        
-        // 2. SMS Targets
-        if (smsTargets.isNotEmpty()) {
-             displayList.add("SMS (${smsTargets.size})")
-        }
-        
-        if (displayList.isEmpty()) {
-            tickerText.text = "No monitoring targets selected. Tap cards to configure."
+    private fun updateMasterButtonVisuals() {
+        val enabled = PrefsManager.getMasterEnabled(this)
+        if (enabled) {
+            btnMaster.text = "LIVE"
+            btnMaster.background.setTint(Color.parseColor("#4CAF50")) // Green
         } else {
-            tickerText.text = "Monitoring: ${displayList.joinToString(", ")}   ***   "
-            tickerText.isSelected = true 
+            btnMaster.text = "PAUSED"
+            btnMaster.background.setTint(Color.parseColor("#F44336")) // Red
         }
+    }
+
+    private fun updateDashboardStatus() {
+        // 1. Check Permissions
+        val permNotif = checkNotifListener()
+        val permSms =
+                ContextCompat.checkSelfPermission(this, Manifest.permission.RECEIVE_SMS) ==
+                        PackageManager.PERMISSION_GRANTED
+        val permBattery =
+                (getSystemService(POWER_SERVICE) as PowerManager).isIgnoringBatteryOptimizations(
+                        packageName
+                )
+        val allPerms = permNotif
+        // Note: Strict battery/SMS might be optional for core functionality, but let's assume
+        // strict for Dot.
+        // User asked for override. If Notification Listener is ON, we are "mostly" green.
+
+        setDotColor(dotPermissions, allPerms)
+
+        // 2. Check Apps
+        val hasApps = PrefsManager.getTargetApps(this).isNotEmpty()
+        setDotColor(dotApps, hasApps)
+
+        // 3. Check SMS
+        setDotColor(dotSms, permSms)
+
+        // 4. Check Endpoints
+        val endpoints = PrefsManager.getEndpoints(this)
+        val hasEndpoint = endpoints.isNotEmpty() && endpoints.any { it.url.isNotEmpty() }
+        setDotColor(dotEndpoints, hasEndpoint)
+
+        // 5. Check Payloads (Test Status)
+        val testStatus = PrefsManager.getPayloadTestStatus(this)
+        // 1 = Success, 0/2 = Warn
+        setDotColor(
+                dotPayloads,
+                true
+        ) // Default Green for now as per user preference unless specific fail
+
+        // 6. Master Live Status
+        val masterEnabled = PrefsManager.getMasterEnabled(this)
+
+        if (!masterEnabled) {
+            tvServiceStatus.text = "● SYSTEM PAUSED"
+            tvServiceStatus.setTextColor(Color.RED)
+        } else if (allPerms
+        ) { // Simplified master check: If Perms OK + Enabled -> Service assumes running
+            tvServiceStatus.text = "● Service Active"
+            tvServiceStatus.setTextColor(Color.GREEN)
+            // Ensure service
+            startForegroundService(Intent(this, NotificationService::class.java))
+        } else {
+            tvServiceStatus.text = "● Service Waiting (Perms)"
+            tvServiceStatus.setTextColor(Color.YELLOW)
+        }
+    }
+
+    private fun setDotColor(view: ImageView, isGreen: Boolean) {
+        if (isGreen) {
+            view.setColorFilter(Color.parseColor("#4CAF50"))
+        } else {
+            view.setColorFilter(Color.parseColor("#F44336"))
+        }
+    }
+
+    private fun checkNotifListener(): Boolean {
+        val flat = Settings.Secure.getString(contentResolver, "enabled_notification_listeners")
+        val isEnabledLegacy = flat != null && flat.contains(packageName)
+        val isEnabledCompat =
+                NotificationManagerCompat.getEnabledListenerPackages(this).contains(packageName)
+        return isEnabledLegacy || isEnabledCompat
     }
 }

@@ -8,7 +8,7 @@
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
-    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" 
+    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES"
         tools:ignore="QueryAllPackagesPermission" />
     <uses-permission android:name="android.permission.RECEIVE_SMS" />
     <uses-permission android:name="android.permission.READ_SMS" />
@@ -27,7 +27,7 @@
         android:debuggable="true"
         tools:ignore="HardcodedDebugMode"
         tools:targetApi="31">
-        
+
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -39,19 +39,22 @@
         </activity>
 
         <activity android:name=".AppConfigActivity" />
-        <activity android:name=".LogActivity" 
-                  android:label="Logs"
-                  android:parentActivityName=".MainActivity"/>
-        <activity android:name=".SmsConfigActivity" 
-                  android:label="SMS Config"
-                  android:parentActivityName=".MainActivity"/>
-        <activity android:name=".EndpointActivity" 
-                  android:label="Endpoints"
-                  android:parentActivityName=".MainActivity"/>
-        <activity android:name=".AppsListActivity" 
-                  android:label="Select Apps"
-                  android:parentActivityName=".MainActivity"/>
-                  
+        <activity android:name=".LogActivity"
+            android:label="Logs"
+            android:parentActivityName=".MainActivity" />
+        <activity android:name=".SmsConfigActivity"
+            android:label="SMS Config"
+            android:parentActivityName=".MainActivity" />
+        <activity android:name=".EndpointActivity"
+            android:label="Endpoints"
+            android:parentActivityName=".MainActivity" />
+        <activity android:name=".AppsListActivity"
+            android:label="Select Apps"
+            android:parentActivityName=".MainActivity" />
+        <activity android:name=".PermissionsActivity"
+            android:label="Permissions"
+            android:parentActivityName=".MainActivity" />
+
         <receiver android:name=".SmsReceiver"
             android:exported="true"
             android:permission="android.permission.BROADCAST_SMS">
@@ -70,7 +73,7 @@
                 <action android:name="android.service.notification.NotificationListenerService" />
             </intent-filter>
         </service>
-        
+
         <service
             android:name=".NotificationAccessibilityService"
             android:label="@string/service_name"

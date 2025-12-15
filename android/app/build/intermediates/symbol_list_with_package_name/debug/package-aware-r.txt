@@ -3481,6 +3481,8 @@ id progress_circular
 id progress_horizontal
 id progress_loading
 id radio
+id radio_app
+id radio_sms
 id ratio
 id rectangles
 id recycler_all_apps

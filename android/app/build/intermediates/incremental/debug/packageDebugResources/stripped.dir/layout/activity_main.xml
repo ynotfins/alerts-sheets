@@ -123,8 +123,18 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Select Apps"
+            android:text="Apps"
             android:backgroundTint="#673AB7"
+            android:textColor="#FFFFFF" />
+            
+        <Button
+            android:id="@+id/btn_sms_config"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="SMS"
+            android:layout_marginStart="4dp"
+            android:backgroundTint="#FF9800"
             android:textColor="#FFFFFF" />
 
         <Button
@@ -132,8 +142,8 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="View Logs"
-            android:layout_marginStart="8dp"
+            android:text="Logs"
+            android:layout_marginStart="4dp"
             android:backgroundTint="#009688"
             android:textColor="#FFFFFF" />
 

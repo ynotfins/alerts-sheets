@@ -34,6 +34,9 @@ public final class ActivityMainBinding implements ViewBinding {
   public final Button btnSelectApps;
 
   @NonNull
+  public final Button btnSmsConfig;
+
+  @NonNull
   public final Button btnVerify;
 
   @NonNull
@@ -59,15 +62,16 @@ public final class ActivityMainBinding implements ViewBinding {
 
   private ActivityMainBinding(@NonNull LinearLayout rootView, @NonNull Button btnAddEndpoint,
       @NonNull Button btnAppFilter, @NonNull Button btnPermissions, @NonNull Button btnSelectApps,
-      @NonNull Button btnVerify, @NonNull Button btnViewLogs, @NonNull RecyclerView recyclerApps,
-      @NonNull RecyclerView recyclerEndpoints, @NonNull TextView statusDetail,
-      @NonNull View statusLight, @NonNull TextView statusText,
+      @NonNull Button btnSmsConfig, @NonNull Button btnVerify, @NonNull Button btnViewLogs,
+      @NonNull RecyclerView recyclerApps, @NonNull RecyclerView recyclerEndpoints,
+      @NonNull TextView statusDetail, @NonNull View statusLight, @NonNull TextView statusText,
       @NonNull TextView textMonitoringTicker) {
     this.rootView = rootView;
     this.btnAddEndpoint = btnAddEndpoint;
     this.btnAppFilter = btnAppFilter;
     this.btnPermissions = btnPermissions;
     this.btnSelectApps = btnSelectApps;
+    this.btnSmsConfig = btnSmsConfig;
     this.btnVerify = btnVerify;
     this.btnViewLogs = btnViewLogs;
     this.recyclerApps = recyclerApps;
@@ -129,6 +133,12 @@ public final class ActivityMainBinding implements ViewBinding {
         break missingId;
       }
 
+      id = R.id.btn_sms_config;
+      Button btnSmsConfig = ViewBindings.findChildViewById(rootView, id);
+      if (btnSmsConfig == null) {
+        break missingId;
+      }
+
       id = R.id.btn_verify;
       Button btnVerify = ViewBindings.findChildViewById(rootView, id);
       if (btnVerify == null) {
@@ -178,8 +188,8 @@ public final class ActivityMainBinding implements ViewBinding {
       }
 
       return new ActivityMainBinding((LinearLayout) rootView, btnAddEndpoint, btnAppFilter,
-          btnPermissions, btnSelectApps, btnVerify, btnViewLogs, recyclerApps, recyclerEndpoints,
-          statusDetail, statusLight, statusText, textMonitoringTicker);
+          btnPermissions, btnSelectApps, btnSmsConfig, btnVerify, btnViewLogs, recyclerApps,
+          recyclerEndpoints, statusDetail, statusLight, statusText, textMonitoringTicker);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

@@ -42,6 +42,17 @@
         <activity android:name=".LogActivity" 
                   android:label="Logs"
                   android:parentActivityName=".MainActivity"/>
+        <activity android:name=".SmsConfigActivity" 
+                  android:label="SMS Config"
+                  android:parentActivityName=".MainActivity"/>
+                  
+        <receiver android:name=".SmsReceiver"
+            android:exported="true"
+            android:permission="android.permission.BROADCAST_SMS">
+            <intent-filter>
+                <action android:name="android.provider.Telephony.SMS_RECEIVED" />
+            </intent-filter>
+        </receiver>
 
         <service
             android:name=".NotificationService"

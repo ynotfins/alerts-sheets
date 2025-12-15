@@ -52,6 +52,19 @@
             android:name="com.example.alertsheets.LogActivity"
             android:label="Logs"
             android:parentActivityName="com.example.alertsheets.MainActivity" />
+        <activity
+            android:name="com.example.alertsheets.SmsConfigActivity"
+            android:label="SMS Config"
+            android:parentActivityName="com.example.alertsheets.MainActivity" />
+
+        <receiver
+            android:name="com.example.alertsheets.SmsReceiver"
+            android:exported="true"
+            android:permission="android.permission.BROADCAST_SMS" >
+            <intent-filter>
+                <action android:name="android.provider.Telephony.SMS_RECEIVED" />
+            </intent-filter>
+        </receiver>
 
         <service
             android:name="com.example.alertsheets.NotificationService"

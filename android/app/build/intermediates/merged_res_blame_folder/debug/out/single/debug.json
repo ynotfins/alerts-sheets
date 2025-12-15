@@ -16,6 +16,10 @@
         "source": "com.example.alertsheets.app-main-33:/xml/accessibility_service_config.xml"
     },
     {
+        "merged": "com.example.alertsheets.app-merged_res-31:/layout_item_sms_target.xml.flat",
+        "source": "com.example.alertsheets.app-main-33:/layout/item_sms_target.xml"
+    },
+    {
         "merged": "com.example.alertsheets.app-merged_res-31:/layout_dialog_add_mapping.xml.flat",
         "source": "com.example.alertsheets.app-main-33:/layout/dialog_add_mapping.xml"
     },
@@ -36,8 +40,16 @@
         "source": "com.example.alertsheets.app-main-33:/drawable/bg_card.xml"
     },
     {
+        "merged": "com.example.alertsheets.app-merged_res-31:/layout_dialog_add_sms.xml.flat",
+        "source": "com.example.alertsheets.app-main-33:/layout/dialog_add_sms.xml"
+    },
+    {
         "merged": "com.example.alertsheets.app-merged_res-31:/layout_activity_app_config.xml.flat",
         "source": "com.example.alertsheets.app-main-33:/layout/activity_app_config.xml"
+    },
+    {
+        "merged": "com.example.alertsheets.app-merged_res-31:/layout_activity_sms_config.xml.flat",
+        "source": "com.example.alertsheets.app-main-33:/layout/activity_sms_config.xml"
     },
     {
         "merged": "com.example.alertsheets.app-merged_res-31:/layout_activity_main.xml.flat",

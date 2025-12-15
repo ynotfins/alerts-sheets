@@ -45,6 +45,21 @@ object PrefsManager {
         prefs.edit().putStringSet("sms_targets", targets).apply()
     }
     
+    private const val KEY_SMS_CONFIG_LIST = "sms_config_list"
+
+    fun getSmsConfigList(context: Context): List<SmsTarget> {
+        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        val json = prefs.getString(KEY_SMS_CONFIG_LIST, null) ?: return emptyList()
+        val type = object : TypeToken<List<SmsTarget>>() {}.type
+        return gson.fromJson(json, type)
+    }
+
+    fun saveSmsConfigList(context: Context, list: List<SmsTarget>) {
+        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        val json = gson.toJson(list)
+        prefs.edit().putString(KEY_SMS_CONFIG_LIST, json).apply()
+    }
+    
     fun getShouldCleanData(context: Context): Boolean {
         val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         return prefs.getBoolean("should_clean_data", false)

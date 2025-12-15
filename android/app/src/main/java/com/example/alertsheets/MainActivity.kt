@@ -98,6 +98,13 @@ class MainActivity : AppCompatActivity() {
             val intent = Intent(this, AppConfigActivity::class.java)
             startActivity(intent)
         }
+        
+        // SMS Config Button (Dynamically finding it or assuming we add to XML)
+        // Wait, I need to add it to XML first.
+        findViewById<Button>(R.id.btn_sms_config).setOnClickListener {
+             val intent = Intent(this, SmsConfigActivity::class.java)
+             startActivity(intent)
+        }
 
         findViewById<Button>(R.id.btn_view_logs).setOnClickListener {
             val intent = Intent(this, LogActivity::class.java)

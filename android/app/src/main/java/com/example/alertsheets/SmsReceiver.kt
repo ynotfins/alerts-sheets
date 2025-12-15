@@ -33,58 +33,90 @@ class SmsReceiver : BroadcastReceiver() {
             val fullBody = sb.toString()
             Log.d("SmsReceiver", "Received SMS from $sender: $fullBody")
 
-            // 1. Check Filters (SMS Targets)
-            // If targets list is empty, we accept ALL? Or None?
-            // Usually explicit allow-list. 
-            // BUT for this user "I need to send this sms", likely implies specific monitoring.
-            // Let's assume if SMS Targets list is NOT empty, we filter. If empty, maybe ignore?
-            // Actually, for now, let's log it and check Prefs.
+            // 1. Check Config Logic
+            val smsConfigs = PrefsManager.getSmsConfigList(context).filter { it.isEnabled }
             
-            val smsTargets = PrefsManager.getSmsTargets(context)
-            // Logic: If list is empty -> Monitor ALL? Or Monitor None? 
-            // In NotificationService, empty list = Monitor None (if filter checked).
-            // Let's adopt: Empty = Monitor None (safety).
-            // BUT user might just want to monitor all.
-            // Let's check if the sender is in the list.
-            
-            // Clean sender number format if needed (strip +1, etc) to match?
-            // relaxing for now: contains check
-            
-            val isMonitored = smsTargets.isEmpty() || smsTargets.any { sender.contains(it) }
-            
-            if (!isMonitored) {
+            // If no configs, we block. We only want to send specific alerts.
+            if (smsConfigs.isEmpty()) {
                  LogRepository.addLog(LogEntry(
-                    packageName = "com.android.sms", // Virtual package for logs
+                    packageName = "com.android.sms", 
                     title = sender,
-                    content = "SMS Filtered Out",
+                    content = "SMS Ignored (No Targets Configured)",
                     status = LogStatus.IGNORED,
-                    rawJson = "Sender not in target list"
+                    rawJson = "Go to SMS Config to add numbers."
                 ))
                 return
             }
 
-            // 2. Prepare Data
+            // 2. Find Matching Target
+            // Normalize sender for comparison: remove all non-digits
+            val senderDigits = sender.filter { it.isDigit() }
+            
+            val match = smsConfigs.find { config ->
+                // Normalize config number
+                val configDigits = config.phoneNumber.filter { it.isDigit() }
+                
+                // US Match Logic: Check if last 10 digits match (avoids +1 issues)
+                 val senderTen = if (senderDigits.length >= 10) senderDigits.takeLast(10) else senderDigits
+                 val configTen = if (configDigits.length >= 10) configDigits.takeLast(10) else configDigits
+                 
+                senderTen == configTen
+            }
+            
+            if (match == null) {
+                // Sender not in list
+                 LogRepository.addLog(LogEntry(
+                    packageName = "com.android.sms", 
+                    title = sender,
+                    content = "SMS Filtered (Sender Not Allowed)",
+                    status = LogStatus.IGNORED,
+                    rawJson = "Sender $sender not in allowed list"
+                ))
+                return
+            }
+            
+            // 3. Check Content Filter
+            if (match.filterText.isNotEmpty()) {
+                val passes = if (match.isCaseSensitive) {
+                    fullBody.contains(match.filterText)
+                } else {
+                    fullBody.contains(match.filterText, ignoreCase = true)
+                }
+                
+                if (!passes) {
+                     LogRepository.addLog(LogEntry(
+                        packageName = "com.android.sms", 
+                        title = "${match.name} ($sender)",
+                        content = "SMS Filtered (Content Mismatch)",
+                        status = LogStatus.IGNORED,
+                        rawJson = "Body did not contain '${match.filterText}'"
+                    ))
+                    return
+                }
+            }
+
+            // 4. Prepare Data
             val shouldClean = PrefsManager.getShouldCleanData(context)
             val finalBody = if (shouldClean) TemplateEngine.cleanText(fullBody) else fullBody
             val finalSender = if (shouldClean) TemplateEngine.cleanText(sender) else sender
             
-            // 3. Template
+            // 5. Template
             val template = PrefsManager.getJsonTemplate(context)
             
-            // 4. Transform unique to SMS
+            // 6. Transform unique to SMS
             // We reuse applyGeneric but mapped for SMS
             // We treat 'pkg' as 'sms', 'title' as 'sender', 'text' as 'body'
             val json = TemplateEngine.applyGeneric(
                 template = template,
                 pkg = "sms",
-                title = finalSender,
+                title = finalSender, // Use raw sender or matched name? Maybe "${match.name} ($sender)"? Let's stick to sender for now or user variable.
                 text = finalBody,
                 bigText = ""
             )
             
-            // 5. Log & Send
+            // 7. Log & Send
             val entry = LogEntry(
-                packageName = "SMS:$sender",
+                packageName = "SMS:${match.name}",
                 title = sender,
                 content = finalBody,
                 status = LogStatus.PENDING,

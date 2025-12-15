@@ -10,6 +10,6 @@ data class ParsedData(
     val address: String,
     val incidentType: String,
     val incidentDetails: String,
-    val originalBody: String,
+    var originalBody: String,
     val fdCodes: List<String>
 )

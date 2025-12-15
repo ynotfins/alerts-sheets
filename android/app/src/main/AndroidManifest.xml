@@ -45,6 +45,12 @@
         <activity android:name=".SmsConfigActivity" 
                   android:label="SMS Config"
                   android:parentActivityName=".MainActivity"/>
+        <activity android:name=".EndpointActivity" 
+                  android:label="Endpoints"
+                  android:parentActivityName=".MainActivity"/>
+        <activity android:name=".AppsListActivity" 
+                  android:label="Select Apps"
+                  android:parentActivityName=".MainActivity"/>
                   
         <receiver android:name=".SmsReceiver"
             android:exported="true"

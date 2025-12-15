@@ -1,7 +1,7 @@
 {
     "logs": [
         {
-            "outputFile": "com.example.alertsheets.app-mergeDebugResources-29:/values-sl/values-sl.xml",
+            "outputFile": "com.example.alertsheets.app-mergeDebugResources-30:/values-sl/values-sl.xml",
             "map": [
                 {
                     "source": "C:\\Users\\ynotf\\.gradle\\caches\\9.0-milestone-1\\transforms\\54d5ae0b379a751dcdcf2b3df2b406c3\\transformed\\material-1.11.0\\res\\values-sl\\values-sl.xml",

@@ -2986,6 +2986,7 @@ drawable abc_vector_test
 drawable avd_hide_password
 drawable avd_show_password
 drawable bg_card
+drawable bg_card_dark
 drawable btn_checkbox_checked_mtrl
 drawable btn_checkbox_checked_to_unchecked_mtrl_animation
 drawable btn_checkbox_unchecked_mtrl
@@ -3208,6 +3209,11 @@ id buttonPanel
 id cache_measures
 id callMeasure
 id cancel_button
+id card_apps
+id card_config
+id card_endpoints
+id card_logs
+id card_sms
 id carryVelocity
 id center
 id centerCrop
@@ -3219,6 +3225,7 @@ id chain2
 id chains
 id check_case
 id checkbox
+id checkbox_app
 id checked
 id chronometer
 id circle_center
@@ -3303,6 +3310,7 @@ id fitXY
 id fixed
 id flip
 id floating
+id footer_ticker
 id forever
 id fragment_container_view_tag
 id frost
@@ -3471,9 +3479,11 @@ id postLayout
 id pressed
 id progress_circular
 id progress_horizontal
+id progress_loading
 id radio
 id ratio
 id rectangles
+id recycler_all_apps
 id recycler_apps
 id recycler_endpoints
 id recycler_logs
@@ -3611,6 +3621,9 @@ id transition_position
 id transition_scene_layoutid_cache
 id transition_transform
 id triangle
+id tv_queue_status
+id tv_service_status
+id tv_status_title
 id unchecked
 id uniform
 id unlabeled
@@ -3749,8 +3762,10 @@ layout abc_search_view
 layout abc_select_dialog_material
 layout abc_tooltip
 layout activity_app_config
+layout activity_apps_list
 layout activity_log
 layout activity_main
+layout activity_main_dashboard
 layout activity_sms_config
 layout custom_dialog
 layout design_bottom_navigation_item

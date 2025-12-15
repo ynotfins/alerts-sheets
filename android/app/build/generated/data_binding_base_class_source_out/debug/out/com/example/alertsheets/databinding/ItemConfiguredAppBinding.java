@@ -4,6 +4,7 @@ package com.example.alertsheets.databinding;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.CheckBox;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
@@ -20,14 +21,18 @@ public final class ItemConfiguredAppBinding implements ViewBinding {
   private final LinearLayout rootView;
 
   @NonNull
+  public final CheckBox checkboxApp;
+
+  @NonNull
   public final TextView textAppName;
 
   @NonNull
   public final TextView textPackageName;
 
-  private ItemConfiguredAppBinding(@NonNull LinearLayout rootView, @NonNull TextView textAppName,
-      @NonNull TextView textPackageName) {
+  private ItemConfiguredAppBinding(@NonNull LinearLayout rootView, @NonNull CheckBox checkboxApp,
+      @NonNull TextView textAppName, @NonNull TextView textPackageName) {
     this.rootView = rootView;
+    this.checkboxApp = checkboxApp;
     this.textAppName = textAppName;
     this.textPackageName = textPackageName;
   }
@@ -59,6 +64,12 @@ public final class ItemConfiguredAppBinding implements ViewBinding {
     // This is done to optimize the compiled bytecode for size and performance.
     int id;
     missingId: {
+      id = R.id.checkbox_app;
+      CheckBox checkboxApp = ViewBindings.findChildViewById(rootView, id);
+      if (checkboxApp == null) {
+        break missingId;
+      }
+
       id = R.id.text_app_name;
       TextView textAppName = ViewBindings.findChildViewById(rootView, id);
       if (textAppName == null) {
@@ -71,7 +82,8 @@ public final class ItemConfiguredAppBinding implements ViewBinding {
         break missingId;
       }
 
-      return new ItemConfiguredAppBinding((LinearLayout) rootView, textAppName, textPackageName);
+      return new ItemConfiguredAppBinding((LinearLayout) rootView, checkboxApp, textAppName,
+          textPackageName);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

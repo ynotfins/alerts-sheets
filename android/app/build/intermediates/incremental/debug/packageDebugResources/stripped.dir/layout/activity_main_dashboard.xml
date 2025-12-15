@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <TextView android:id="@+id/tv_status_title" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+    <TextView android:id="@+id/tv_service_status" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+    <TextView android:id="@+id/tv_queue_status" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+    
+    <View android:id="@+id/card_apps" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+    <View android:id="@+id/card_sms" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+    <View android:id="@+id/card_config" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+    <View android:id="@+id/card_endpoints" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+    <View android:id="@+id/card_logs" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+
+    <TextView android:id="@+id/footer_ticker" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+
+</LinearLayout>

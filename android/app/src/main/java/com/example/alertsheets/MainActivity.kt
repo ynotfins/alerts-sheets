@@ -78,8 +78,10 @@ class MainActivity : AppCompatActivity() {
     private fun updateQueueStatus() {
         val tvQueue = findViewById<TextView>(R.id.tv_queue_status)
         CoroutineScope(Dispatchers.IO).launch {
-             val dao = com.example.alertsheets.data.AppDatabase.getDatabase(this@MainActivity).requestDao()
-             val count = dao.getPendingCount()
+             val db = com.example.alertsheets.data.QueueDbHelper(this@MainActivity)
+             val count = db.getPendingCount()
+             db.close()
+             
              withContext(Dispatchers.Main) {
                  if (count > 0) {
                      tvQueue.text = "Queue: $count pending..."

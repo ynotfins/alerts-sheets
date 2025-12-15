@@ -1,8 +1,6 @@
-plugins {
-    id 'com.android.application'
-    id 'org.jetbrains.kotlin.android'
-    id 'kotlin-kapt'
-}
+apply plugin: 'com.android.application'
+apply plugin: 'org.jetbrains.kotlin.android'
+// apply plugin: 'kotlin-kapt'
 
 android {
     namespace 'com.example.alertsheets'
@@ -25,11 +23,11 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
     }
     kotlinOptions {
-        jvmTarget = '1.8'
+        jvmTarget = '17'
     }
     buildFeatures {
         viewBinding true
@@ -52,13 +50,13 @@ dependencies {
     // Gson
     implementation 'com.google.code.gson:gson:2.10.1'
 
-    // Room Database
-    implementation "androidx.room:room-runtime:2.6.1"
-    implementation "androidx.room:room-ktx:2.6.1"
-    kapt "androidx.room:room-compiler:2.6.1"
+    // Room Removed - Switching to SQLiteOpenHelper due to persistent build config issues
+    // implementation 'androidx.room:room-runtime:2.6.1'
+    // implementation 'androidx.room:room-ktx:2.6.1'
+    // kapt 'androidx.room:room-compiler:2.6.1'
 
     // Lifecycle (for ViewModel/LiveData if needed, mainly for lifecycleScope)
-    implementation "androidx.lifecycle:lifecycle-runtime-ktx:2.6.2"
+    implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.6.2'
 
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'

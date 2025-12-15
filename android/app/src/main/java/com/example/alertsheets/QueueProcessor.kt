@@ -2,14 +2,13 @@ package com.example.alertsheets
 
 import android.content.Context
 import android.util.Log
-import com.example.alertsheets.data.AppDatabase
+import com.example.alertsheets.data.QueueDbHelper
 import com.example.alertsheets.data.RequestEntity
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import java.util.concurrent.atomic.AtomicBoolean
 
 object QueueProcessor {
@@ -19,14 +18,10 @@ object QueueProcessor {
 
     fun enqueue(context: Context, url: String, payload: String) {
         scope.launch {
-            val dao = AppDatabase.getDatabase(context).requestDao()
-            val entity = RequestEntity(
-                url = url,
-                payload = payload,
-                status = "PENDING"
-            )
-            val id = dao.insert(entity)
+            val db = QueueDbHelper(context)
+            val id = db.insertRequest(url, payload)
             Log.d("QueueProcessor", "Enqueued request ID: $id")
+            db.close()
             
             // Trigger processing
             processQueue(context)
@@ -38,36 +33,30 @@ object QueueProcessor {
 
         scope.launch {
             try {
-                val dao = AppDatabase.getDatabase(context).requestDao()
+                // Keep DbHelper open? Better to open/close or keep singleton?
+                // Helper is lightweight.
+                val db = QueueDbHelper(context)
                 
                 while (true) {
-                    val pending = dao.getPendingRequests()
+                    val pending = db.getPendingRequests()
                     if (pending.isEmpty()) break
 
                     for (req in pending) {
                         try {
                             Log.d("QueueProcessor", "Processing request ID: ${req.id}")
-                            
-                            // Log status update (Using existing LogRepository)
-                            // We might want to link the DB ID to the LogEntry ID in future, 
-                            // but for now we just log the attempt.
 
                             val success = NetworkClient.sendSynchronous(req.url, req.payload)
                             
                             if (success) {
                                 Log.d("QueueProcessor", "Request ID: ${req.id} SUCCESS")
-                                dao.delete(req) // Remove on success
-                                
-                                // Update UI Log (if possible/relevant)?
-                                // We are relying on LogRepository for UI updates, which NetworkClient handled before.
-                                // We need to ensure logs reflect this async nature.
+                                db.deleteRequest(req.id)
                             } else {
                                 Log.d("QueueProcessor", "Request ID: ${req.id} FAILED")
-                                handleFailure(dao, req)
+                                handleFailure(db, req)
                             }
                         } catch (e: Exception) {
                             Log.e("QueueProcessor", "Error processing request ${req.id}", e)
-                            handleFailure(dao, req)
+                            handleFailure(db, req)
                         }
                         
                         // Small delay between requests to be nice to the sheet
@@ -75,8 +64,9 @@ object QueueProcessor {
                     }
                     
                     // Check again if new items arrived
-                    if (dao.getPendingCount() == 0) break
+                    if (db.getPendingCount() == 0) break
                 }
+                db.close()
             } catch (e: Exception) {
                 Log.e("QueueProcessor", "Fatal queue error", e)
             } finally {
@@ -85,10 +75,10 @@ object QueueProcessor {
         }
     }
 
-    private suspend fun handleFailure(dao: com.example.alertsheets.data.RequestDao, req: RequestEntity) {
+    private suspend fun handleFailure(db: QueueDbHelper, req: RequestEntity) {
         if (req.retryCount >= 10) {
             // Give up
-            dao.delete(req) // Or move to a "DEAD_LETTER" table
+            db.deleteRequest(req.id) 
             Log.e("QueueProcessor", "Request ${req.id} max retries reached. Dropping.")
              LogRepository.addLog(LogEntry(
                 packageName = "System",
@@ -98,17 +88,9 @@ object QueueProcessor {
                 rawJson = req.payload
             ))
         } else {
-            // Backoff logic could go here
-            val updated = req.copy(
-                retryCount = req.retryCount + 1,
-                // Make status FAILED but keep in PENDING list? 
-                // Actually our query is "WHERE status = 'PENDING'".
-                // If we fail, we should probably keep it PENDING unless we want to pause it.
-                // For simplicity, we keep PENDING but maybe add a 'nextRetryTime' in future.
-                // For now, simple retry loop.
-            )
-            dao.update(updated)
-            // Wait a bit before retrying the same item immediately if loop continues
+            // Update retry count
+            db.updateRequestStatus(req.id, "PENDING", req.retryCount + 1)
+            // Wait a bit before retrying
             delay(1000 * (req.retryCount + 1).toLong())
         }
     }

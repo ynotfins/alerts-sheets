@@ -56,6 +56,14 @@
             android:name="com.example.alertsheets.SmsConfigActivity"
             android:label="SMS Config"
             android:parentActivityName="com.example.alertsheets.MainActivity" />
+        <activity
+            android:name="com.example.alertsheets.EndpointActivity"
+            android:label="Endpoints"
+            android:parentActivityName="com.example.alertsheets.MainActivity" />
+        <activity
+            android:name="com.example.alertsheets.AppsListActivity"
+            android:label="Select Apps"
+            android:parentActivityName="com.example.alertsheets.MainActivity" />
 
         <receiver
             android:name="com.example.alertsheets.SmsReceiver"

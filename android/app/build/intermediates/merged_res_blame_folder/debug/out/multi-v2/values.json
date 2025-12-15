@@ -1,7 +1,7 @@
 {
     "logs": [
         {
-            "outputFile": "com.example.alertsheets.app-mergeDebugResources-29:/values/values.xml",
+            "outputFile": "com.example.alertsheets.app-mergeDebugResources-30:/values/values.xml",
             "map": [
                 {
                     "source": "C:\\Users\\ynotf\\.gradle\\caches\\9.0-milestone-1\\transforms\\8f14aeb4e4aebe23374ab5d7e91360d0\\transformed\\drawerlayout-1.1.1\\res\\values\\values.xml",
@@ -209,7 +209,24 @@
                     }
                 },
                 {
-                    "source": "C:\\Users\\ynotf\\.gradle\\caches\\9.0-milestone-1\\transforms\\9e5323a4b880d45761e26f2b269862a7\\transformed\\lifecycle-runtime-2.6.1\\res\\values\\values.xml",
+                    "source": "D:\\github\\alerts-sheets\\android\\app\\src\\main\\res\\values\\colors.xml",
+                    "from": {
+                        "startLines": "2,4,3,9,10,8,7,5,6,15,11,12,13,14,16",
+                        "startColumns": "4,4,4,4,4,4,4,4,4,4,4,4,4,4,4",
+                        "startOffsets": "57,158,106,410,457,365,314,204,258,744,505,604,652,698,787",
+                        "endColumns": "47,44,50,45,46,43,49,52,54,41,46,46,44,44,41",
+                        "endOffsets": "100,198,152,451,499,404,359,252,308,781,547,646,692,738,824"
+                    },
+                    "to": {
+                        "startLines": "636,637,638,639,640,641,642,643,644,649,956,957,968,969,972",
+                        "startColumns": "4,4,4,4,4,4,4,4,4,4,4,4,4,4,4",
+                        "startOffsets": "32479,32527,32572,32623,32669,32716,32760,32810,32863,33237,56095,56142,56886,56931,57097",
+                        "endColumns": "47,44,50,45,46,43,49,52,54,41,46,46,44,44,41",
+                        "endOffsets": "32522,32567,32618,32664,32711,32755,32805,32858,32913,33274,56137,56184,56926,56971,57134"
+                    }
+                },
+                {
+                    "source": "C:\\Users\\ynotf\\.gradle\\caches\\9.0-milestone-1\\transforms\\71af9b5bd91e4816b49c66b16856ab9c\\transformed\\lifecycle-runtime-2.6.2\\res\\values\\values.xml",
                     "from": {
                         "startLines": "2",
                         "startColumns": "4",
@@ -226,20 +243,20 @@
                     }
                 },
                 {
-                    "source": "D:\\github\\alerts-sheets\\android\\app\\src\\main\\res\\values\\colors.xml",
+                    "source": "C:\\Users\\ynotf\\.gradle\\caches\\9.0-milestone-1\\transforms\\712560c932611c61e89739ad198f9451\\transformed\\lifecycle-viewmodel-2.6.2\\res\\values\\values.xml",
                     "from": {
-                        "startLines": "2,4,3,9,10,8,7,5,6,15,11,12,13,14,16",
-                        "startColumns": "4,4,4,4,4,4,4,4,4,4,4,4,4,4,4",
-                        "startOffsets": "57,158,106,410,457,365,314,204,258,744,505,604,652,698,787",
-                        "endColumns": "47,44,50,45,46,43,49,52,54,41,46,46,44,44,41",
-                        "endOffsets": "100,198,152,451,499,404,359,252,308,781,547,646,692,738,824"
+                        "startLines": "2",
+                        "startColumns": "4",
+                        "startOffsets": "55",
+                        "endColumns": "49",
+                        "endOffsets": "100"
                     },
                     "to": {
-                        "startLines": "636,637,638,639,640,641,642,643,644,649,956,957,968,969,972",
-                        "startColumns": "4,4,4,4,4,4,4,4,4,4,4,4,4,4,4",
-                        "startOffsets": "32479,32527,32572,32623,32669,32716,32760,32810,32863,33237,56095,56142,56886,56931,57097",
-                        "endColumns": "47,44,50,45,46,43,49,52,54,41,46,46,44,44,41",
-                        "endOffsets": "32522,32567,32618,32664,32711,32755,32805,32858,32913,33274,56137,56184,56926,56971,57134"
+                        "startLines": "1879",
+                        "startColumns": "4",
+                        "startOffsets": "124104",
+                        "endColumns": "49",
+                        "endOffsets": "124149"
                     }
                 },
                 {
@@ -312,23 +329,6 @@
                         "startOffsets": "124050",
                         "endColumns": "53",
                         "endOffsets": "124099"
-                    }
-                },
-                {
-                    "source": "C:\\Users\\ynotf\\.gradle\\caches\\9.0-milestone-1\\transforms\\6570270a336eaa0d54d8a07c585aaeea\\transformed\\lifecycle-viewmodel-2.6.1\\res\\values\\values.xml",
-                    "from": {
-                        "startLines": "2",
-                        "startColumns": "4",
-                        "startOffsets": "55",
-                        "endColumns": "49",
-                        "endOffsets": "100"
-                    },
-                    "to": {
-                        "startLines": "1879",
-                        "startColumns": "4",
-                        "startOffsets": "124104",
-                        "endColumns": "49",
-                        "endOffsets": "124149"
                     }
                 },
                 {

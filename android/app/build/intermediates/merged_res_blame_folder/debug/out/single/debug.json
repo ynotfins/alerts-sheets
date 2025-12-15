@@ -1,82 +1,94 @@
 [
     {
-        "merged": "com.example.alertsheets.app-merged_res-31:/color_selector_thumb.xml.flat",
-        "source": "com.example.alertsheets.app-main-33:/color/selector_thumb.xml"
+        "merged": "com.example.alertsheets.app-merged_res-32:/drawable_status_indicator.xml.flat",
+        "source": "com.example.alertsheets.app-main-34:/drawable/status_indicator.xml"
     },
     {
-        "merged": "com.example.alertsheets.app-merged_res-31:/xml_backup_rules.xml.flat",
-        "source": "com.example.alertsheets.app-main-33:/xml/backup_rules.xml"
+        "merged": "com.example.alertsheets.app-merged_res-32:/layout_item_endpoint.xml.flat",
+        "source": "com.example.alertsheets.app-main-34:/layout/item_endpoint.xml"
     },
     {
-        "merged": "com.example.alertsheets.app-merged_res-31:/layout_dialog_add_endpoint.xml.flat",
-        "source": "com.example.alertsheets.app-main-33:/layout/dialog_add_endpoint.xml"
+        "merged": "com.example.alertsheets.app-merged_res-32:/layout_dialog_add_endpoint.xml.flat",
+        "source": "com.example.alertsheets.app-main-34:/layout/dialog_add_endpoint.xml"
     },
     {
-        "merged": "com.example.alertsheets.app-merged_res-31:/xml_accessibility_service_config.xml.flat",
-        "source": "com.example.alertsheets.app-main-33:/xml/accessibility_service_config.xml"
+        "merged": "com.example.alertsheets.app-merged_res-32:/xml_accessibility_service_config.xml.flat",
+        "source": "com.example.alertsheets.app-main-34:/xml/accessibility_service_config.xml"
     },
     {
-        "merged": "com.example.alertsheets.app-merged_res-31:/layout_item_sms_target.xml.flat",
-        "source": "com.example.alertsheets.app-main-33:/layout/item_sms_target.xml"
+        "merged": "com.example.alertsheets.app-merged_res-32:/layout_activity_log.xml.flat",
+        "source": "com.example.alertsheets.app-main-34:/layout/activity_log.xml"
     },
     {
-        "merged": "com.example.alertsheets.app-merged_res-31:/layout_dialog_add_mapping.xml.flat",
-        "source": "com.example.alertsheets.app-main-33:/layout/dialog_add_mapping.xml"
+        "merged": "com.example.alertsheets.app-merged_res-32:/layout_activity_main.xml.flat",
+        "source": "com.example.alertsheets.app-main-34:/layout/activity_main.xml"
     },
     {
-        "merged": "com.example.alertsheets.app-merged_res-31:/xml_data_extraction_rules.xml.flat",
-        "source": "com.example.alertsheets.app-main-33:/xml/data_extraction_rules.xml"
+        "merged": "com.example.alertsheets.app-merged_res-32:/layout_dialog_add_sms.xml.flat",
+        "source": "com.example.alertsheets.app-main-34:/layout/dialog_add_sms.xml"
     },
     {
-        "merged": "com.example.alertsheets.app-merged_res-31:/layout_item_mapping.xml.flat",
-        "source": "com.example.alertsheets.app-main-33:/layout/item_mapping.xml"
+        "merged": "com.example.alertsheets.app-merged_res-32:/color_selector_thumb.xml.flat",
+        "source": "com.example.alertsheets.app-main-34:/color/selector_thumb.xml"
     },
     {
-        "merged": "com.example.alertsheets.app-merged_res-31:/drawable_ic_launcher_foreground.xml.flat",
-        "source": "com.example.alertsheets.app-main-33:/drawable/ic_launcher_foreground.xml"
+        "merged": "com.example.alertsheets.app-merged_res-32:/layout_activity_app_config.xml.flat",
+        "source": "com.example.alertsheets.app-main-34:/layout/activity_app_config.xml"
     },
     {
-        "merged": "com.example.alertsheets.app-merged_res-31:/drawable_bg_card.xml.flat",
-        "source": "com.example.alertsheets.app-main-33:/drawable/bg_card.xml"
+        "merged": "com.example.alertsheets.app-merged_res-32:/layout_activity_sms_config.xml.flat",
+        "source": "com.example.alertsheets.app-main-34:/layout/activity_sms_config.xml"
     },
     {
-        "merged": "com.example.alertsheets.app-merged_res-31:/layout_dialog_add_sms.xml.flat",
-        "source": "com.example.alertsheets.app-main-33:/layout/dialog_add_sms.xml"
+        "merged": "com.example.alertsheets.app-merged_res-32:/layout_item_sms_target.xml.flat",
+        "source": "com.example.alertsheets.app-main-34:/layout/item_sms_target.xml"
     },
     {
-        "merged": "com.example.alertsheets.app-merged_res-31:/layout_activity_app_config.xml.flat",
-        "source": "com.example.alertsheets.app-main-33:/layout/activity_app_config.xml"
+        "merged": "com.example.alertsheets.app-merged_res-32:/layout_activity_main_dashboard.xml.flat",
+        "source": "com.example.alertsheets.app-main-34:/layout/activity_main_dashboard.xml"
     },
     {
-        "merged": "com.example.alertsheets.app-merged_res-31:/layout_activity_sms_config.xml.flat",
-        "source": "com.example.alertsheets.app-main-33:/layout/activity_sms_config.xml"
+        "merged": "com.example.alertsheets.app-merged_res-32:/layout_item_log.xml.flat",
+        "source": "com.example.alertsheets.app-main-34:/layout/item_log.xml"
     },
     {
-        "merged": "com.example.alertsheets.app-merged_res-31:/layout_activity_main.xml.flat",
-        "source": "com.example.alertsheets.app-main-33:/layout/activity_main.xml"
+        "merged": "com.example.alertsheets.app-merged_res-32:/color_selector_track.xml.flat",
+        "source": "com.example.alertsheets.app-main-34:/color/selector_track.xml"
     },
     {
-        "merged": "com.example.alertsheets.app-merged_res-31:/layout_item_log.xml.flat",
-        "source": "com.example.alertsheets.app-main-33:/layout/item_log.xml"
+        "merged": "com.example.alertsheets.app-merged_res-32:/layout_activity_apps_list.xml.flat",
+        "source": "com.example.alertsheets.app-main-34:/layout/activity_apps_list.xml"
     },
     {
-        "merged": "com.example.alertsheets.app-merged_res-31:/layout_activity_log.xml.flat",
-        "source": "com.example.alertsheets.app-main-33:/layout/activity_log.xml"
+        "merged": "com.example.alertsheets.app-merged_res-32:/xml_backup_rules.xml.flat",
+        "source": "com.example.alertsheets.app-main-34:/xml/backup_rules.xml"
     },
     {
-        "merged": "com.example.alertsheets.app-merged_res-31:/layout_item_endpoint.xml.flat",
-        "source": "com.example.alertsheets.app-main-33:/layout/item_endpoint.xml"
+        "merged": "com.example.alertsheets.app-merged_res-32:/drawable_bg_card_dark.xml.flat",
+        "source": "com.example.alertsheets.app-main-34:/drawable/bg_card_dark.xml"
     },
     {
-        "merged": "com.example.alertsheets.app-merged_res-31:/drawable_status_indicator.xml.flat",
-        "source": "com.example.alertsheets.app-main-33:/drawable/status_indicator.xml"
+        "merged": "com.example.alertsheets.app-merged_res-32:/xml_data_extraction_rules.xml.flat",
+        "source": "com.example.alertsheets.app-main-34:/xml/data_extraction_rules.xml"
     },
     {
-        "merged": "com.example.alertsheets.app-merged_res-31:/color_selector_track.xml.flat",
-        "source": "com.example.alertsheets.app-main-33:/color/selector_track.xml"
+        "merged": "com.example.alertsheets.app-merged_res-32:/drawable_ic_launcher_foreground.xml.flat",
+        "source": "com.example.alertsheets.app-main-34:/drawable/ic_launcher_foreground.xml"
     },
     {
-        "merged": "com.example.alertsheets.app-merged_res-31:/layout_item_configured_app.xml.flat",
-        "source": "com.example.alertsheets.app-main-33:/layout/item_configured_app.xml"
+        "merged": "com.example.alertsheets.app-merged_res-32:/layout_dialog_add_mapping.xml.flat",
+        "source": "com.example.alertsheets.app-main-34:/layout/dialog_add_mapping.xml"
+    },
+    {
+        "merged": "com.example.alertsheets.app-merged_res-32:/layout_item_mapping.xml.flat",
+        "source": "com.example.alertsheets.app-main-34:/layout/item_mapping.xml"
+    },
+    {
+        "merged": "com.example.alertsheets.app-merged_res-32:/layout_item_configured_app.xml.flat",
+        "source": "com.example.alertsheets.app-main-34:/layout/item_configured_app.xml"
+    },
+    {
+        "merged": "com.example.alertsheets.app-merged_res-32:/drawable_bg_card.xml.flat",
+        "source": "com.example.alertsheets.app-main-34:/drawable/bg_card.xml"
     }
 ]

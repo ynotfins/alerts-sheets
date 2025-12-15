@@ -27,12 +27,16 @@ class NotificationService : NotificationListenerService() {
             .setPriority(androidx.core.app.NotificationCompat.PRIORITY_LOW)
             .build()
             
-        // Service ID 101 for the foreground notification
-        try {
-            startForeground(101, notification)
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
+            // Service ID 101 for the foreground notification
+            try {
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+                     startForeground(101, notification, android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC)
+                } else {
+                     startForeground(101, notification)
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
         
         return START_STICKY
     }
@@ -175,10 +179,15 @@ class NotificationService : NotificationListenerService() {
             )
             LogRepository.addLog(entry)
 
-            scope.launch {
-                val success = NetworkClient.sendJson(this@NotificationService, jsonToSend)
-                val finalStatus = if (success) LogStatus.SENT else LogStatus.FAILED
-                LogRepository.updateStatus(entry.id, finalStatus)
+            val endpoints = PrefsManager.getEndpoints(this)
+            if (endpoints.isNotEmpty()) {
+                endpoints.forEach { ep ->
+                    QueueProcessor.enqueue(this, ep.url, jsonToSend)
+                }
+                // We keep it PENDING in LogRepository until functionality to link queue to log is built.
+                // Or we could optimistically mark QUEUED?
+            } else {
+                 LogRepository.updateStatus(entry.id, LogStatus.FAILED)
             }
         }
     }

@@ -124,10 +124,13 @@ class SmsReceiver : BroadcastReceiver() {
             )
             LogRepository.addLog(entry)
             
-            scope.launch {
-                val success = NetworkClient.sendJson(context, json)
-                val status = if(success) LogStatus.SENT else LogStatus.FAILED
-                LogRepository.updateStatus(entry.id, status)
+            val endpoints = PrefsManager.getEndpoints(context)
+            if (endpoints.isNotEmpty()) {
+                endpoints.forEach { ep ->
+                    QueueProcessor.enqueue(context, ep.url, json)
+                }
+            } else {
+                LogRepository.updateStatus(entry.id, LogStatus.FAILED)
             }
         }
     }

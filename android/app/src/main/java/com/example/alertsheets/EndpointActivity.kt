@@ -1,0 +1,122 @@
+package com.example.alertsheets
+
+import android.app.AlertDialog
+import android.os.Bundle
+import android.view.LayoutInflater
+import android.widget.Button
+import android.widget.EditText
+import android.widget.LinearLayout
+import android.widget.TextView
+import androidx.appcompat.app.AppCompatActivity
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.example.alertsheets.Endpoint 
+import com.example.alertsheets.EndpointsAdapter
+import com.example.alertsheets.PrefsManager
+
+class EndpointActivity : AppCompatActivity() {
+
+    private lateinit var adapter: EndpointsAdapter
+    private var endpoints: MutableList<Endpoint> = mutableListOf()
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        
+        // Generate Layout Programmatically for speed
+        val layout = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setBackgroundColor(android.graphics.Color.parseColor("#121212"))
+            setPadding(32, 32, 32, 32)
+        }
+
+        val header = TextView(this).apply {
+            text = "Manage Endpoints"
+            textSize = 24f
+            setTextColor(android.graphics.Color.WHITE)
+            setPadding(0, 0, 0, 32)
+        }
+        layout.addView(header)
+
+        val btnAdd = Button(this).apply {
+            text = "Add New Endpoint"
+            setOnClickListener { showAddDialog() }
+        }
+        layout.addView(btnAdd)
+
+        val recycler = RecyclerView(this).apply {
+            layoutManager = LinearLayoutManager(this@EndpointActivity)
+            setPadding(0, 32, 0, 0)
+        }
+        layout.addView(recycler)
+
+        endpoints = PrefsManager.getEndpoints(this).toMutableList()
+        adapter = EndpointsAdapter(endpoints, 
+            onToggle = { endpoint, isEnabled ->
+                endpoint.isEnabled = isEnabled
+                saveEndpoints()
+            },
+            onDelete = { endpoint ->
+                showEditDialog(endpoint)
+            }
+        )
+        recycler.adapter = adapter
+        
+        setContentView(layout)
+    }
+
+    private fun saveEndpoints() {
+        PrefsManager.saveEndpoints(this, endpoints)
+    }
+
+    private fun showAddDialog() {
+        val view = LayoutInflater.from(this).inflate(R.layout.dialog_add_endpoint, null)
+        val inputName = view.findViewById<EditText>(R.id.input_name)
+        val inputUrl = view.findViewById<EditText>(R.id.input_url)
+        
+        AlertDialog.Builder(this)
+            .setTitle("Add Endpoint")
+            .setView(view)
+            .setPositiveButton("Add") { _, _ ->
+                val name = inputName.text.toString().trim()
+                val url = inputUrl.text.toString().trim()
+                if (url.isNotEmpty()) {
+                    val finalName = if (name.isEmpty()) "Endpoint ${endpoints.size + 1}" else name
+                    endpoints.add(Endpoint(name = finalName, url = url))
+                    saveEndpoints()
+                    adapter.updateData(endpoints) // Fix adapter update
+                }
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+    
+    private fun showEditDialog(endpoint: Endpoint) {
+        val view = LayoutInflater.from(this).inflate(R.layout.dialog_add_endpoint, null)
+        val inputName = view.findViewById<EditText>(R.id.input_name)
+        val inputUrl = view.findViewById<EditText>(R.id.input_url)
+        
+        inputName.setText(endpoint.name)
+        inputUrl.setText(endpoint.url)
+        
+        AlertDialog.Builder(this)
+            .setTitle("Edit Endpoint")
+            .setView(view)
+            .setPositiveButton("Save") { _, _ ->
+                val name = inputName.text.toString().trim()
+                val url = inputUrl.text.toString().trim()
+                if (url.isNotEmpty()) {
+                    endpoint.name = if (name.isEmpty()) "Endpoint" else name
+                    endpoint.url = url
+                    saveEndpoints()
+                    adapter.updateData(endpoints)
+                }
+            }
+            .setNeutralButton("Delete") { _, _ ->
+                endpoints.remove(endpoint)
+                saveEndpoints()
+                adapter.updateData(endpoints)
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+}

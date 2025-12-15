@@ -11,8 +11,6 @@ import kotlinx.coroutines.launch
 
 class SmsReceiver : BroadcastReceiver() {
 
-    private val scope = CoroutineScope(Dispatchers.IO)
-
     override fun onReceive(context: Context, intent: Intent) {
         if (intent.action == Telephony.Sms.Intents.SMS_RECEIVED_ACTION) {
             val messages = Telephony.Sms.Intents.getMessagesFromIntent(intent)
@@ -20,12 +18,10 @@ class SmsReceiver : BroadcastReceiver() {
 
             val sb = StringBuilder()
             var sender = ""
-            var timestamp = 0L
 
             for (msg in messages) {
                 if (sender.isEmpty()) {
                     sender = msg.originatingAddress ?: "Unknown"
-                    timestamp = msg.timestampMillis
                 }
                 sb.append(msg.messageBody)
             }

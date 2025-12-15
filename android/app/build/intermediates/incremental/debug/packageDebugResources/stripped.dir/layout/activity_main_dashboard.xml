@@ -2,18 +2,219 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical">
+    android:background="#121212"
+    android:orientation="vertical"
+    android:padding="24dp">
 
-    <TextView android:id="@+id/tv_status_title" android:layout_width="wrap_content" android:layout_height="wrap_content" />
-    <TextView android:id="@+id/tv_service_status" android:layout_width="wrap_content" android:layout_height="wrap_content" />
-    <TextView android:id="@+id/tv_queue_status" android:layout_width="wrap_content" android:layout_height="wrap_content" />
-    
-    <View android:id="@+id/card_apps" android:layout_width="wrap_content" android:layout_height="wrap_content" />
-    <View android:id="@+id/card_sms" android:layout_width="wrap_content" android:layout_height="wrap_content" />
-    <View android:id="@+id/card_config" android:layout_width="wrap_content" android:layout_height="wrap_content" />
-    <View android:id="@+id/card_endpoints" android:layout_width="wrap_content" android:layout_height="wrap_content" />
-    <View android:id="@+id/card_logs" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+    <!-- Status Header -->
+    <TextView
+        android:id="@+id/tv_status_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="System Status"
+        android:textColor="#FFFFFF"
+        android:textSize="24sp"
+        android:textStyle="bold" />
 
-    <TextView android:id="@+id/footer_ticker" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+    <TextView
+        android:id="@+id/tv_service_status"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="● Service Active"
+        android:textColor="#4CAF50"
+        android:textSize="14sp" />
+
+    <TextView
+        android:id="@+id/tv_queue_status"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Queue: Idle"
+        android:textColor="#AAAAAA"
+        android:textSize="12sp"
+        android:layout_marginTop="4dp"
+        android:layout_marginBottom="32dp"/>
+
+    <!-- Grid Layout -->
+    <GridLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:columnCount="2"
+        android:rowCount="3"
+        android:alignmentMode="alignMargins"
+        android:columnOrderPreserved="false"
+        android:useDefaultMargins="true">
+
+        <!-- Card: Apps -->
+        <LinearLayout
+            android:id="@+id/card_apps"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_columnWeight="1"
+            android:layout_rowWeight="1"
+            android:layout_margin="8dp"
+            android:background="@drawable/bg_card_dark"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:padding="24dp"
+            android:clickable="true"
+            android:focusable="true">
+            
+            <ImageView
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:src="@android:drawable/ic_menu_agenda"
+                android:tint="#FF9800"
+                android:layout_marginBottom="12dp"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Apps"
+                android:textColor="#FFFFFF"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <!-- Card: SMS -->
+        <LinearLayout
+            android:id="@+id/card_sms"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_columnWeight="1"
+            android:layout_rowWeight="1"
+            android:layout_margin="8dp"
+            android:background="@drawable/bg_card_dark"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:padding="24dp"
+            android:clickable="true"
+            android:focusable="true">
+
+             <ImageView
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:src="@android:drawable/sym_action_chat"
+                android:tint="#03A9F4"
+                android:layout_marginBottom="12dp"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="SMS"
+                android:textColor="#FFFFFF"
+                android:textStyle="bold" />
+        </LinearLayout>
+        
+        <!-- Card: Config/Payloads -->
+         <LinearLayout
+            android:id="@+id/card_config"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_columnWeight="1"
+            android:layout_rowWeight="1"
+            android:layout_margin="8dp"
+            android:background="@drawable/bg_card_dark"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:padding="24dp"
+            android:clickable="true"
+            android:focusable="true">
+
+            <ImageView
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:src="@android:drawable/ic_menu_preferences"
+                android:tint="#9E9E9E"
+                android:layout_marginBottom="12dp"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Payloads"
+                android:textColor="#FFFFFF"
+                android:textStyle="bold" />
+        </LinearLayout>
+        
+         <!-- Card: Endpoints -->
+         <LinearLayout
+            android:id="@+id/card_endpoints"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_columnWeight="1"
+            android:layout_rowWeight="1"
+            android:layout_margin="8dp"
+            android:background="@drawable/bg_card_dark"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:padding="24dp"
+            android:clickable="true"
+            android:focusable="true">
+
+            <ImageView
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:src="@android:drawable/ic_menu_upload"
+                android:tint="#4CAF50"
+                android:layout_marginBottom="12dp"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Endpoints"
+                android:textColor="#FFFFFF"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <!-- Wide Card: Logs -->
+        <LinearLayout
+            android:id="@+id/card_logs"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_columnSpan="2"
+            android:layout_columnWeight="1"
+            android:layout_rowWeight="1"
+            android:layout_margin="8dp"
+            android:background="@drawable/bg_card_dark"
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:padding="24dp"
+            android:clickable="true"
+            android:focusable="true">
+
+            <ImageView
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:src="@android:drawable/ic_menu_info_details"
+                android:tint="#FFFFFF"
+                android:layout_marginEnd="16dp"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Live Activity Logs"
+                android:textColor="#FFFFFF"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+    </GridLayout>
+
+    <!-- Footer Marquee -->
+    <TextView
+        android:id="@+id/footer_ticker"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:ellipsize="marquee"
+        android:fadingEdge="horizontal"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
+        android:marqueeRepeatLimit="marquee_forever"
+        android:padding="16dp"
+        android:scrollHorizontally="true"
+        android:singleLine="true"
+        android:text="Monitoring: WhatsApp, Gmail, SMS..."
+        android:textColor="#666666" />
 
 </LinearLayout>
+

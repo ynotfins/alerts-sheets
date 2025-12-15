@@ -1,8 +1,6 @@
 package com.example.alertsheets
 
-import android.app.AlertDialog
 import android.os.Bundle
-import android.view.LayoutInflater
 import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.EditText
@@ -20,13 +18,11 @@ class AppConfigActivity : AppCompatActivity() {
     private lateinit var spinnerTemplate: Spinner
     private lateinit var btnSave: Button
     private lateinit var radioGroupMode: RadioGroup
-    
+
     // Available Variables for User Reference
     private val appVariables = listOf(
-        "{{package}}", "{{title}}", "{{text}}", "{{bigText}}", "{{time}}"
-    )
-    private val smsVariables = listOf(
-        "{{sender}}", "{{message}}", "{{time}}"
+        "{{package}}", "{{title}}", "{{text}}", "{{bigText}}", "{{time}}",
+        "{{sender}}", "{{message}}" // Combined list for legend
     )
 
     override fun onCreate(savedInstanceState: Bundle?) {

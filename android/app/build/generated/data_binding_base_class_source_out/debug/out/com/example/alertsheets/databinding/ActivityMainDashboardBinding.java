@@ -20,19 +20,19 @@ public final class ActivityMainDashboardBinding implements ViewBinding {
   private final LinearLayout rootView;
 
   @NonNull
-  public final View cardApps;
+  public final LinearLayout cardApps;
 
   @NonNull
-  public final View cardConfig;
+  public final LinearLayout cardConfig;
 
   @NonNull
-  public final View cardEndpoints;
+  public final LinearLayout cardEndpoints;
 
   @NonNull
-  public final View cardLogs;
+  public final LinearLayout cardLogs;
 
   @NonNull
-  public final View cardSms;
+  public final LinearLayout cardSms;
 
   @NonNull
   public final TextView footerTicker;
@@ -46,10 +46,12 @@ public final class ActivityMainDashboardBinding implements ViewBinding {
   @NonNull
   public final TextView tvStatusTitle;
 
-  private ActivityMainDashboardBinding(@NonNull LinearLayout rootView, @NonNull View cardApps,
-      @NonNull View cardConfig, @NonNull View cardEndpoints, @NonNull View cardLogs,
-      @NonNull View cardSms, @NonNull TextView footerTicker, @NonNull TextView tvQueueStatus,
-      @NonNull TextView tvServiceStatus, @NonNull TextView tvStatusTitle) {
+  private ActivityMainDashboardBinding(@NonNull LinearLayout rootView,
+      @NonNull LinearLayout cardApps, @NonNull LinearLayout cardConfig,
+      @NonNull LinearLayout cardEndpoints, @NonNull LinearLayout cardLogs,
+      @NonNull LinearLayout cardSms, @NonNull TextView footerTicker,
+      @NonNull TextView tvQueueStatus, @NonNull TextView tvServiceStatus,
+      @NonNull TextView tvStatusTitle) {
     this.rootView = rootView;
     this.cardApps = cardApps;
     this.cardConfig = cardConfig;
@@ -90,31 +92,31 @@ public final class ActivityMainDashboardBinding implements ViewBinding {
     int id;
     missingId: {
       id = R.id.card_apps;
-      View cardApps = ViewBindings.findChildViewById(rootView, id);
+      LinearLayout cardApps = ViewBindings.findChildViewById(rootView, id);
       if (cardApps == null) {
         break missingId;
       }
 
       id = R.id.card_config;
-      View cardConfig = ViewBindings.findChildViewById(rootView, id);
+      LinearLayout cardConfig = ViewBindings.findChildViewById(rootView, id);
       if (cardConfig == null) {
         break missingId;
       }
 
       id = R.id.card_endpoints;
-      View cardEndpoints = ViewBindings.findChildViewById(rootView, id);
+      LinearLayout cardEndpoints = ViewBindings.findChildViewById(rootView, id);
       if (cardEndpoints == null) {
         break missingId;
       }
 
       id = R.id.card_logs;
-      View cardLogs = ViewBindings.findChildViewById(rootView, id);
+      LinearLayout cardLogs = ViewBindings.findChildViewById(rootView, id);
       if (cardLogs == null) {
         break missingId;
       }
 
       id = R.id.card_sms;
-      View cardSms = ViewBindings.findChildViewById(rootView, id);
+      LinearLayout cardSms = ViewBindings.findChildViewById(rootView, id);
       if (cardSms == null) {
         break missingId;
       }

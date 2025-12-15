@@ -57,6 +57,23 @@ object NetworkClient {
         }
     }
 
+    fun sendSynchronous(url: String, jsonPayload: String): Boolean {
+        try {
+            val body = jsonPayload.toRequestBody(JSON)
+            val request = Request.Builder()
+                .url(url)
+                .post(body)
+                .build()
+
+            client.newCall(request).execute().use { response ->
+                return response.isSuccessful
+            }
+        } catch (e: Exception) {
+            Log.e("NetworkClient", "Sync Send Error", e)
+            return false
+        }
+    }
+
     suspend fun sendData(context: Context, data: Any): Boolean {
         val jsonString = gson.toJson(data)
         return sendJson(context, jsonString)

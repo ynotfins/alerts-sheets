@@ -40,6 +40,19 @@ object TemplateEngine {
         // Basic JSON escape
         return s.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n")
     }
+
+    /**
+     * Removes emojis and non-standard characters.
+     * Keeps ASCII, common punctuation, and basic Latin sets.
+     */
+    fun cleanText(input: String): String {
+        // Regex to match non-ASCII characters that are likely emojis or symbols
+        // range \u0020-\u007E is standard ASCII printable
+        // We also want to keep basic Latin accents if needed, but for safety lets strip mostly everything unknown
+        // Or simpler: remove typical emoji ranges
+        val cleaned = input.replace(Regex("[^\\p{L}\\p{N}\\p{P}\\p{Z}]"), "")
+        return cleaned.trim()
+    }
     
     private fun getTime(): String {
         val sdf = SimpleDateFormat("MM/dd/yyyy HH:mm:ss", Locale.US)

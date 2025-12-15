@@ -57,8 +57,19 @@ class AppConfigActivity : AppCompatActivity() {
         spinnerTemplate.adapter = adapter
         layout.addView(spinnerTemplate)
         
+        // Clean Data Option
+        val checkClean = android.widget.CheckBox(this).apply {
+            text = "Auto-Clean Emojis/Symbols from Incoming Data"
+            isChecked = PrefsManager.getShouldCleanData(this@AppConfigActivity)
+            setOnCheckedChangeListener { _, isChecked ->
+                PrefsManager.saveShouldCleanData(this@AppConfigActivity, isChecked)
+            }
+            setPadding(0, 16, 0, 16)
+        }
+        layout.addView(checkClean)
+
         // JSON Editor
-        val labelJson = TextView(this).apply { text = "JSON Payload (Editable):" ; setPadding(0, 24, 0, 8) }
+        val labelJson = TextView(this).apply { text = "JSON Payload Template (Editable):" ; setPadding(0, 24, 0, 8) }
         layout.addView(labelJson)
         
         editJson = EditText(this).apply {
@@ -76,12 +87,24 @@ class AppConfigActivity : AppCompatActivity() {
         
         // Helper Chips / Legend
         val labelHelp = TextView(this).apply { 
-            text = "Available Variables: ${appVariables.joinToString(", ")}" 
+            text = "Variables: ${appVariables.joinToString(", ")}" 
             textSize = 12f
-            setPadding(0, 16, 0, 16)
+            setPadding(0, 8, 0, 8)
             setTextColor(android.graphics.Color.DKGRAY)
         }
         layout.addView(labelHelp)
+        
+        // Clean Valid Checkbox
+        val btnClean = Button(this).apply {
+            text = "Clean Invalid Chars (Test)"
+            setOnClickListener {
+                val current = editJson.text.toString()
+                val cleaned = TemplateEngine.cleanText(current)
+                editJson.setText(cleaned)
+                Toast.makeText(this@AppConfigActivity, "Removed Emojis/Symbols", Toast.LENGTH_SHORT).show()
+            }
+        }
+        layout.addView(btnClean)
 
         // Save Button
         btnSave = Button(this).apply {
@@ -138,6 +161,7 @@ class AppConfigActivity : AppCompatActivity() {
     private fun getSmsTemplate(): String {
         return """
 {
+  "//": "SMS Capture - Grabs everything",
   "source": "sms",
   "sender": "{{sender}}",
   "message": "{{message}}",
@@ -158,6 +182,7 @@ class AppConfigActivity : AppCompatActivity() {
   "type": "{{type}}",
   "address": "{{address}}",
   "details": "{{details}}",
+  "originalBody": "{{original}}",
   "codes": {{codes}}
 }
          """.trimIndent()

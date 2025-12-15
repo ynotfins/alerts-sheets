@@ -107,6 +107,11 @@ class NotificationService : NotificationListenerService() {
         
         var jsonToSend: String? = null
         var logContent = text
+        
+        val shouldClean = PrefsManager.getShouldCleanData(this)
+        val finalTitle = if (shouldClean) TemplateEngine.cleanText(title) else title
+        val finalText = if (shouldClean) TemplateEngine.cleanText(text) else text
+        val finalBigText = if (shouldClean) TemplateEngine.cleanText(bigText) else bigText
 
         if (isBnnMode) {
              // BNN logic (Legacy Pipe)
@@ -115,13 +120,18 @@ class NotificationService : NotificationListenerService() {
                      val parsed = Parser.parse(fullContent)
                      if (parsed != null) {
                          // We have ParsedData. Now apply to Template.
+                         // Clean BNN fields if needed? 
+                         // Usually BNN is clean, but let's trust the parser or apply clean to specific fields if user wants absolute safety.
+                         // For now, BNN is structured, but let's apply clean to 'originalBody' if that's what we send.
+                         if (shouldClean) parsed.originalBody = TemplateEngine.cleanText(parsed.originalBody)
+                         
                          jsonToSend = TemplateEngine.applyBnn(template, parsed)
                          logContent = parsed.originalBody
                      }
                  } else {
                      LogRepository.addLog(LogEntry(
                         packageName = sbn.packageName,
-                        title = title,
+                        title = finalTitle,
                         content = "Duplicate blocked",
                         status = LogStatus.IGNORED,
                         rawJson = fullContent
@@ -132,7 +142,7 @@ class NotificationService : NotificationListenerService() {
                  // Not a valid BNN pipe format
                  LogRepository.addLog(LogEntry(
                     packageName = sbn.packageName,
-                    title = title,
+                    title = finalTitle,
                     content = "Invalid Format (No Pipe)",
                     status = LogStatus.IGNORED,
                     rawJson = fullContent
@@ -142,11 +152,11 @@ class NotificationService : NotificationListenerService() {
         } else {
             // Generic App Notification Logic
             if (DeDuplicator.shouldProcess(fullContent)) {
-                jsonToSend = TemplateEngine.applyGeneric(template, sbn.packageName, title, text, bigText)
+                jsonToSend = TemplateEngine.applyGeneric(template, sbn.packageName, finalTitle, finalText, finalBigText)
             } else {
                 LogRepository.addLog(LogEntry(
                     packageName = sbn.packageName,
-                    title = title,
+                    title = finalTitle,
                     content = "Duplicate blocked",
                     status = LogStatus.IGNORED,
                     rawJson = fullContent
@@ -158,7 +168,7 @@ class NotificationService : NotificationListenerService() {
         if (jsonToSend != null) {
             val entry = LogEntry(
                 packageName = sbn.packageName,
-                title = title,
+                title = finalTitle,
                 content = logContent,
                 status = LogStatus.PENDING,
                 rawJson = jsonToSend

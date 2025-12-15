@@ -1,166 +1,18 @@
-> Task :app:preBuild UP-TO-DATE
-> Task :app:preDebugBuild UP-TO-DATE
-> Task :app:mergeDebugNativeDebugMetadata NO-SOURCE
-> Task :app:checkKotlinGradlePluginConfigurationErrors
-> Task :app:dataBindingMergeDependencyArtifactsDebug UP-TO-DATE
-> Task :app:generateDebugResValues UP-TO-DATE
-> Task :app:generateDebugResources UP-TO-DATE
-> Task :app:mergeDebugResources UP-TO-DATE
-> Task :app:packageDebugResources UP-TO-DATE
-> Task :app:parseDebugLocalResources UP-TO-DATE
-> Task :app:dataBindingGenBaseClassesDebug UP-TO-DATE
-> Task :app:checkDebugAarMetadata UP-TO-DATE
-> Task :app:mapDebugSourceSetPaths UP-TO-DATE
-> Task :app:createDebugCompatibleScreenManifests UP-TO-DATE
-> Task :app:extractDeepLinksDebug UP-TO-DATE
-> Task :app:processDebugMainManifest UP-TO-DATE
-> Task :app:processDebugManifest UP-TO-DATE
-> Task :app:processDebugManifestForPackage UP-TO-DATE
-> Task :app:processDebugResources UP-TO-DATE
-> Task :app:javaPreCompileDebug UP-TO-DATE
-> Task :app:mergeDebugShaders UP-TO-DATE
-> Task :app:compileDebugShaders NO-SOURCE
-> Task :app:generateDebugAssets UP-TO-DATE
-> Task :app:mergeDebugAssets UP-TO-DATE
-> Task :app:compressDebugAssets UP-TO-DATE
-> Task :app:desugarDebugFileDependencies UP-TO-DATE
-> Task :app:checkDebugDuplicateClasses UP-TO-DATE
-> Task :app:mergeExtDexDebug UP-TO-DATE
-> Task :app:mergeLibDexDebug UP-TO-DATE
-> Task :app:mergeDebugJniLibFolders UP-TO-DATE
-> Task :app:mergeDebugNativeLibs NO-SOURCE
-> Task :app:stripDebugDebugSymbols NO-SOURCE
-> Task :app:validateSigningDebug UP-TO-DATE
-> Task :app:writeDebugAppMetadata UP-TO-DATE
-> Task :app:writeDebugSigningConfigVersions UP-TO-DATE
-
-> Task :app:compileDebugKotlin FAILED
-e: file:///D:/github/alerts-sheets/android/app/src/main/java/com/example/alertsheets/AppConfigActivity.kt:236:1 Expecting a top level declaration
-e: file:///D:/github/alerts-sheets/android/app/src/main/java/com/example/alertsheets/AppConfigActivity.kt:9:5 Modifier 'override' is not applicable to 'top level function'
-e: file:///D:/github/alerts-sheets/android/app/src/main/java/com/example/alertsheets/AppConfigActivity.kt:9:47 Unresolved reference: Bundle
-e: file:///D:/github/alerts-sheets/android/app/src/main/java/com/example/alertsheets/AppConfigActivity.kt:10:9 No supertypes are accessible in this context
-e: file:///D:/github/alerts-sheets/android/app/src/main/java/com/example/alertsheets/AppConfigActivity.kt:11:22 Unresolved reference: LinearLayout
-e: file:///D:/github/alerts-sheets/android/app/src/main/java/com/example/alertsheets/AppConfigActivity.kt:11:35 'this' is not defined in this context
-e: file:///D:/github/alerts-sheets/android/app/src/main/java/com/example/alertsheets/AppConfigActivity.kt:12:13 Unresolved reference: orientation
-e: file:///D:/github/alerts-sheets/android/app/src/main/java/com/example/alertsheets/AppConfigActivity.kt:12:27 Unresolved reference: LinearLayout
-e: file:///D:/github/alerts-sheets/android/app/src/main/java/com/example/alertsheets/AppConfigActivity.kt:13:13 Unresolved reference: setPadding
-e: file:///D:/github/alerts-sheets/android/app/src/main/java/com/example/alertsheets/AppConfigActivity.kt:17:21 Unresolved reference: TextView
-e: file:///D:/github/alerts-sheets/android/app/src/main/java/com/example/alertsheets/AppConfigActivity.kt:17:30 'this' is not defined in this context
-e: file:///D:/github/alerts-sheets/android/app/src/main/java/com/example/alertsheets/AppConfigActivity.kt:18:13 Unresolved reference: text
-e: file:///D:/github/alerts-sheets/android/app/src/main/java/com/example/alertsheets/AppConfigActivity.kt:19:13 Unresolved reference: textSize
-e: file:///D:/github/alerts-sheets/android/app/src/main/java/com/example/alertsheets/AppConfigActivity.kt:20:13 Unresolved reference: setPadding
-e: file:///D:/github/alerts-sheets/android/app/src/main/java/com/example/alertsheets/AppConfigActivity.kt:25:25 Unresolved reference: TextView
-e: file:///D:/github/alerts-sheets/android/app/src/main/java/com/example/alertsheets/AppConfigActivity.kt:25:34 'this' is not defined in this context
-e: file:///D:/github/alerts-sheets/android/app/src/main/java/com/example/alertsheets/AppConfigActivity.kt:25:48 Unresolved reference: text
-e: file:///D:/github/alerts-sheets/android/app/src/main/java/com/example/alertsheets/AppConfigActivity.kt:25:86 Unresolved reference: setPadding
-e: file:///D:/github/alerts-sheets/android/app/src/main/java/com/example/alertsheets/AppConfigActivity.kt:28:9 Unresolved reference: radioGroupMode
-e: file:///D:/github/alerts-sheets/android/app/src/main/java/com/example/alertsheets/AppConfigActivity.kt:28:26 Unresolved reference: RadioGroup
-e: file:///D:/github/alerts-sheets/android/app/src/main/java/com/example/alertsheets/AppConfigActivity.kt:28:37 'this' is not defined in this context
-e: file:///D:/github/alerts-sheets/android/app/src/main/java/com/example/alertsheets/AppConfigActivity.kt:29:13 Unresolved reference: orientation
-e: file:///D:/github/alerts-sheets/android/app/src/main/java/com/example/alertsheets/AppConfigActivity.kt:29:27 Unresolved reference: RadioGroup
-e: file:///D:/github/alerts-sheets/android/app/src/main/java/com/example/alertsheets/AppConfigActivity.kt:32:24 Unresolved reference: RadioButton
-e: file:///D:/github/alerts-sheets/android/app/src/main/java/com/example/alertsheets/AppConfigActivity.kt:32:36 'this' is not defined in this context
-e: file:///D:/github/alerts-sheets/android/app/src/main/java/com/example/alertsheets/AppConfigActivity.kt:33:13 Unresolved reference: text
-e: file:///D:/github/alerts-sheets/android/app/src/main/java/com/example/alertsheets/AppConfigActivity.kt:34:13 Unresolved reference: id
-e: file:///D:/github/alerts-sheets/android/app/src/main/java/com/example/alertsheets/AppConfigActivity.kt:35:13 Unresolved reference: isChecked
-e: file:///D:/github/alerts-sheets/android/app/src/main/java/com/example/alertsheets/AppConfigActivity.kt:37:24 Unresolved reference: RadioButton
-e: file:///D:/github/alerts-sheets/android/app/src/main/java/com/example/alertsheets/AppConfigActivity.kt:37:36 'this' is not defined in this context
-e: file:///D:/github/alerts-sheets/android/app/src/main/java/com/example/alertsheets/AppConfigActivity.kt:38:13 Unresolved reference: text
-e: file:///D:/github/alerts-sheets/android/app/src/main/java/com/example/alertsheets/AppConfigActivity.kt:39:13 Unresolved reference: id
-e: file:///D:/github/alerts-sheets/android/app/src/main/java/com/example/alertsheets/AppConfigActivity.kt:42:9 Unresolved reference: radioGroupMode
-e: file:///D:/github/alerts-sheets/android/app/src/main/java/com/example/alertsheets/AppConfigActivity.kt:43:9 Unresolved reference: radioGroupMode
-e: file:///D:/github/alerts-sheets/android/app/src/main/java/com/example/alertsheets/AppConfigActivity.kt:44:24 Unresolved reference: radioGroupMode
-e: file:///D:/github/alerts-sheets/android/app/src/main/java/com/example/alertsheets/AppConfigActivity.kt:47:29 Unresolved reference: TextView
-e: file:///D:/github/alerts-sheets/android/app/src/main/java/com/example/alertsheets/AppConfigActivity.kt:47:38 'this' is not defined in this context
-e: file:///D:/github/alerts-sheets/android/app/src/main/java/com/example/alertsheets/AppConfigActivity.kt:47:52 Unresolved reference: text
-e: file:///D:/github/alerts-sheets/android/app/src/main/java/com/example/alertsheets/AppConfigActivity.kt:47:85 Unresolved reference: setPadding
-e: file:///D:/github/alerts-sheets/android/app/src/main/java/com/example/alertsheets/AppConfigActivity.kt:50:9 Unresolved reference: spinnerTemplate
-e: file:///D:/github/alerts-sheets/android/app/src/main/java/com/example/alertsheets/AppConfigActivity.kt:50:27 Unresolved reference: Spinner
-e: file:///D:/github/alerts-sheets/android/app/src/main/java/com/example/alertsheets/AppConfigActivity.kt:50:35 'this' is not defined in this context
-e: file:///D:/github/alerts-sheets/android/app/src/main/java/com/example/alertsheets/AppConfigActivity.kt:52:23 Unresolved reference: ArrayAdapter
-e: file:///D:/github/alerts-sheets/android/app/src/main/java/com/example/alertsheets/AppConfigActivity.kt:52:36 'this' is not defined in this context
-e: file:///D:/github/alerts-sheets/android/app/src/main/java/com/example/alertsheets/AppConfigActivity.kt:54:9 Unresolved reference: spinnerTemplate
-e: file:///D:/github/alerts-sheets/android/app/src/main/java/com/example/alertsheets/AppConfigActivity.kt:54:25 Variable expected
-e: file:///D:/github/alerts-sheets/android/app/src/main/java/com/example/alertsheets/AppConfigActivity.kt:55:24 Unresolved reference: spinnerTemplate
-e: file:///D:/github/alerts-sheets/android/app/src/main/java/com/example/alertsheets/AppConfigActivity.kt:58:50 'this' is not defined in this context
-e: file:///D:/github/alerts-sheets/android/app/src/main/java/com/example/alertsheets/AppConfigActivity.kt:60:61 Unresolved reference: @AppConfigActivity
-e: file:///D:/github/alerts-sheets/android/app/src/main/java/com/example/alertsheets/AppConfigActivity.kt:62:54 Unresolved reference: @AppConfigActivity
-e: file:///D:/github/alerts-sheets/android/app/src/main/java/com/example/alertsheets/AppConfigActivity.kt:69:25 Unresolved reference: TextView
-e: file:///D:/github/alerts-sheets/android/app/src/main/java/com/example/alertsheets/AppConfigActivity.kt:69:34 'this' is not defined in this context
-e: file:///D:/github/alerts-sheets/android/app/src/main/java/com/example/alertsheets/AppConfigActivity.kt:69:48 Unresolved reference: text
-e: file:///D:/github/alerts-sheets/android/app/src/main/java/com/example/alertsheets/AppConfigActivity.kt:69:84 Unresolved reference: setPadding
-e: file:///D:/github/alerts-sheets/android/app/src/main/java/com/example/alertsheets/AppConfigActivity.kt:72:9 Unresolved reference: editJson
-e: file:///D:/github/alerts-sheets/android/app/src/main/java/com/example/alertsheets/AppConfigActivity.kt:72:20 Unresolved reference: EditText
-e: file:///D:/github/alerts-sheets/android/app/src/main/java/com/example/alertsheets/AppConfigActivity.kt:72:29 'this' is not defined in this context
-e: file:///D:/github/alerts-sheets/android/app/src/main/java/com/example/alertsheets/AppConfigActivity.kt:73:13 Unresolved reference: hint
-e: file:///D:/github/alerts-sheets/android/app/src/main/java/com/example/alertsheets/AppConfigActivity.kt:74:13 Unresolved reference: setLines
-e: file:///D:/github/alerts-sheets/android/app/src/main/java/com/example/alertsheets/AppConfigActivity.kt:75:13 Unresolved reference: gravity
-e: file:///D:/github/alerts-sheets/android/app/src/main/java/com/example/alertsheets/AppConfigActivity.kt:76:13 Unresolved reference: background
-e: file:///D:/github/alerts-sheets/android/app/src/main/java/com/example/alertsheets/AppConfigActivity.kt:80:13 Unresolved reference: setPadding
-e: file:///D:/github/alerts-sheets/android/app/src/main/java/com/example/alertsheets/AppConfigActivity.kt:82:24 Unresolved reference: editJson
-e: file:///D:/github/alerts-sheets/android/app/src/main/java/com/example/alertsheets/AppConfigActivity.kt:85:25 Unresolved reference: TextView
-e: file:///D:/github/alerts-sheets/android/app/src/main/java/com/example/alertsheets/AppConfigActivity.kt:85:34 'this' is not defined in this context
-e: file:///D:/github/alerts-sheets/android/app/src/main/java/com/example/alertsheets/AppConfigActivity.kt:86:13 Unresolved reference: text
-e: file:///D:/github/alerts-sheets/android/app/src/main/java/com/example/alertsheets/AppConfigActivity.kt:87:13 Unresolved reference: textSize
-e: file:///D:/github/alerts-sheets/android/app/src/main/java/com/example/alertsheets/AppConfigActivity.kt:88:13 Unresolved reference: setPadding
-e: file:///D:/github/alerts-sheets/android/app/src/main/java/com/example/alertsheets/AppConfigActivity.kt:89:13 Unresolved reference: setTextColor
-e: file:///D:/github/alerts-sheets/android/app/src/main/java/com/example/alertsheets/AppConfigActivity.kt:94:24 Unresolved reference: Button
-e: file:///D:/github/alerts-sheets/android/app/src/main/java/com/example/alertsheets/AppConfigActivity.kt:94:31 'this' is not defined in this context
-e: file:///D:/github/alerts-sheets/android/app/src/main/java/com/example/alertsheets/AppConfigActivity.kt:95:13 Unresolved reference: text
-e: file:///D:/github/alerts-sheets/android/app/src/main/java/com/example/alertsheets/AppConfigActivity.kt:96:13 Unresolved reference: setOnClickListener
-e: file:///D:/github/alerts-sheets/android/app/src/main/java/com/example/alertsheets/AppConfigActivity.kt:97:31 Unresolved reference: editJson
-e: file:///D:/github/alerts-sheets/android/app/src/main/java/com/example/alertsheets/AppConfigActivity.kt:99:17 Unresolved reference: editJson
-e: file:///D:/github/alerts-sheets/android/app/src/main/java/com/example/alertsheets/AppConfigActivity.kt:100:17 Unresolved reference: Toast
-e: file:///D:/github/alerts-sheets/android/app/src/main/java/com/example/alertsheets/AppConfigActivity.kt:100:36 Unresolved reference: @AppConfigActivity
-e: file:///D:/github/alerts-sheets/android/app/src/main/java/com/example/alertsheets/AppConfigActivity.kt:100:82 Unresolved reference: Toast
-e: file:///D:/github/alerts-sheets/android/app/src/main/java/com/example/alertsheets/AppConfigActivity.kt:106:9 Unresolved reference: btnSave
-e: file:///D:/github/alerts-sheets/android/app/src/main/java/com/example/alertsheets/AppConfigActivity.kt:106:19 Unresolved reference: Button
-e: file:///D:/github/alerts-sheets/android/app/src/main/java/com/example/alertsheets/AppConfigActivity.kt:106:26 'this' is not defined in this context
-e: file:///D:/github/alerts-sheets/android/app/src/main/java/com/example/alertsheets/AppConfigActivity.kt:107:13 Unresolved reference: text
-e: file:///D:/github/alerts-sheets/android/app/src/main/java/com/example/alertsheets/AppConfigActivity.kt:108:13 Unresolved reference: setOnClickListener
-e: file:///D:/github/alerts-sheets/android/app/src/main/java/com/example/alertsheets/AppConfigActivity.kt:112:24 Unresolved reference: btnSave
-e: file:///D:/github/alerts-sheets/android/app/src/main/java/com/example/alertsheets/AppConfigActivity.kt:119:9 Unresolved reference: radioGroupMode
-e: file:///D:/github/alerts-sheets/android/app/src/main/java/com/example/alertsheets/AppConfigActivity.kt:119:53 Cannot infer a type for this parameter. Please specify it explicitly.
-e: file:///D:/github/alerts-sheets/android/app/src/main/java/com/example/alertsheets/AppConfigActivity.kt:119:56 Cannot infer a type for this parameter. Please specify it explicitly.
-e: file:///D:/github/alerts-sheets/android/app/src/main/java/com/example/alertsheets/AppConfigActivity.kt:126:9 Unresolved reference: spinnerTemplate
-e: file:///D:/github/alerts-sheets/android/app/src/main/java/com/example/alertsheets/AppConfigActivity.kt:126:25 Variable expected
-e: file:///D:/github/alerts-sheets/android/app/src/main/java/com/example/alertsheets/AppConfigActivity.kt:131:30 Unresolved reference: radioGroupMode
-e: file:///D:/github/alerts-sheets/android/app/src/main/java/com/example/alertsheets/AppConfigActivity.kt:135:31 Unresolved reference: editJson
-e: file:///D:/github/alerts-sheets/android/app/src/main/java/com/example/alertsheets/AppConfigActivity.kt:136:31 Unresolved reference: editJson
-e: file:///D:/github/alerts-sheets/android/app/src/main/java/com/example/alertsheets/AppConfigActivity.kt:141:30 Unresolved reference: editJson
-e: file:///D:/github/alerts-sheets/android/app/src/main/java/com/example/alertsheets/AppConfigActivity.kt:144:17 Unresolved reference: spinnerTemplate
-e: file:///D:/github/alerts-sheets/android/app/src/main/java/com/example/alertsheets/AppConfigActivity.kt:149:9 Unresolved reference: setContentView
-e: file:///D:/github/alerts-sheets/android/app/src/main/java/com/example/alertsheets/AppConfigActivity.kt:159:23 Unresolved reference: ArrayAdapter
-e: file:///D:/github/alerts-sheets/android/app/src/main/java/com/example/alertsheets/AppConfigActivity.kt:159:36 'this' is not defined in this context
-e: file:///D:/github/alerts-sheets/android/app/src/main/java/com/example/alertsheets/AppConfigActivity.kt:161:9 Unresolved reference: spinnerTemplate
-e: file:///D:/github/alerts-sheets/android/app/src/main/java/com/example/alertsheets/AppConfigActivity.kt:161:25 Variable expected
-e: file:///D:/github/alerts-sheets/android/app/src/main/java/com/example/alertsheets/AppConfigActivity.kt:166:14 Unresolved reference: editJson
-e: file:///D:/github/alerts-sheets/android/app/src/main/java/com/example/alertsheets/AppConfigActivity.kt:166:63 'this' is not defined in this context
-e: file:///D:/github/alerts-sheets/android/app/src/main/java/com/example/alertsheets/AppConfigActivity.kt:168:14 Unresolved reference: editJson
-e: file:///D:/github/alerts-sheets/android/app/src/main/java/com/example/alertsheets/AppConfigActivity.kt:168:63 'this' is not defined in this context
-e: file:///D:/github/alerts-sheets/android/app/src/main/java/com/example/alertsheets/AppConfigActivity.kt:173:23 Unresolved reference: editJson
-e: file:///D:/github/alerts-sheets/android/app/src/main/java/com/example/alertsheets/AppConfigActivity.kt:174:26 Unresolved reference: radioGroupMode
-e: file:///D:/github/alerts-sheets/android/app/src/main/java/com/example/alertsheets/AppConfigActivity.kt:182:50 'this' is not defined in this context
-e: file:///D:/github/alerts-sheets/android/app/src/main/java/com/example/alertsheets/AppConfigActivity.kt:183:17 Unresolved reference: Toast
-e: file:///D:/github/alerts-sheets/android/app/src/main/java/com/example/alertsheets/AppConfigActivity.kt:183:32 'this' is not defined in this context
-e: file:///D:/github/alerts-sheets/android/app/src/main/java/com/example/alertsheets/AppConfigActivity.kt:183:59 Unresolved reference: Toast
-e: file:///D:/github/alerts-sheets/android/app/src/main/java/com/example/alertsheets/AppConfigActivity.kt:185:50 'this' is not defined in this context
-e: file:///D:/github/alerts-sheets/android/app/src/main/java/com/example/alertsheets/AppConfigActivity.kt:186:17 Unresolved reference: Toast
-e: file:///D:/github/alerts-sheets/android/app/src/main/java/com/example/alertsheets/AppConfigActivity.kt:186:32 'this' is not defined in this context
-e: file:///D:/github/alerts-sheets/android/app/src/main/java/com/example/alertsheets/AppConfigActivity.kt:186:59 Unresolved reference: Toast
-e: file:///D:/github/alerts-sheets/android/app/src/main/java/com/example/alertsheets/AppConfigActivity.kt:190:13 Unresolved reference: Toast
-e: file:///D:/github/alerts-sheets/android/app/src/main/java/com/example/alertsheets/AppConfigActivity.kt:190:28 'this' is not defined in this context
-e: file:///D:/github/alerts-sheets/android/app/src/main/java/com/example/alertsheets/AppConfigActivity.kt:190:64 Unresolved reference: Toast
-e: file:///D:/github/alerts-sheets/android/app/src/main/java/com/example/alertsheets/MainActivity.kt:48:40 Unresolved reference: AppConfigActivity
-
-[Incubating] Problems report is available at: file:///D:/github/alerts-sheets/android/build/reports/problems/problems-report.html
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/8.7/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+Warning: SDK processing. This version only understands SDK XML versions up to 3 but an SDK XML file of version 4 was encountered. This can happen if you use versions of Android Studio and the command-line tools that were released at different times.
+> Task :app:clean FAILED
 
 FAILURE: Build failed with an exception.
 
 * What went wrong:
-Execution failed for task ':app:compileDebugKotlin'.
-> A failure occurred while executing org.jetbrains.kotlin.compilerRunner.GradleCompilerRunnerWithWorkers$GradleKotlinCompilerWorkAction
-   > Compilation error. See log for more details
+Execution failed for task ':app:clean'.
+> java.io.IOException: Unable to delete directory 'D:\github\alerts-sheets\android\app\build'
+    Failed to delete some children. This might happen because a process has files open or has its working directory set in the target directory.
+    - D:\github\alerts-sheets\android\app\build\intermediates\compile_and_runtime_not_namespaced_r_class_jar\debug\R.jar
+    - D:\github\alerts-sheets\android\app\build\intermediates\compile_and_runtime_not_namespaced_r_class_jar\debug
+    - D:\github\alerts-sheets\android\app\build\intermediates\compile_and_runtime_not_namespaced_r_class_jar
+    - D:\github\alerts-sheets\android\app\build\intermediates
 
 * Try:
 > Run with --stacktrace option to get the stack trace.
@@ -168,11 +20,11 @@ Execution failed for task ':app:compileDebugKotlin'.
 > Run with --scan to get full insights.
 > Get more help at https://help.gradle.org.
 
-Deprecated Gradle features were used in this build, making it incompatible with Gradle 10.0.
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 9.0.
 
 You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
 
-For more on this, please refer to https://docs.gradle.org/9.0-milestone-1/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+For more on this, please refer to https://docs.gradle.org/8.7/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
 
-BUILD FAILED in 1s
-28 actionable tasks: 2 executed, 26 up-to-date
+BUILD FAILED in 6s
+1 actionable task: 1 executed

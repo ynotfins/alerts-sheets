@@ -105,7 +105,8 @@ class MainActivity : AppCompatActivity() {
         setDotColor(dotPermissions, allPerms)
 
         // 2. Check Apps
-        val hasApps = PrefsManager.getTargetApps(this).isNotEmpty()
+        // God Mode: Empty list means "Capture Everything", so it is always a valid state.
+        val hasApps = true
         setDotColor(dotApps, hasApps)
 
         // 3. Check SMS

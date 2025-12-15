@@ -1,5 +1,6 @@
 package com.example.alertsheets
 
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
@@ -131,7 +132,7 @@ class PermissionsActivity : AppCompatActivity() {
                 TextView(this).apply {
                     text = title + if (isGranted) " (Enabled)" else " (Missing)"
                     textSize = 18f
-                    textStyle = android.graphics.Typeface.BOLD
+                    setTypeface(null, android.graphics.Typeface.BOLD)
                     setTextColor(android.graphics.Color.WHITE)
                 }
 

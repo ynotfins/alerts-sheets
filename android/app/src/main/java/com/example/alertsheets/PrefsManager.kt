@@ -44,6 +44,16 @@ object PrefsManager {
         val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         prefs.edit().putStringSet("sms_targets", targets).apply()
     }
+    
+    fun getShouldCleanData(context: Context): Boolean {
+        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        return prefs.getBoolean("should_clean_data", false)
+    }
+
+    fun saveShouldCleanData(context: Context, shouldClean: Boolean) {
+        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        prefs.edit().putBoolean("should_clean_data", shouldClean).apply()
+    }
 
     // JSON Template
     fun getJsonTemplate(context: Context): String {

@@ -14,10 +14,12 @@ import androidx.core.content.ContextCompat
 
 class PermissionsActivity : AppCompatActivity() {
 
+    private lateinit var mainLayout: LinearLayout // Store reference to layout
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val layout =
+        mainLayout =
                 LinearLayout(this).apply {
                     orientation = LinearLayout.VERTICAL
                     setPadding(32, 32, 32, 32)
@@ -29,6 +31,19 @@ class PermissionsActivity : AppCompatActivity() {
                     setBackgroundColor(android.graphics.Color.parseColor("#121212"))
                 }
 
+        buildPermissionsList()
+        setContentView(mainLayout)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // Refresh permission status without recreating activity
+        refreshPermissions()
+    }
+
+    private fun buildPermissionsList() {
+        mainLayout.removeAllViews() // Clear existing views
+        
         val title =
                 TextView(this).apply {
                     text = "Required Permissions"
@@ -36,11 +51,11 @@ class PermissionsActivity : AppCompatActivity() {
                     setTextColor(android.graphics.Color.WHITE)
                     setPadding(0, 0, 0, 32)
                 }
-        layout.addView(title)
+        mainLayout.addView(title)
 
         // 1. Notification Listener
         addPermissionItem(
-                layout,
+                mainLayout,
                 "Notification Listener",
                 "Required to read notifications from other apps.",
                 checkNotifListener()
@@ -54,7 +69,7 @@ class PermissionsActivity : AppCompatActivity() {
 
         // 2. SMS Permission
         addPermissionItem(
-                layout,
+                mainLayout,
                 "Read SMS",
                 "Required to capture incoming SMS messages.",
                 checkSmsPermission()
@@ -67,7 +82,7 @@ class PermissionsActivity : AppCompatActivity() {
 
         // 3. Battery Optimization
         addPermissionItem(
-                layout,
+                mainLayout,
                 "Ignore Battery Opt",
                 "Prevents the system from killing the background service.",
                 checkBattery()
@@ -82,72 +97,11 @@ class PermissionsActivity : AppCompatActivity() {
                 startActivity(intent)
             }
         }
-
-        setContentView(layout)
-    }
-
-    override fun onResume() {
-        super.onResume()
-        // Refresh permission status without recreating activity
-        refreshPermissions()
     }
 
     private fun refreshPermissions() {
-        val layout = findViewById<LinearLayout>(android.R.id.content)
-            .getChildAt(0) as? LinearLayout ?: return
-        
-        // Clear and rebuild permission items
-        layout.removeAllViews()
-        
-        val title = TextView(this).apply {
-            text = "Required Permissions"
-            textSize = 24f
-            setTextColor(android.graphics.Color.WHITE)
-            setPadding(0, 0, 0, 32)
-        }
-        layout.addView(title)
-        
-        // Re-add permission items with current status
-        addPermissionItem(
-            layout,
-            "Notification Listener",
-            "Required to read notifications from other apps.",
-            checkNotifListener()
-        ) {
-            try {
-                startActivity(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS))
-            } catch (e: Exception) {
-                startActivity(Intent(Settings.ACTION_SETTINGS))
-            }
-        }
-        
-        addPermissionItem(
-            layout,
-            "Read SMS",
-            "Required to capture incoming SMS messages.",
-            checkSmsPermission()
-        ) {
-            val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
-            val uri = Uri.fromParts("package", packageName, null)
-            intent.data = uri
-            startActivity(intent)
-        }
-        
-        addPermissionItem(
-            layout,
-            "Ignore Battery Opt",
-            "Prevents the system from killing the background service.",
-            checkBattery()
-        ) {
-            try {
-                val intent = Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS)
-                intent.data = Uri.parse("package:$packageName")
-                startActivity(intent)
-            } catch (e: Exception) {
-                val intent = Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS)
-                startActivity(intent)
-            }
-        }
+        // Simply rebuild the entire list with updated statuses
+        buildPermissionsList()
     }
 
     private fun addPermissionItem(

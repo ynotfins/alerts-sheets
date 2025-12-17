@@ -1,75 +1,68 @@
-# BNN Notification Parsing Logic
+# BNN Notification Parsing Logic (v2.1)
 
 ## Overview
 
-The parsing logic in `Parser.kt` is the core intelligence of the application. It transforms raw BNN notification text into structured data suitable for the Google Sheet schema.
+This document serves as the definitive guide to the BNN parsing logic implemented in `Parser.kt`. The parser transforms raw notification text into structured data for Google Sheets.
 
-## Core logic
+## Core Pipeline
 
-The parser employs a robust, multi-stage pipeline designed to handle real-world variations in BNN formats, including multi-line inputs and varying delimiters.
+### 1. Pre-Processing & Validation
 
-### 1. Pre-Processing
-
-- **Normalization**: Converts Windows/Mac line endings (`\r\n`) to Unix (`\n`).
-- **Line Validation**: Filters out blank lines.
-- **Delimiter Check**: **MANDATORY**. The parser searches for a line containing the pipe symbol `|`. If no pipe is found, parsing aborts (returns `null`), triggering the fallback mechanism.
+- **Delimiter**: The parser **must** find a pipe `|` delimiter. If missing, it returns `null`.
+- **Normalization**: Converts line endings to Unix style (`\n`) and removes blank lines.
 
 ### 2. Status Determination
 
-The parser determines if the alert is a "New Incident" or an "Update".
-
-- **Primary Check**: Looks at the first segment of the pipe-delimited line.
+- **Primary Check**: First segment of the pipe line.
   - `U/D`, `Update` -> **Update**
   - `N/D`, `New` -> **New Incident**
-- **Secondary (Multi-line) Check**: If the pipe line is not the first line (common in some Android notifications), it scans _previous lines_ for keywords like "Update" or "U/D".
+- **Multi-line Check**: If the pipe line isn't the first line, it scans previous lines for "Update" or "U/D".
 
-### 3. State & Location Extraction
+### 3. State & Location (NYC Loophole Fixed)
 
-- **State**: Extracted from the first segment. Prefixes like "U/D", "N/D" are stripped.
+- **State**: Extracted from the first segment (e.g., "NJ", "NY"). Prefixes are stripped.
 - **City/County Logic**:
-  - **New York Exception**: If State is "NY" and the next field is a Borough (Queens, Bronx, etc.), that field is treated as **City**, and County is left blank.
   - **Standard**: Field 1 = County, Field 2 = City.
+  - **NYC Exception**: If State is "NY" and Field 1 is a Borough (Queens, Brooklyn, Bronx, Manhattan, Staten Island):
+    - **County** = <Borough Name> (Fix applied: no longer empty)
+    - **City** = <Borough Name>
+    - Indexing adjusts to skip only one field.
 
-### 4. Incident ID & Source
+### 4. Incident ID (Hash Strictness)
 
-- **Pattern Matching**: Scans all segments _backwards_ for a 7-digit ID pattern (`1xxxxxx`).
-- **Hash Removal**: As per user request, the leading `#` is stripped from the ID (e.g., `1234567`).
-- **Fallback**: If no ID is found, a hash code of the full text is generated.
-- **Source Tag**: Locates `<C> BNN` or `BNN` to establish the boundary between Incident Details and FD Codes.
+- **Pattern**: format `#1xxxxxx`.
+- **Hash Rule**: The ID **MUST** start with `#` to ensure Apps Script can match it against existing rows in the sheet.
+  - If the parser extracts "1234567", it automatically prepends `#` -> `#1234567`.
+- **Fallback**: If no ID is found, a hash code is generated and `#` is prepended.
 
 ### 5. Incident Details
 
-- **Strict Positioning**: The Incident Details are strictly defined as the field **immediately preceding** the Source Tag (`<C> BNN`).
-- **Heuristic Fallback**: If the Source Tag is missing (rare), it looks for the longest text field that isn't the ID.
+- **Location**: The field distinctively followed by the Source Tag (`<C> BNN` or `BNN`).
+- **Heuristic**: If the tag is missing, the longest field (that isn't an ID) is selected.
 
-### 6. Middle Fields (Address vs. Incident Type)
+### 6. Middle Fields (Address vs Type)
 
 A "fuzzy" logic block distinguishes between Address and Incident Type in the fields between City and Details.
 
-- **Address Indicators**:
-  - Starts with a digit (e.g., "123 Main").
-  - Contains Suffixes: "Ave", "St", "Rd", "Blvd", "Hwy", etc.
-  - Contains Intersections: "&", " and ".
-- **Type Indicators**:
-  - Keywords: "Fire", "Alarm", "MVA", "Crash", "Rescue", "EMS", "Gas", "Smoke", "Police", "Medical", etc.
-  - Short codes (e.g., "Box 22").
-- **Logic**:
-  - If matches Address indicators -> **Address**.
-  - If matches Type indicators -> **Incident Type** (Hyphen-separated if multiple).
-  - If ambiguous: length heuristics are used.
+- **Address**: Detected by digit start, suffix (Ave, St, Rd), or intersection markers.
+- **Type**: Detected by keywords (Fire, Alarm, Rescue, Police, etc.) or short codes.
+- **Result**: Fields are concatenated into `address` or `incidentType` respectively.
 
-### 7. FD Code Extraction
+### 7. FD Code Extraction (Strict Filtering)
 
-- **Scope**: Scans all fields _after_ the Incident Details.
-- **Filtering (Exclusion List)**:
-  - Ignores: `BNN`, `BNNDESK`, `DESK`, empty strings, pipe `|`.
-  - Ignores: The Incident ID itself.
-  - Ignores: Tokens longer than 20 characters.
-- **Output**: Returns a distinct list of valid FD codes (e.g., `E-1`, `L-1`, `nj312`).
+- **Scope**: All fields after the Incident Details/Source Tag.
+- **Exclusion List (Blacklist)**:
+  - `BNNDESK` (substring match)
+  - `DESK` (substring match)
+  - `BNN`
+  - `<C>`
+  - Pipe `|`
+  - The Incident ID itself
+  - Pure numeric strings (e.g., "12") if not part of a code.
+- **Output**: A clean, distinct list of codes (e.g., `nyc337`, `E-23`).
 
-## Error Handling
+## Google Sheet Behavior
 
-The entire process is wrapped in a `try-catch` block.
-
-- **Critical Errors**: Logged via `Log.e`.
-- **Return Value**: Returns `null` on failure, allowing `NotificationService` to fall back to the Generic Template.
+- **New Incident**: Creates a new row.
+- **Update**: Because the ID matches (thanks to the `#`), Apps Script finds the existing row and **appends** the new status, timestamp, and details to the same cells (new lines), instead of creating a duplicate row.
+- **FD Codes**: New codes are added to Columns K+.

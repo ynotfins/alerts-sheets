@@ -89,7 +89,7 @@ object Parser {
             if (state.equals("NY", ignoreCase = true) &&
                             boroughs.any { p1.equals(it, ignoreCase = true) }
             ) {
-                county = ""
+                county = p1 // Fix 2: NYC boroughs function as both County and City
                 city = p1
                 startMiddleIndex = 2
             } else {
@@ -108,8 +108,10 @@ object Parser {
                 val idMatcher = Pattern.compile("(#?1\\d{6})").matcher(p)
                 if (idMatcher.find()) {
                     incidentId = idMatcher.group(1) ?: ""
-                    // User Request: Remove # from ID
-                    incidentId = incidentId.replace("#", "")
+                    // Fix 1: Ensure Hash is present! Apps Script expects matches like "#1234567"
+                    if (!incidentId.startsWith("#")) {
+                        incidentId = "#$incidentId"
+                    }
                     break
                 }
             }
@@ -117,7 +119,7 @@ object Parser {
             // Fallback ID
             if (incidentId.isEmpty()) {
                 val hash = Math.abs(fullText.hashCode())
-                incidentId = "${hash.toString().takeLast(7).padStart(7, '0')}" // No hash prefix
+                incidentId = "#${hash.toString().takeLast(7).padStart(7, '0')}"
             }
 
             // Find Source Tag
@@ -286,13 +288,26 @@ object Parser {
                             }
 
                     for (token in tokens) {
-                        if (token.equals("BNNDESK", ignoreCase = true)) continue
-                        if (token.equals("DESK", ignoreCase = true))
-                                continue // User Request: Remove "DESK"
-                        if (token.equals("BNN", ignoreCase = true)) continue
-                        if (token.contains("#") && token.length > 5) continue // ID
-                        if (token == incidentId || token == "#$incidentId") continue
-                        if (token == "|") continue
+                        // Fix 3: Stronger filtering using contains and lowercase
+                        val lowerToken = token.lowercase()
+
+                        if (lowerToken.contains("bnndesk")) continue
+                        if (lowerToken.contains("desk")) continue
+                        if (lowerToken.contains("bnn")) continue
+                        if (lowerToken.contains("<c>")) continue
+                        if (lowerToken == "|") continue
+
+                        // ID Checks match what we have in incidentId
+                        if (token == incidentId ||
+                                        token == "#$incidentId" ||
+                                        "#$token" == incidentId
+                        )
+                                continue
+                        if (token.contains("#") && token.length > 5) continue
+
+                        // Skip pure numbers or empty
+                        if (lowerToken.isEmpty() || lowerToken.all { it.isDigit() }) continue
+
                         if (token.length > 20) continue // Too long to be a code
 
                         fdCodes.add(token)

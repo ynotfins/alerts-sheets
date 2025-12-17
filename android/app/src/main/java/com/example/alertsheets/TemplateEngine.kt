@@ -64,8 +64,7 @@ object TemplateEngine {
     }
 
     fun getTimestamp(): String {
-        val sdf = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.US)
-        sdf.timeZone = java.util.TimeZone.getTimeZone("UTC")
+        val sdf = SimpleDateFormat("MM/dd HH:mm", Locale.US)
         return sdf.format(Date())
     }
 }

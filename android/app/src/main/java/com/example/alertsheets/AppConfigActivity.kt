@@ -14,6 +14,8 @@ import androidx.appcompat.app.AppCompatActivity
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.RequestBody.Companion.toRequestBody
 
 class AppConfigActivity : AppCompatActivity() {
 
@@ -45,7 +47,7 @@ class AppConfigActivity : AppCompatActivity() {
         // Header
         val title =
                 TextView(this).apply {
-                    text = "JSON Payload Configuration"
+                    text = "JSON Payload Config (v2 DEBUG)"
                     textSize = 20f
                     setPadding(0, 0, 0, 24)
                 }
@@ -349,21 +351,48 @@ class AppConfigActivity : AppCompatActivity() {
         val template = editJson.text.toString()
         val isApp = (radioGroupMode.checkedRadioButtonId == R.id.radio_app)
 
-        // Dummy Data
+        // Realistic BNN-like test data with TEST marker and unique ID
+        // Realistic BNN Parsing Pipeline Verification
+        // Matches parsing.md spec: U/D NJ | Bergen | Teaneck | 123 Main St | Structure Fire | 2nd
+        // Alarm declared <C> BNN #1844695
+
         val json =
                 if (isApp) {
-                    TemplateEngine.applyGeneric(
-                            template,
-                            "com.test.app",
-                            "Test Title",
-                            "Test Content",
-                            "Test Big Text Content"
-                    )
+                    // 1. Construct Mock BNN Message
+                    // User Request: No '#' in generated ID.
+                    val uniqueId = "1${System.currentTimeMillis().toString().takeLast(6)}"
+                    // User Request: Always bar between incident and source. <C> BNN
+                    val mockBnn =
+                            "N/D NJ | Test County | Test City | 888 Test Ave | TEST-TYPE | Testing End-to-End Pipeline: Columns should fill. | <C> BNN | E-1/L-1 | nj312/njn751/nyl785/pa547 | #$uniqueId"
+
+                    // 2. Run through REAL Parser
+                    val parsed = Parser.parse(mockBnn)
+
+                    if (parsed != null) {
+                        // 3. Serialize exactly like NotificationService
+                        val timestamped = parsed.copy(timestamp = TemplateEngine.getTimestamp())
+                        com.google.gson.Gson().toJson(timestamped)
+                    } else {
+                        // Fallback (Should not happen with valid mock)
+                        TemplateEngine.applyGeneric(
+                                template,
+                                "com.test.bnn",
+                                "Test Title",
+                                "Test Text",
+                                mockBnn
+                        )
+                    }
                 } else {
-                    template.replace("{{sender}}", "Test Sender")
-                            .replace("{{message}}", "Test Message Body")
-                            .replace("{{time}}", "01/01/2025 12:00:00")
-                            .replace("{{timestamp}}", "2025-01-01T12:00:00.000Z")
+                    // SMS Mode - Generic Template Test
+                    val uniqueId = "SMS-${System.currentTimeMillis().toString().takeLast(4)}"
+                    TemplateEngine.applyGeneric(
+                                    template,
+                                    "sms", // pkg
+                                    "TEST-SENDER", // title/sender
+                                    "This is a test SMS message.", // text/message
+                                    ""
+                            )
+                            .replace("{{id}}", uniqueId)
                 }
 
         if (!silent) Toast.makeText(this, "Sending Test...", Toast.LENGTH_SHORT).show()
@@ -374,6 +403,7 @@ class AppConfigActivity : AppCompatActivity() {
             val url = endpoints.firstOrNull()?.url ?: ""
 
             if (url.isEmpty()) {
+                android.util.Log.e("TEST", "FAILED: No endpoint configured")
                 if (!silent)
                         runOnUiThread {
                             Toast.makeText(
@@ -387,30 +417,62 @@ class AppConfigActivity : AppCompatActivity() {
                 return@launch
             }
 
-            val success = NetworkClient.sendSynchronous(url, json)
+            // Log request details
+            android.util.Log.i("TEST", "=== Test Request ===")
+            android.util.Log.i("TEST", "Endpoint: $url")
+            android.util.Log.i("TEST", "JSON Payload: $json")
 
-            if (success) {
+            try {
+                val body = json.toRequestBody("application/json; charset=utf-8".toMediaType())
+                val request = okhttp3.Request.Builder().url(url).post(body).build()
+
+                val client = okhttp3.OkHttpClient()
+                client.newCall(request).execute().use { response ->
+                    val statusCode = response.code
+                    val responseBody = response.body?.string() ?: ""
+
+                    android.util.Log.i("TEST", "HTTP Status: $statusCode")
+                    android.util.Log.i("TEST", "Response Body: $responseBody")
+
+                    val success = response.isSuccessful
+
+                    if (success) {
+                        if (!silent)
+                                runOnUiThread {
+                                    Toast.makeText(
+                                                    this@AppConfigActivity,
+                                                    "Test SUCCESS! Status: $statusCode",
+                                                    Toast.LENGTH_LONG
+                                            )
+                                            .show()
+                                }
+                        PrefsManager.setPayloadTestStatus(this@AppConfigActivity, 1)
+                    } else {
+                        android.util.Log.e("TEST", "FAILED with status $statusCode: $responseBody")
+                        if (!silent)
+                                runOnUiThread {
+                                    Toast.makeText(
+                                                    this@AppConfigActivity,
+                                                    "Test FAILED: HTTP $statusCode",
+                                                    Toast.LENGTH_LONG
+                                            )
+                                            .show()
+                                }
+                        PrefsManager.setPayloadTestStatus(this@AppConfigActivity, 2)
+                    }
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("TEST", "EXCEPTION: ${e.message}", e)
                 if (!silent)
                         runOnUiThread {
                             Toast.makeText(
                                             this@AppConfigActivity,
-                                            "Test SUCCESS! Backend confirmed.",
+                                            "Test FAILED: ${e.message}",
                                             Toast.LENGTH_LONG
                                     )
                                     .show()
                         }
-                PrefsManager.setPayloadTestStatus(this@AppConfigActivity, 1) // Success
-            } else {
-                if (!silent)
-                        runOnUiThread {
-                            Toast.makeText(
-                                            this@AppConfigActivity,
-                                            "Test FAILED. Check Logs/URL.",
-                                            Toast.LENGTH_LONG
-                                    )
-                                    .show()
-                        }
-                PrefsManager.setPayloadTestStatus(this@AppConfigActivity, 2) // Fail
+                PrefsManager.setPayloadTestStatus(this@AppConfigActivity, 2)
             }
         }
     }

@@ -19,6 +19,7 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var tvServiceStatus: TextView
     private lateinit var btnMaster: Button
+    private lateinit var tvFooterTicker: TextView
 
     // Dot Views
     private lateinit var dotApps: ImageView
@@ -31,9 +32,13 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main_dashboard)
 
+        // Initialize log repository
+        LogRepository.initialize(this)
+
         // Init Views
         tvServiceStatus = findViewById(R.id.tv_service_status)
         btnMaster = findViewById(R.id.btn_master_status)
+        tvFooterTicker = findViewById(R.id.footer_ticker)
 
         dotApps = findViewById(R.id.dot_apps)
         dotSms = findViewById(R.id.dot_sms)
@@ -74,6 +79,7 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         updateDashboardStatus()
+        updateFooterTicker()
     }
 
     private fun updateMasterButtonVisuals() {
@@ -157,5 +163,33 @@ class MainActivity : AppCompatActivity() {
         val isEnabledCompat =
                 NotificationManagerCompat.getEnabledListenerPackages(this).contains(packageName)
         return isEnabledLegacy || isEnabledCompat
+    }
+
+    private fun updateFooterTicker() {
+        val selectedApps = PrefsManager.getTargetApps(this)
+        
+        val text = if (selectedApps.isEmpty()) {
+            "Monitoring: ALL APPS (God Mode)"
+        } else {
+            val pm = packageManager
+            val appNames = selectedApps.take(5).mapNotNull { pkg ->
+                try {
+                    val appInfo = pm.getApplicationInfo(pkg, 0)
+                    pm.getApplicationLabel(appInfo).toString()
+                } catch (e: Exception) {
+                    pkg.split(".").lastOrNull()
+                }
+            }
+            
+            val displayText = if (appNames.size < selectedApps.size) {
+                appNames.joinToString(", ") + " and ${selectedApps.size - appNames.size} more"
+            } else {
+                appNames.joinToString(", ")
+            }
+            
+            "Monitoring: $displayText"
+        }
+        
+        tvFooterTicker.text = text
     }
 }

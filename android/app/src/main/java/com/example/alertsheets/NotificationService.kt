@@ -115,14 +115,11 @@ class NotificationService : NotificationListenerService() {
             return
         }
 
-        // 2. Dynamic / Template
-        // We now prioritize the Global JSON Template.
-
-        // If we are here, we are allowed to process (checked filter above).
-
-        // Load Template (APP Specific)
-        val template = PrefsManager.getAppJsonTemplate(this)
-        val isBnnMode = template.contains("{{id}}") || template.contains("fdCodes")
+        // 2. Detect BNN vs Generic
+        val isBnnNotification =
+                sbn.packageName == "us.bnn.newsapp" ||
+                        fullContent.contains("<C> BNN", ignoreCase = true) ||
+                        (fullContent.count { it == '|' } >= 4) // Robust pipe check
 
         var jsonToSend: String? = null
         var logContent = text
@@ -132,71 +129,65 @@ class NotificationService : NotificationListenerService() {
         val finalText = if (shouldClean) TemplateEngine.cleanText(text) else text
         val finalBigText = if (shouldClean) TemplateEngine.cleanText(bigText) else bigText
 
-        if (isBnnMode) {
-            // BNN logic (Legacy Pipe)
-            if (fullContent.contains("|")) {
-                if (DeDuplicator.shouldProcess(fullContent)) {
-                    val parsed = Parser.parse(fullContent)
-                    if (parsed != null) {
-                        // We have ParsedData. Now apply to Template.
-                        // Clean BNN fields if needed?
-                        // Usually BNN is clean, but let's trust the parser or apply clean to
-                        // specific fields if user wants absolute safety.
-                        // For now, BNN is structured, but let's apply clean to 'originalBody' if
-                        // that's what we send.
-                        if (shouldClean)
-                                parsed.originalBody = TemplateEngine.cleanText(parsed.originalBody)
+        if (isBnnNotification) {
+            // BNN Parsing Pipeline
+            Log.d("NotificationService", "BNN Detected. Package: ${sbn.packageName}, Content: ${fullContent.take(200)}")
+            
+            if (DeDuplicator.shouldProcess(fullContent)) {
+                val parsed = Parser.parse(fullContent)
 
-                        jsonToSend = TemplateEngine.applyBnn(template, parsed)
-                        logContent = parsed.originalBody
-                    }
-                } else {
-                    LogRepository.addLog(
-                            LogEntry(
-                                    packageName = sbn.packageName,
-                                    title = finalTitle,
-                                    content = "Duplicate blocked",
-                                    status = LogStatus.IGNORED,
-                                    rawJson = fullContent
+                if (parsed != null) {
+                    // Update timestamp
+                    val timestamped =
+                            parsed.copy(
+                                    timestamp = TemplateEngine.getTimestamp(),
+                                    originalBody =
+                                            if (shouldClean) TemplateEngine.cleanText(fullContent)
+                                            else fullContent
                             )
-                    )
-                    return
-                }
-            } else {
-                // Not a valid BNN pipe format - Fallback to Generic
-                android.util.Log.w(
-                        "NotificationService",
-                        "BNN Mode active but no pipe found. Falling back to generic."
-                )
 
-                if (DeDuplicator.shouldProcess(fullContent)) {
+                    // Canonical JSON for Apps Script (Matches parsing.md)
+                    jsonToSend = com.google.gson.Gson().toJson(timestamped)
+
+                    // Log the "Details" part for readability in app
+                    logContent = parsed.incidentDetails.ifEmpty { parsed.incidentType }
+                    Log.i("NotificationService", "✓ BNN Parsed & Sent: ID=${parsed.incidentId}, State=${parsed.state}, City=${parsed.city}")
+                    Log.d("NotificationService", "JSON: ${jsonToSend?.take(300)}")
+                } else {
+                    Log.e(
+                            "NotificationService",
+                            "✗ BNN PARSE FAILED! Using generic template. Content: ${fullContent.take(200)}"
+                    )
+                    // Fallback to generic if parse fails but it looked like BNN?
+                    // Or just log error? Better to send *something*
                     jsonToSend =
                             TemplateEngine.applyGeneric(
-                                    template,
+                                    PrefsManager.getAppJsonTemplate(this),
                                     sbn.packageName,
                                     finalTitle,
                                     finalText,
                                     finalBigText
                             )
-                } else {
-                    LogRepository.addLog(
-                            LogEntry(
-                                    packageName = sbn.packageName,
-                                    title = finalTitle,
-                                    content = "Duplicate blocked",
-                                    status = LogStatus.IGNORED,
-                                    rawJson = fullContent
-                            )
-                    )
-                    return
+                    Log.w("NotificationService", "Generic fallback JSON: ${jsonToSend?.take(200)}")
                 }
+            } else {
+                LogRepository.addLog(
+                        LogEntry(
+                                packageName = sbn.packageName,
+                                title = finalTitle,
+                                content = "Duplicate blocked",
+                                status = LogStatus.IGNORED,
+                                rawJson = fullContent
+                        )
+                )
+                return
             }
         } else {
-            // Generic App Notification Logic
+            // Generic Pipeline
             if (DeDuplicator.shouldProcess(fullContent)) {
                 jsonToSend =
                         TemplateEngine.applyGeneric(
-                                template,
+                                PrefsManager.getAppJsonTemplate(this),
                                 sbn.packageName,
                                 finalTitle,
                                 finalText,

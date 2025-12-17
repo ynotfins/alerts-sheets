@@ -7,8 +7,8 @@
     "checkJs": false
   },
   "include": [
-    "**/*.js",
-    "**/*.gs"
+    "./**/*.js",
+    "./**/*.gs"
   ],
   "exclude": [
     "node_modules"

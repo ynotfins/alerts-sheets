@@ -2,7 +2,7 @@ package com.example.alertsheets
 
 data class ParsedData(
     val status: String,
-    val timestamp: String,
+    val timestamp: String = "",
     val incidentId: String,
     val state: String,
     val county: String,

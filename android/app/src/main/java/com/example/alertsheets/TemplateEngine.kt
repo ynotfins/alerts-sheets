@@ -58,12 +58,12 @@ object TemplateEngine {
         return cleaned.trim()
     }
 
-    private fun getTime(): String {
+    fun getTime(): String {
         val sdf = SimpleDateFormat("MM/dd/yyyy HH:mm:ss", Locale.US)
         return sdf.format(Date())
     }
 
-    private fun getTimestamp(): String {
+    fun getTimestamp(): String {
         val sdf = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.US)
         sdf.timeZone = java.util.TimeZone.getTimeZone("UTC")
         return sdf.format(Date())

@@ -4,6 +4,8 @@ package com.example.alertsheets.databinding;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.CheckBox;
+import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import androidx.annotation.NonNull;
@@ -21,14 +23,23 @@ public final class ActivityAppsListBinding implements ViewBinding {
   private final LinearLayout rootView;
 
   @NonNull
+  public final CheckBox checkShowSystem;
+
+  @NonNull
+  public final EditText editSearch;
+
+  @NonNull
   public final ProgressBar progressLoading;
 
   @NonNull
   public final RecyclerView recyclerAllApps;
 
-  private ActivityAppsListBinding(@NonNull LinearLayout rootView,
-      @NonNull ProgressBar progressLoading, @NonNull RecyclerView recyclerAllApps) {
+  private ActivityAppsListBinding(@NonNull LinearLayout rootView, @NonNull CheckBox checkShowSystem,
+      @NonNull EditText editSearch, @NonNull ProgressBar progressLoading,
+      @NonNull RecyclerView recyclerAllApps) {
     this.rootView = rootView;
+    this.checkShowSystem = checkShowSystem;
+    this.editSearch = editSearch;
     this.progressLoading = progressLoading;
     this.recyclerAllApps = recyclerAllApps;
   }
@@ -60,6 +71,18 @@ public final class ActivityAppsListBinding implements ViewBinding {
     // This is done to optimize the compiled bytecode for size and performance.
     int id;
     missingId: {
+      id = R.id.check_show_system;
+      CheckBox checkShowSystem = ViewBindings.findChildViewById(rootView, id);
+      if (checkShowSystem == null) {
+        break missingId;
+      }
+
+      id = R.id.edit_search;
+      EditText editSearch = ViewBindings.findChildViewById(rootView, id);
+      if (editSearch == null) {
+        break missingId;
+      }
+
       id = R.id.progress_loading;
       ProgressBar progressLoading = ViewBindings.findChildViewById(rootView, id);
       if (progressLoading == null) {
@@ -72,7 +95,8 @@ public final class ActivityAppsListBinding implements ViewBinding {
         break missingId;
       }
 
-      return new ActivityAppsListBinding((LinearLayout) rootView, progressLoading, recyclerAllApps);
+      return new ActivityAppsListBinding((LinearLayout) rootView, checkShowSystem, editSearch,
+          progressLoading, recyclerAllApps);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

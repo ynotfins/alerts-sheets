@@ -88,8 +88,66 @@ class PermissionsActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        // Recreate view to refresh status
-        onCreate(null)
+        // Refresh permission status without recreating activity
+        refreshPermissions()
+    }
+
+    private fun refreshPermissions() {
+        val layout = findViewById<LinearLayout>(android.R.id.content)
+            .getChildAt(0) as? LinearLayout ?: return
+        
+        // Clear and rebuild permission items
+        layout.removeAllViews()
+        
+        val title = TextView(this).apply {
+            text = "Required Permissions"
+            textSize = 24f
+            setTextColor(android.graphics.Color.WHITE)
+            setPadding(0, 0, 0, 32)
+        }
+        layout.addView(title)
+        
+        // Re-add permission items with current status
+        addPermissionItem(
+            layout,
+            "Notification Listener",
+            "Required to read notifications from other apps.",
+            checkNotifListener()
+        ) {
+            try {
+                startActivity(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS))
+            } catch (e: Exception) {
+                startActivity(Intent(Settings.ACTION_SETTINGS))
+            }
+        }
+        
+        addPermissionItem(
+            layout,
+            "Read SMS",
+            "Required to capture incoming SMS messages.",
+            checkSmsPermission()
+        ) {
+            val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+            val uri = Uri.fromParts("package", packageName, null)
+            intent.data = uri
+            startActivity(intent)
+        }
+        
+        addPermissionItem(
+            layout,
+            "Ignore Battery Opt",
+            "Prevents the system from killing the background service.",
+            checkBattery()
+        ) {
+            try {
+                val intent = Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS)
+                intent.data = Uri.parse("package:$packageName")
+                startActivity(intent)
+            } catch (e: Exception) {
+                val intent = Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS)
+                startActivity(intent)
+            }
+        }
     }
 
     private fun addPermissionItem(

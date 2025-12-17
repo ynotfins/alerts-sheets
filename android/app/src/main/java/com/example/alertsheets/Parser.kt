@@ -1,181 +1,325 @@
 package com.example.alertsheets
 
+import android.util.Log
 import java.util.regex.Pattern
 
 object Parser {
 
+    private const val TAG = "Parser"
+
     fun parse(fullText: String): ParsedData? {
-        val text = fullText.replace("\r\n", "\n")
-        val lines = text.split("\n").filter { it.isNotBlank() }
-        if (lines.isEmpty()) return null
-        
-        val contentLine = lines.firstOrNull { it.contains("|") } ?: return null
-        val parts = contentLine.split("|").map { it.trim() }
-        
-        // 1. Determine Status
-        var status = if (lines.indexOf(contentLine) > 0) lines[0] else ""
-        if (status.isBlank()) {
-            if (fullText.startsWith("Update", ignoreCase = true) || fullText.contains("U/D", ignoreCase = true)) status = "Update"
-            else if (fullText.startsWith("New Incident", ignoreCase = true)) status = "New Incident"
-            else status = "New Incident"
-        }
-        
-        // 2. Identify State & Location (Start Anchor)
-        var state = parts.getOrElse(0) { "" }
-        if (state.startsWith("U/D", ignoreCase = true)) {
-            state = state.removePrefix("U/D").trim()
-        }
-        
-        val boroughs = setOf("Queens", "Bronx", "Brooklyn", "Manhattan", "Staten Island", "New York")
-        var county = ""
-        var city = ""
-        var startMiddleIndex = 3 // Default: State | County | City | [Start]
-        
-        val p1 = parts.getOrElse(1) { "" }
-        val p2 = parts.getOrElse(2) { "" }
-        
-        if (state.equals("NY", ignoreCase = true) && boroughs.any { p1.equals(it, ignoreCase = true) }) {
-            // New York Borough Case: State | Borough (City) | ...
-            county = "" 
-            city = p1
-            startMiddleIndex = 2
-        } else {
-            // Standard Case: State | County | City | ...
-            county = p1
-            city = p2
-            startMiddleIndex = 3
-        }
+        // Basic pre-check
+        if (fullText.isBlank()) return null
 
-        // 3. Identify ID & Source (End Anchor)
-        // We look for the "<C> BNN" tag or similar source markers to pin the end of the content.
-        var incidentId = ""
-        var sourceIndex = -1
-        
-        // Find ID first (usually last)
-        if (parts.isNotEmpty()) {
-            val last = parts.last()
-            val idMatcher = Pattern.compile("#?(1\\d{6})").matcher(last)
-            if (idMatcher.find()) {
-                 incidentId = if(last.startsWith("#")) last else "#$last"
-            }
-        }
-        
-        // Find Source Tag to anchor the Details
-        for (i in parts.indices.reversed()) {
-            if (parts[i].contains("<C> BNN", ignoreCase = true) || parts[i].equals("BNN", ignoreCase = true)) {
-                sourceIndex = i
-                break
-            }
-        }
-        
-        // Fallback: If no source tag, try to guess based on ID index
-        if (sourceIndex == -1) {
-             // If ID is at last index, maybe source is last-2 or last-3? 
-             // Without a clear tag, we might have to rely on the "Details" heuristic (longest field)
-        }
+        try {
+            val text = fullText.replace("\r\n", "\n")
+            val lines = text.split("\n").filter { it.isNotBlank() }
 
-        // 4. Extract Details
-        // Details is typically the field immediately preceding the Source.
-        var detailsIndex = -1
-        if (sourceIndex > 0) {
-            detailsIndex = sourceIndex - 1
-        } else {
-            // Fallback: Find the longest field between startMiddle and End
-            var maxLen = 0
-            val searchEnd = if (parts.isNotEmpty()) parts.lastIndex - 1 else 0
-            for (i in startMiddleIndex..searchEnd) {
-                 if (parts[i].length > maxLen) {
-                     maxLen = parts[i].length
-                     detailsIndex = i
-                 }
+            if (lines.isEmpty()) {
+                Log.w(TAG, "Empty text lines, cannot parse.")
+                return null
             }
-        }
-        
-        val incidentDetails = if (detailsIndex != -1 && detailsIndex < parts.size) parts[detailsIndex] else ""
-        
-        // 5. Analyze Middle Fields (Address vs Type)
-        // Fields between startMiddleIndex and detailsIndex
-        var address = ""
-        var incidentType = ""
-        
-        val streetSuffixes = listOf(
-            "Ave", "Avenue", "St", "Street", "Rd", "Road", "Dr", "Drive", 
-            "Ln", "Lane", "Pl", "Place", "Ct", "Court", "Cir", "Circle", 
-            "Blvd", "Boulevard", "Way", "Ter", "Terrace", "Pkwy", "Parkway", 
-            "Hwy", "Highway", "Tpke", "Turnpike", "Expy", "Expressway", "Pike"
-        )
-        
-        if (detailsIndex > startMiddleIndex) {
-            val middleParts = parts.subList(startMiddleIndex, detailsIndex)
-            
-            for (part in middleParts) {
-                val p = part.trim()
-                if (p.isEmpty()) continue
-                
-                // Detection Logic
-                val hasDigitStart = p.firstOrNull()?.isDigit() == true
-                val hasSuffix = streetSuffixes.any { p.contains(" $it", ignoreCase = true) || p.endsWith(" $it", ignoreCase = true) }
-                val hasIntersection = p.contains(" & ") || p.contains(" and ", ignoreCase = true)
-                
-                // Short alphanumeric usually Box/Extra -> Append to Type
-                // ex: QN-6738, NWK4439, 10-75
-                val isBoxCode = p.length < 10 && p.any { it.isDigit() } && p.any { it.isLetter() } && (p.contains("-") || p == p.uppercase()) && !hasSuffix
 
-                if ((hasDigitStart && hasSuffix) || hasIntersection || (hasDigitStart && !isBoxCode)) {
-                    // Strong Address Signal
-                    address = p
-                } else if (isBoxCode) {
-                    // It's a code, append to type
-                    incidentType = if (incidentType.isEmpty()) p else "$incidentType ($p)"
-                } else {
-                    // Likely Description/Type (e.g. "Working Fire", "Tree Vs House")
-                    incidentType = if (incidentType.isEmpty()) p else "$incidentType - $p"
+            // Find the main content line (pipe delimited)
+            val contentLine = lines.firstOrNull { it.contains("|") }
+            if (contentLine == null) {
+                Log.w(TAG, "No pipe delimiter found in: $fullText")
+                return null // Essential requirement: Must have pipes to be a valid BNN
+            }
+
+            val contentLineIndex = lines.indexOf(contentLine)
+            val parts = contentLine.split("|").map { it.trim() }
+            Log.d(TAG, "Parsing ${parts.size} segments.")
+
+            // --- 1. Determine Status ---
+            // Check content line prefix first, then previous lines
+            var status = "New Incident"
+            val p0 = parts.getOrElse(0) { "" }.trim()
+
+            if (p0.startsWith("U/D", ignoreCase = true) ||
+                            p0.startsWith("Update", ignoreCase = true)
+            ) {
+                status = "Update"
+            } else if (p0.startsWith("N/D", ignoreCase = true) ||
+                            p0.startsWith("New", ignoreCase = true)
+            ) {
+                status = "New Incident"
+            } else if (contentLineIndex > 0) {
+                // Check previous lines (scan backwards or all previous)
+                val prevLines = lines.subList(0, contentLineIndex)
+                for (line in prevLines) {
+                    val l = line.trim()
+                    if (l.equals("Update", ignoreCase = true) ||
+                                    l.startsWith("U/D", ignoreCase = true)
+                    ) {
+                        status = "Update"
+                        break
+                    }
                 }
             }
-        }
-        
-        // 6. Extract FD Codes
-        // Typically after Source, or mixed in at end.
-        val fdCodes = mutableListOf<String>()
-        // Scan everything after Details (including Source parts if they have mixed content, and parts after Source)
-        val codeStartIndex = if (detailsIndex != -1) detailsIndex + 1 else parts.lastIndex
-        
-        for (i in codeStartIndex until parts.size) {
-            val p = parts[i]
-            // Skip ID
-            if (p == incidentId || p == incidentId.removePrefix("#")) continue
-            
-            // Clean BNN tags
-            val clean = p.replace("<C> BNN", "", ignoreCase = true).replace("BNN", "", ignoreCase = true).trim()
-            
-            if (clean.contains("/")) {
-                fdCodes.addAll(clean.split("/").map { it.trim() })
-            } else if (clean.isNotBlank() && clean.length < 12 && !clean.contains(" ")) {
-                 // Single code
-                 fdCodes.add(clean)
-            }
-        }
-        
-        // Final Filter
-        val finalCodes = fdCodes.filter { 
-            it.isNotBlank() && 
-            !it.equals("BNNDESK", ignoreCase = true) && 
-            !it.equals("BNN", ignoreCase = true) &&
-            !it.contains("BNN", ignoreCase = true) 
-        }
 
-        return ParsedData(
-            status = status,
-            timestamp = "", 
-            incidentId = incidentId,
-            state = state,
-            county = county,
-            city = city,
-            address = address,
-            incidentType = incidentType,
-            incidentDetails = incidentDetails,
-            originalBody = fullText,
-            fdCodes = finalCodes
-        )
+            // --- 2. Identify State & Location ---
+            var state = p0
+            // Clean prefixes from state string
+            if (state.startsWith("U/D", ignoreCase = true)) {
+                val split = state.split(" ", limit = 2)
+                state = if (split.size > 1) split[1].trim() else state.removePrefix("U/D").trim()
+            } else if (state.startsWith("N/D", ignoreCase = true)) {
+                val split = state.split(" ", limit = 2)
+                state = if (split.size > 1) split[1].trim() else state.removePrefix("N/D").trim()
+            } else if (state.startsWith("Update", ignoreCase = true)) {
+                // Handle "Update NJ"
+                val split = state.split(" ", limit = 2)
+                state = if (split.size > 1) split[1].trim() else state.removePrefix("Update").trim()
+            }
+
+            // Further sanitization: remove "U/D" if it lingers
+            state = state.replace("U/D", "", ignoreCase = true).trim()
+
+            // Boroughs
+            val boroughs =
+                    setOf("Queens", "Bronx", "Brooklyn", "Manhattan", "Staten Island", "New York")
+            var county = ""
+            var city = ""
+            var startMiddleIndex = 3
+
+            val p1 = parts.getOrElse(1) { "" }.trim()
+            val p2 = parts.getOrElse(2) { "" }.trim()
+
+            if (state.equals("NY", ignoreCase = true) &&
+                            boroughs.any { p1.equals(it, ignoreCase = true) }
+            ) {
+                county = ""
+                city = p1
+                startMiddleIndex = 2
+            } else {
+                county = p1
+                city = p2
+                startMiddleIndex = 3
+            }
+
+            // --- 3. Identify ID & Source ---
+            var incidentId = ""
+            var sourceIndex = -1
+
+            // Find ID (Hash + 7 digits)
+            for (i in parts.indices.reversed()) {
+                val p = parts[i]
+                val idMatcher = Pattern.compile("(#?1\\d{6})").matcher(p)
+                if (idMatcher.find()) {
+                    incidentId = idMatcher.group(1) ?: ""
+                    // User Request: Remove # from ID
+                    incidentId = incidentId.replace("#", "")
+                    break
+                }
+            }
+
+            // Fallback ID
+            if (incidentId.isEmpty()) {
+                val hash = Math.abs(fullText.hashCode())
+                incidentId = "${hash.toString().takeLast(7).padStart(7, '0')}" // No hash prefix
+            }
+
+            // Find Source Tag
+            for (i in parts.indices.reversed()) {
+                if (parts[i].contains("<C> BNN", ignoreCase = true) ||
+                                parts[i].equals("BNN", ignoreCase = true)
+                ) {
+                    sourceIndex = i
+                    break
+                }
+            }
+
+            // --- 4. Extract Details ---
+            var detailsIndex = -1
+            if (sourceIndex > 0) {
+                detailsIndex = sourceIndex - 1
+            } else {
+                // Heuristic: Longest field between startMiddle and End
+                var maxLen = 0
+                val searchEnd = if (parts.isNotEmpty()) parts.lastIndex else 0
+                for (i in startMiddleIndex..searchEnd) {
+                    // Don't pick the ID field as details
+                    if (parts[i].contains(incidentId) && parts[i].length < 15) continue
+
+                    if (parts[i].length > maxLen) {
+                        maxLen = parts[i].length
+                        detailsIndex = i
+                    }
+                }
+            }
+            val incidentDetails =
+                    if (detailsIndex != -1 && detailsIndex < parts.size) parts[detailsIndex] else ""
+
+            // --- 5. Middle Fields (Address/Type) ---
+            var address = ""
+            var incidentType = ""
+
+            try {
+                if (detailsIndex > startMiddleIndex) {
+                    val middleParts = parts.subList(startMiddleIndex, detailsIndex)
+
+                    val streetSuffixes =
+                            listOf(
+                                    "Ave",
+                                    "St",
+                                    "Rd",
+                                    "Dr",
+                                    "Ln",
+                                    "Pl",
+                                    "Ct",
+                                    "Cir",
+                                    "Blvd",
+                                    "Way",
+                                    "Ter",
+                                    "Pkwy",
+                                    "Hwy",
+                                    "Tpke",
+                                    "Expy",
+                                    "Pike",
+                                    "Avenue",
+                                    "Street",
+                                    "Road",
+                                    "Drive",
+                                    "Lane",
+                                    "Place",
+                                    "Court",
+                                    "Circle",
+                                    "Boulevard",
+                                    "Terrace",
+                                    "Parkway",
+                                    "Highway",
+                                    "Turnpike",
+                                    "Expressway"
+                            )
+
+                    val typeKeywords =
+                            listOf(
+                                    "Fire",
+                                    "Alarm",
+                                    "MVA",
+                                    "Crash",
+                                    "Accident",
+                                    "Rescue",
+                                    "EMS",
+                                    "Gas",
+                                    "Leak",
+                                    "Smoke",
+                                    "Odor",
+                                    "Police",
+                                    "Activity",
+                                    "Standby",
+                                    "Detail",
+                                    "Collapse",
+                                    "HazMat",
+                                    "Invest",
+                                    "Shot",
+                                    "Stab",
+                                    "Medical"
+                            )
+
+                    for (part in middleParts) {
+                        val p = part.trim()
+                        if (p.isEmpty()) continue
+
+                        val hasDigitStart = p.firstOrNull()?.isDigit() == true
+                        val hasSuffix =
+                                streetSuffixes.any {
+                                    p.contains(" $it", ignoreCase = true) ||
+                                            p.endsWith(it, ignoreCase = true)
+                                }
+                        val hasIntersection =
+                                p.contains("&") || p.contains(" and ", ignoreCase = true)
+
+                        val isCode =
+                                p.length < 15 &&
+                                        p.any { it.isDigit() } &&
+                                        (p.contains("-") || p == p.uppercase()) &&
+                                        !hasSuffix
+
+                        val looksLikeAddress =
+                                (hasDigitStart && hasSuffix) ||
+                                        hasIntersection ||
+                                        (hasDigitStart && !isCode)
+                        val looksLikeType = typeKeywords.any { p.contains(it, ignoreCase = true) }
+
+                        if (looksLikeAddress && !looksLikeType) {
+                            address = if (address.isEmpty()) p else "$address, $p"
+                        } else if (looksLikeType) {
+                            incidentType = if (incidentType.isEmpty()) p else "$incidentType - $p"
+                        } else {
+                            // Ambiguous
+                            if (address.isEmpty() && incidentType.isNotEmpty()) {
+                                address = p
+                            } else if (address.isNotEmpty() && incidentType.isEmpty()) {
+                                incidentType = p
+                            } else {
+                                if (p.length < 20)
+                                        incidentType =
+                                                if (incidentType.isEmpty()) p
+                                                else "$incidentType - $p"
+                                else address = if (address.isEmpty()) p else "$address, $p"
+                            }
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                Log.w(TAG, "Error in middle field parsing: ${e.message}")
+            }
+
+            // --- 6. FD Codes ---
+            val fdCodes = mutableListOf<String>()
+
+            try {
+                val codeSearchStart = if (detailsIndex != -1) detailsIndex + 1 else startMiddleIndex
+
+                for (i in codeSearchStart until parts.size) {
+                    val section = parts[i]
+                    val cleanSection =
+                            section.replace("<C> BNN", " ", ignoreCase = true)
+                                    .replace("BNN", " ", ignoreCase = true)
+                                    .trim()
+
+                    val tokens =
+                            cleanSection.split("/", " ").map { it.trim() }.filter {
+                                it.isNotEmpty()
+                            }
+
+                    for (token in tokens) {
+                        if (token.equals("BNNDESK", ignoreCase = true)) continue
+                        if (token.equals("DESK", ignoreCase = true))
+                                continue // User Request: Remove "DESK"
+                        if (token.equals("BNN", ignoreCase = true)) continue
+                        if (token.contains("#") && token.length > 5) continue // ID
+                        if (token == incidentId || token == "#$incidentId") continue
+                        if (token == "|") continue
+                        if (token.length > 20) continue // Too long to be a code
+
+                        fdCodes.add(token)
+                    }
+                }
+            } catch (e: Exception) {
+                Log.w(TAG, "Error extracting FD codes: ${e.message}")
+            }
+
+            Log.d(TAG, "✓ Parsed: ID=$incidentId, State=$state, City=$city")
+
+            return ParsedData(
+                    status = status,
+                    timestamp = "",
+                    incidentId = incidentId,
+                    state = state,
+                    county = county,
+                    city = city,
+                    address = address,
+                    incidentType = incidentType.trim(' ', '-'),
+                    incidentDetails = incidentDetails,
+                    originalBody = fullText,
+                    fdCodes = fdCodes.distinct()
+            )
+        } catch (e: Exception) {
+            Log.e(TAG, "CRITICAL PARSING ERROR: ${e.message}", e)
+            return null
+        }
     }
 }

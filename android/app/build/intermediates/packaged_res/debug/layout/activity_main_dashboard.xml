@@ -324,7 +324,7 @@
         android:padding="16dp"
         android:scrollHorizontally="true"
         android:singleLine="true"
-        android:text="Monitoring: WhatsApp, Gmail, SMS..."
-        android:textColor="#666666" />
+        android:text="Monitoring: Loading..."
+        android:textColor="#FFFFFF" />
 
 </LinearLayout>

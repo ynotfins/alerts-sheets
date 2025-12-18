@@ -6,6 +6,8 @@ import android.net.Uri
 import android.os.Bundle
 import android.os.PowerManager
 import android.provider.Settings
+import android.text.TextUtils
+import android.util.Log
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
@@ -13,6 +15,8 @@ import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 
 class PermissionsActivity : AppCompatActivity() {
+
+    private val TAG = "PermissionsActivity"
 
     private lateinit var mainLayout: LinearLayout // Store reference to layout
 
@@ -43,7 +47,7 @@ class PermissionsActivity : AppCompatActivity() {
 
     private fun buildPermissionsList() {
         mainLayout.removeAllViews() // Clear existing views
-        
+
         val title =
                 TextView(this).apply {
                     text = "Required Permissions"
@@ -177,16 +181,61 @@ class PermissionsActivity : AppCompatActivity() {
         val isEnabledLegacy = flat != null && flat.contains(packageName)
         val isEnabledCompat =
                 NotificationManagerCompat.getEnabledListenerPackages(this).contains(packageName)
-        return isEnabledLegacy || isEnabledCompat
+        val result = isEnabledLegacy || isEnabledCompat
+        Log.d(
+                TAG,
+                "checkNotifListener() = $result (legacy=$isEnabledLegacy, compat=$isEnabledCompat)"
+        )
+        return result
     }
 
     private fun checkSmsPermission(): Boolean {
-        return ContextCompat.checkSelfPermission(this, android.Manifest.permission.RECEIVE_SMS) ==
-                android.content.pm.PackageManager.PERMISSION_GRANTED
+        val result =
+                ContextCompat.checkSelfPermission(this, android.Manifest.permission.RECEIVE_SMS) ==
+                        android.content.pm.PackageManager.PERMISSION_GRANTED
+        Log.d(TAG, "checkSmsPermission() = $result")
+        return result
     }
 
     private fun checkBattery(): Boolean {
         val pm = getSystemService(Context.POWER_SERVICE) as PowerManager
-        return pm.isIgnoringBatteryOptimizations(packageName)
+        val result = pm.isIgnoringBatteryOptimizations(packageName)
+        Log.d(TAG, "checkBattery() = $result")
+        return result
+    }
+
+    private fun checkAccessibility(): Boolean {
+        var accessibilityEnabled = 0
+        val service = "$packageName/${NotificationAccessibilityService::class.java.canonicalName}"
+        try {
+            accessibilityEnabled =
+                    Settings.Secure.getInt(
+                            applicationContext.contentResolver,
+                            android.provider.Settings.Secure.ACCESSIBILITY_ENABLED
+                    )
+        } catch (e: Settings.SettingNotFoundException) {
+            Log.e(TAG, "Error finding setting, default accessibility to not found: " + e.message)
+        }
+        val mStringColonSplitter = TextUtils.SimpleStringSplitter(':')
+
+        if (accessibilityEnabled == 1) {
+            val settingValue =
+                    Settings.Secure.getString(
+                            applicationContext.contentResolver,
+                            Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES
+                    )
+            if (settingValue != null) {
+                mStringColonSplitter.setString(settingValue)
+                while (mStringColonSplitter.hasNext()) {
+                    val accessibilityService = mStringColonSplitter.next()
+                    if (accessibilityService.equals(service, ignoreCase = true)) {
+                        Log.d(TAG, "checkAccessibility() = TRUE (service=$service found)")
+                        return true
+                    }
+                }
+            }
+        }
+        Log.d(TAG, "checkAccessibility() = FALSE (service=$service not found)")
+        return false
     }
 }

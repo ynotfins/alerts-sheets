@@ -17,7 +17,10 @@ function doPost(e) {
     }
 
     // Key Fields
-    const incidentId = data.incidentId ? data.incidentId.toString().trim() : "";
+    const rawId = data.incidentId ? data.incidentId.toString().trim() : "";
+    const incidentId = rawId.startsWith("#") ? rawId.substring(1) : rawId; // Strip # for search
+    const displayId = rawId.startsWith("#") ? rawId : "#" + rawId; // Ensure # for display
+    
     const incomingCodes =
       data.fdCodes && Array.isArray(data.fdCodes) ? data.fdCodes : [];
 
@@ -27,7 +30,7 @@ function doPost(e) {
     const formattedTime = Utilities.formatDate(
       now,
       Session.getScriptTimeZone(),
-      "MM/dd/yyyy HH:mm:ss"
+      "MM/dd/yyyy hh:mm:ss a"
     );
 
     // Generate the "Incident" text block prefix
@@ -53,7 +56,9 @@ function doPost(e) {
       const idValues = sheet.getRange(2, 3, lastRow - 1, 1).getValues();
 
       for (let i = 0; i < idValues.length; i++) {
-        if (idValues[i][0].toString().trim() === incidentId) {
+        const sheetId = idValues[i][0].toString().trim();
+        const normalizedSheetId = sheetId.startsWith("#") ? sheetId.substring(1) : sheetId;
+        if (normalizedSheetId === incidentId) {
           foundRow = i + 2; // +2 because index 0 is row 2
           break;
         }
@@ -88,7 +93,15 @@ function doPost(e) {
       // Only append the details content, timestamp is already in Col B
       incidentCell.setValue(currentText + "\n" + cleanDetail);
 
-      // 5. FD Codes Logic (Col 11+/K+): Merge Unique ONLY
+      // 5. Original Body (Col 10/J): Append full notification text
+      const originalCell = sheet.getRange(foundRow, 10);
+      const currentOriginal = originalCell.getValue();
+      const newOriginal = data.originalBody || "";
+      if (newOriginal) {
+        originalCell.setValue(currentOriginal + "\n" + newOriginal);
+      }
+
+      // 6. FD Codes Logic (Col 11+/K+): Merge Unique ONLY
       const maxCols = sheet.getLastColumn();
       let existingCodeValues = [];
       if (maxCols >= 11) {
@@ -140,7 +153,8 @@ function doPost(e) {
       const row = [
         data.status || "New Incident",
         formattedTime,
-        incidentId,
+        displayId, // Always write with # prefix
+
         data.state || "",
         data.county || "",
         data.city || "",

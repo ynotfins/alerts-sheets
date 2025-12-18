@@ -26,8 +26,11 @@ This directory contains all project documentation, organized by purpose and audi
 - `DIAGNOSTICS.md` - Debugging procedures, log analysis
 - `parsing.md` - BNN parsing specification (authoritative)
 - `PERMISSIONS_GUIDE.md` - Maximum permissions setup (Android 15+)
-- `ENRICHMENT_PIPELINE.md` - **NEW:** Phase 2 backend architecture (geocoding, AI, property data)
-- `STRATEGIC_DECISION.md` - **NEW:** Why frontend + backend parsing (architecture rationale)
+- `SHEET_UPDATE_LOGIC.md` - **NEW:** Google Sheet column behavior (static vs dynamic)
+- `VISUAL_STANDARD.md` - **NEW:** Underlined headers = static fields (visual convention)
+- `ENRICHMENT_PIPELINE.md` - Phase 2 backend architecture (geocoding, AI, property data)
+- `STRATEGIC_DECISION.md` - Why frontend + backend parsing (architecture rationale)
+- `CREDENTIALS_AUDIT.md` - **NEW:** What credentials we have vs need (Phase 2)
 
 ---
 

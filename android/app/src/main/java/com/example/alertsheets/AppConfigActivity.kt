@@ -178,10 +178,25 @@ class AppConfigActivity : AppCompatActivity() {
 
         val btnTest =
                 Button(this).apply {
-                    text = "Test Payload Now"
+                    text = "Test New Incident"
                     background.setTint(android.graphics.Color.parseColor("#4CAF50"))
                     setTextColor(android.graphics.Color.WHITE)
-                    setOnClickListener { performTest() }
+                    setOnClickListener { performTest(isUpdate = false) }
+                }
+
+        val btnTestUpdate =
+                Button(this).apply {
+                    text = "Test Update"
+                    background.setTint(android.graphics.Color.parseColor("#FF9800"))
+                    setTextColor(android.graphics.Color.WHITE)
+                    setOnClickListener { performTest(isUpdate = true) }
+                    // Add margin
+                    layoutParams =
+                            LinearLayout.LayoutParams(
+                                            LinearLayout.LayoutParams.WRAP_CONTENT,
+                                            LinearLayout.LayoutParams.WRAP_CONTENT
+                                    )
+                                    .apply { setMargins(16, 0, 0, 0) }
                 }
 
         val checkAutoTest =
@@ -193,8 +208,9 @@ class AppConfigActivity : AppCompatActivity() {
                 }
 
         testLayout.addView(btnTest)
-        testLayout.addView(checkAutoTest)
+        testLayout.addView(btnTestUpdate)
         layout.addView(testLayout)
+        layout.addView(checkAutoTest) // Move checkbox below buttons
 
         // Logic
 
@@ -343,11 +359,11 @@ class AppConfigActivity : AppCompatActivity() {
         val checkBox = root?.findViewWithTag<android.widget.CheckBox>("auto_test")
 
         if (checkBox != null && checkBox.isChecked) {
-            performTest(silent = true)
+            performTest(isUpdate = false, silent = true)
         }
     }
 
-    private fun performTest(silent: Boolean = false) {
+    private fun performTest(isUpdate: Boolean = false, silent: Boolean = false) {
         val template = editJson.text.toString()
         val isApp = (radioGroupMode.checkedRadioButtonId == R.id.radio_app)
 
@@ -358,20 +374,67 @@ class AppConfigActivity : AppCompatActivity() {
 
         val json =
                 if (isApp) {
+                    val incidentId: String
+                    val statusPrefix: String
+                    val testType: String
+
+                    if (isUpdate) {
+                        // REUSE last test ID for update
+                        val lastId = PrefsManager.getLastTestId(this)
+                        if (lastId.isEmpty()) {
+                            runOnUiThread {
+                                Toast.makeText(
+                                                this,
+                                                "No previous test! Send NEW incident first.",
+                                                Toast.LENGTH_LONG
+                                        )
+                                        .show()
+                            }
+                            return
+                        }
+                        incidentId = lastId
+                        statusPrefix = "U/D"
+                        testType = "Update"
+                        android.util.Log.i("TEST", "=== TEST UPDATE ===")
+                        android.util.Log.i("TEST", "Reusing ID: $incidentId")
+                    } else {
+                        // GENERATE new unique ID
+                        val uniqueId = "1${System.currentTimeMillis().toString().takeLast(6)}"
+                        incidentId = "#$uniqueId"
+                        statusPrefix = "N/D"
+                        testType = "New Incident"
+
+                        // Save for next update test
+                        PrefsManager.saveLastTestId(this, incidentId)
+
+                        android.util.Log.i("TEST", "=== TEST NEW INCIDENT ===")
+                        android.util.Log.i("TEST", "Generated ID: $incidentId")
+                        android.util.Log.i("TEST", "Saved to prefs for update test")
+                    }
+
                     // 1. Construct Mock BNN Message
-                    // User Request: No '#' in generated ID.
-                    val uniqueId = "1${System.currentTimeMillis().toString().takeLast(6)}"
                     // User Request: Always bar between incident and source. <C> BNN
                     val mockBnn =
-                            "N/D NJ | Test County | Test City | 888 Test Ave | TEST-TYPE | Testing End-to-End Pipeline: Columns should fill. | <C> BNN | E-1/L-1 | nj312/njn751/nyl785/pa547 | #$uniqueId"
+                            "$statusPrefix NJ | Test County | Test City | 888 Test Ave | TEST-TYPE | Testing $testType - Columns should fill. | <C> BNN | E-1/L-1 | nj312/njn751/nyl785/pa547 | $incidentId"
+
+                    android.util.Log.i("TEST", "Mock BNN: $mockBnn")
 
                     // 2. Run through REAL Parser
                     val parsed = Parser.parse(mockBnn)
 
                     if (parsed != null) {
                         // 3. Serialize exactly like NotificationService
-                        val timestamped = parsed.copy(timestamp = TemplateEngine.getTimestamp())
-                        com.google.gson.Gson().toJson(timestamped)
+                        val timestamped =
+                                parsed.copy(
+                                        timestamp = TemplateEngine.getTimestamp(),
+                                        status = testType
+                                )
+                        val jsonPayload = com.google.gson.Gson().toJson(timestamped)
+                        android.util.Log.i("TEST", "Parsed successfully")
+                        android.util.Log.i("TEST", "Incident ID in JSON: ${timestamped.incidentId}")
+                        android.util.Log.i("TEST", "Status: ${timestamped.status}")
+
+                        jsonPayload
                     } else {
                         // Fallback (Should not happen with valid mock)
                         TemplateEngine.applyGeneric(
@@ -395,7 +458,10 @@ class AppConfigActivity : AppCompatActivity() {
                             .replace("{{id}}", uniqueId)
                 }
 
-        if (!silent) Toast.makeText(this, "Sending Test...", Toast.LENGTH_SHORT).show()
+        if (!silent) {
+            val message = if (isApp && isUpdate) "Sending Update Test..." else "Sending New Test..."
+            Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+        }
 
         kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO).launch {
             // Get URL

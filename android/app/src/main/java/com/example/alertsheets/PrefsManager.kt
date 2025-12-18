@@ -160,4 +160,16 @@ object PrefsManager {
         val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         prefs.edit().putInt("last_payload_test_status", status).apply()
     }
+
+    private const val KEY_LAST_TEST_ID = "lastTestIncidentId"
+
+    fun saveLastTestId(context: Context, id: String) {
+        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        prefs.edit().putString(KEY_LAST_TEST_ID, id).apply()
+    }
+
+    fun getLastTestId(context: Context): String {
+        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        return prefs.getString(KEY_LAST_TEST_ID, "") ?: ""
+    }
 }

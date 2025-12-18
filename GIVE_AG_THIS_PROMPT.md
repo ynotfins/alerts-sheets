@@ -15,6 +15,12 @@
 **Google Sheet Reference:**  
 https://docs.google.com/spreadsheets/d/1yKUvWtG7wBdjBhLpmM78vWhUoxiKMIryczIUt_Z2wOE/edit?gid=0#gid=0
 
+**CRITICAL CONTEXT - Sheet Update Logic:**
+- In Google Sheet, columns with **UNDERLINED header text** (C, D, E, F, G) are STATIC - never append on updates
+- Columns with **regular header text** (A, B, H, I, J) are DYNAMIC - always append with `\n`
+- This ensures updates append to same row (like Row 22), not create duplicates
+- See `/docs/architecture/SHEET_UPDATE_LOGIC.md` and `/docs/architecture/VISUAL_STANDARD.md`
+
 ---
 
 ## 🔧 4 Fixes Required (Total: ~15 lines of code)

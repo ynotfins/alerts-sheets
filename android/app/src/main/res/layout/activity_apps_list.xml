@@ -12,7 +12,7 @@
         android:textStyle="bold"
         android:padding="16dp"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"/>
+        android:layout_height="wrap_content" />
 
     <EditText
         android:id="@+id/edit_search"
@@ -26,29 +26,29 @@
         android:layout_marginStart="16dp"
         android:layout_marginEnd="16dp"
         android:layout_marginBottom="8dp"
-        android:inputType="text"/>
+        android:inputType="text" />
 
     <CheckBox
         android:id="@+id/check_show_system"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Show system apps"
+        android:text="Include system apps"
         android:textColor="#FFFFFF"
         android:layout_marginStart="16dp"
         android:layout_marginBottom="8dp"
-        android:checked="false"/>
+        android:checked="false" />
 
     <ProgressBar
         android:id="@+id/progress_loading"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:layout_marginTop="32dp"/>
+        android:layout_marginTop="32dp" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recycler_all_apps"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:paddingBottom="16dp"
-        android:clipToPadding="false"/>
+        android:clipToPadding="false" />
 </LinearLayout>

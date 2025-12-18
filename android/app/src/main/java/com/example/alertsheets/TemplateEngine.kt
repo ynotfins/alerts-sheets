@@ -64,7 +64,7 @@ object TemplateEngine {
     }
 
     fun getTimestamp(): String {
-        val sdf = SimpleDateFormat("MM/dd HH:mm", Locale.US)
+        val sdf = SimpleDateFormat("MM/dd/yyyy hh:mm:ss a", Locale.US)
         return sdf.format(Date())
     }
 }

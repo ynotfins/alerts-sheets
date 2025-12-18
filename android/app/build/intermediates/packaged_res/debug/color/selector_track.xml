@@ -1,5 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<selector xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:color="#B234C759" android:state_checked="true" /> <!-- Semi-transparent green -->
-    <item android:color="#B2FF9500" android:state_checked="false" /> <!-- Semi-transparent orange -->
-</selector>

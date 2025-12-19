@@ -48,33 +48,27 @@ class MainActivity : AppCompatActivity() {
     
     private fun setupCardClicks() {
         findViewById<FrameLayout>(R.id.card_apps).setOnClickListener {
-            // TODO: Navigate to Apps management
-            Toast.makeText(this, "Apps Management", Toast.LENGTH_SHORT).show()
+            startActivity(Intent(this, com.example.alertsheets.AppsListActivity::class.java))
         }
         
         findViewById<FrameLayout>(R.id.card_sms).setOnClickListener {
-            // TODO: Navigate to SMS management
-            Toast.makeText(this, "SMS Management", Toast.LENGTH_SHORT).show()
+            startActivity(Intent(this, com.example.alertsheets.SmsConfigActivity::class.java))
         }
         
         findViewById<FrameLayout>(R.id.card_config).setOnClickListener {
-            // TODO: Navigate to Payloads
-            Toast.makeText(this, "Payloads", Toast.LENGTH_SHORT).show()
+            startActivity(Intent(this, com.example.alertsheets.AppConfigActivity::class.java))
         }
         
         findViewById<FrameLayout>(R.id.card_endpoints).setOnClickListener {
-            // TODO: Navigate to Endpoints
-            Toast.makeText(this, "Endpoints", Toast.LENGTH_SHORT).show()
+            startActivity(Intent(this, com.example.alertsheets.EndpointActivity::class.java))
         }
         
         findViewById<FrameLayout>(R.id.card_permissions).setOnClickListener {
-            // TODO: Navigate to Permissions
-            Toast.makeText(this, "Permissions", Toast.LENGTH_SHORT).show()
+            startActivity(Intent(this, com.example.alertsheets.PermissionsActivity::class.java))
         }
         
         findViewById<FrameLayout>(R.id.card_logs).setOnClickListener {
-            // TODO: Navigate to Logs
-            Toast.makeText(this, "Activity Logs", Toast.LENGTH_SHORT).show()
+            startActivity(Intent(this, com.example.alertsheets.LogActivity::class.java))
         }
     }
     

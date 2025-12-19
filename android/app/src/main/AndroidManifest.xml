@@ -2,55 +2,85 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- Network & Internet -->
-    <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-    
-    <!-- CRITICAL: Notification Access (All Android Versions) -->
-    <uses-permission android:name="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE"
-        tools:ignore="ProtectedPermissions" />
-    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" /> <!-- Android 13+ -->
+    <!-- ============================================ -->
+    <!-- GOD MODE PERMISSIONS (CRITICAL - DO NOT REMOVE) -->
+    <!-- ============================================ -->
+
+    <!-- NOTIFICATION PERMISSIONS (HIGHEST PRIORITY) -->
+    <uses-permission android:name="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.ACCESS_NOTIFICATION_POLICY" />
+
+    <!-- SMS PERMISSIONS (FULL READ/WRITE/RECEIVE - NON-NEGOTIABLE) -->
+    <!-- READ_SMS: Read all messages (past, present, future) -->
+    <uses-permission android:name="android.permission.READ_SMS" />
     
-    <!-- CRITICAL: Battery & Background Execution (24/7 Operation) -->
-    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
-    <uses-permission android:name="android.permission.WAKE_LOCK" />
-    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
-    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" /> <!-- Android 12+ -->
+    <!-- RECEIVE_SMS: Receive incoming SMS in real-time -->
+    <uses-permission android:name="android.permission.RECEIVE_SMS" />
     
-    <!-- CRITICAL: Foreground Service -->
+    <!-- RECEIVE_MMS: Monitor incoming MMS messages -->
+    <uses-permission android:name="android.permission.RECEIVE_MMS" />
+    
+    <!-- RECEIVE_WAP_PUSH: Receive WAP push messages -->
+    <uses-permission android:name="android.permission.RECEIVE_WAP_PUSH" />
+    
+    <!-- SEND_SMS: Send SMS (for testing/verification) -->
+    <uses-permission android:name="android.permission.SEND_SMS" />
+    
+    <!-- WRITE_SMS: Write to SMS database (full control) -->
+    <uses-permission android:name="android.permission.WRITE_SMS" />
+    
+    <!-- BROADCAST_SMS: Broadcast SMS received intents -->
+    <uses-permission android:name="android.permission.BROADCAST_SMS" />
+    
+    <!-- READ_PHONE_STATE: Read phone state (for SMS context) -->
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    
+    <!-- READ_CONTACTS: Required for SMS default app role -->
+    <uses-permission android:name="android.permission.READ_CONTACTS" />
+
+    <!-- FOREGROUND SERVICE (PREVENT ANDROID FROM KILLING US) -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
-    
-    <!-- App Querying (See All Installed Apps) -->
-    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES"
-        tools:ignore="QueryAllPackagesPermission" />
-    
-    <!-- SMS Access -->
-    <uses-permission android:name="android.permission.RECEIVE_SMS" />
-    <uses-permission android:name="android.permission.READ_SMS" />
-    <uses-permission android:name="android.permission.SEND_SMS" />
-    <uses-permission android:name="android.permission.READ_CONTACTS" />
-    
-    <!-- Maximum Reliability: Overlay & Full Screen (Optional but recommended) -->
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+
+    <!-- BATTERY OPTIMIZATION BYPASS (CRITICAL) -->
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
+
+    <!-- BOOT & RESTART -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+
+    <!-- OVERLAYS & ALERTS -->
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
 
+    <!-- EXACT ALARMS (FOR RETRY LOGIC) -->
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+
+    <!-- NETWORK -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+    <!-- ACCESSIBILITY (BACKUP NOTIFICATION CAPTURE) -->
+    <uses-permission android:name="android.permission.BIND_ACCESSIBILITY_SERVICE" />
+
     <application
+        android:name=".AlertsApplication"
         android:allowBackup="false"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="false"
-        android:icon="@drawable/ic_launcher_foreground"
+        android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/Theme.AlertsToSheets"
         android:hasCode="true"
-        android:debuggable="true"
-        tools:ignore="HardcodedDebugMode"
         tools:targetApi="31">
 
+        <!-- ============================================ -->
+        <!-- MAIN ACTIVITY -->
+        <!-- ============================================ -->
         <activity
-            android:name=".MainActivity"
+            android:name=".ui.MainActivity"
             android:exported="true"
             android:launchMode="singleTask">
             <intent-filter>
@@ -59,33 +89,63 @@
             </intent-filter>
         </activity>
 
-        <activity android:name=".AppConfigActivity" />
+        <!-- ============================================ -->
+        <!-- V1 ACTIVITIES (TEMPORARY - DURING MIGRATION) -->
+        <!-- ============================================ -->
+        <activity android:name=".AppConfigActivity" 
+            android:label="Payloads"
+            android:parentActivityName=".ui.MainActivity" />
         <activity android:name=".LogActivity"
-            android:label="Logs"
-            android:parentActivityName=".MainActivity" />
+            android:label="Activity Logs"
+            android:parentActivityName=".ui.MainActivity" />
         <activity android:name=".SmsConfigActivity"
-            android:label="SMS Config"
-            android:parentActivityName=".MainActivity" />
+            android:label="SMS Configuration"
+            android:parentActivityName=".ui.MainActivity" />
         <activity android:name=".EndpointActivity"
             android:label="Endpoints"
-            android:parentActivityName=".MainActivity" />
+            android:parentActivityName=".ui.MainActivity" />
         <activity android:name=".AppsListActivity"
-            android:label="Select Apps"
-            android:parentActivityName=".MainActivity" />
+            android:label="App Sources"
+            android:parentActivityName=".ui.MainActivity" />
         <activity android:name=".PermissionsActivity"
             android:label="Permissions"
-            android:parentActivityName=".MainActivity" />
+            android:parentActivityName=".ui.MainActivity" />
 
-        <receiver android:name=".SmsReceiver"
+        <!-- ============================================ -->
+        <!-- NOTIFICATION LISTENER (PRIMARY CAPTURE) -->
+        <!-- ============================================ -->
+        <service
+            android:name=".services.AlertsNotificationListener"
+            android:exported="true"
+            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE"
+            android:foregroundServiceType="dataSync">
+            <intent-filter android:priority="999">
+                <action android:name="android.service.notification.NotificationListenerService" />
+            </intent-filter>
+        </service>
+
+        <!-- ============================================ -->
+        <!-- SMS RECEIVER (HIGHEST PRIORITY) -->
+        <!-- ============================================ -->
+        <receiver
+            android:name=".services.AlertsSmsReceiver"
             android:exported="true"
             android:permission="android.permission.BROADCAST_SMS">
-            <intent-filter>
+            <intent-filter android:priority="2147483647">
                 <action android:name="android.provider.Telephony.SMS_RECEIVED" />
+                <action android:name="android.provider.Telephony.SMS_DELIVER" />
+            </intent-filter>
+            <intent-filter android:priority="2147483647">
+                <action android:name="android.provider.Telephony.WAP_PUSH_RECEIVED" />
+                <data android:mimeType="application/vnd.wap.mms-message" />
             </intent-filter>
         </receiver>
-        
-        <!-- CRITICAL: Auto-start service after device reboot -->
-        <receiver android:name=".BootReceiver"
+
+        <!-- ============================================ -->
+        <!-- BOOT RECEIVER (AUTO-START) -->
+        <!-- ============================================ -->
+        <receiver
+            android:name=".services.BootReceiver"
             android:exported="true"
             android:enabled="true">
             <intent-filter android:priority="999">
@@ -95,30 +155,7 @@
             </intent-filter>
         </receiver>
 
-        <service
-            android:name=".NotificationService"
-            android:label="@string/service_name"
-            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE"
-            android:exported="true"
-            android:foregroundServiceType="dataSync">
-            <intent-filter>
-                <action android:name="android.service.notification.NotificationListenerService" />
-            </intent-filter>
-        </service>
-
-        <service
-            android:name=".NotificationAccessibilityService"
-            android:label="@string/service_name"
-            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.accessibilityservice.AccessibilityService" />
-            </intent-filter>
-            <meta-data
-                android:name="android.accessibilityservice"
-                android:resource="@xml/accessibility_service_config" />
-        </service>
-
     </application>
 
 </manifest>
+

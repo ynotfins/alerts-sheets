@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">AlertsToSheets</string>
+    
+    <!-- Dashboard -->
+    <string name="system_status">System Status</string>
+    <string name="service_active">Service Active</string>
+    <string name="service_waiting">Service Waiting (Perms)</string>
+    <string name="queue_idle">Queue: Idle</string>
+    <string name="live">LIVE</string>
+    <string name="paused">PAUSED</string>
+    
+    <!-- Cards -->
+    <string name="apps">Apps</string>
+    <string name="sms">SMS</string>
+    <string name="payloads">Payloads</string>
+    <string name="endpoints">Endpoints</string>
+    <string name="permissions">Permissions</string>
+    <string name="activity_logs">Activity Logs</string>
+    
+    <!-- Permissions -->
+    <string name="notification_access">Notification Access</string>
+    <string name="sms_permissions">SMS Permissions</string>
+    <string name="role_sms">ROLE_SMS (Default App)</string>
+    <string name="battery_optimization">Battery Optimization</string>
+    <string name="accessibility_service">Accessibility Service</string>
+    
+    <!-- Status -->
+    <string name="granted">Granted</string>
+    <string name="denied">Denied</string>
+    <string name="enabled">Enabled</string>
+    <string name="disabled">Disabled</string>
+</resources>
+

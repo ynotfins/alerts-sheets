@@ -10,6 +10,8 @@ import android.widget.RadioGroup
 import android.widget.Spinner
 import android.widget.TextView
 import android.widget.Toast
+import android.widget.ScrollView
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -161,13 +163,42 @@ class AppConfigActivity : AppCompatActivity() {
                 }
         layout.addView(btnClean)
 
-        // Save Button
+        // Save Buttons
+        val saveButtonLayout =
+                LinearLayout(this).apply {
+                    orientation = LinearLayout.HORIZONTAL
+                    setPadding(0, 8, 0, 0)
+                }
+
         btnSave =
                 Button(this).apply {
                     text = "Save Configuration"
                     setOnClickListener { save() }
+                    layoutParams =
+                            LinearLayout.LayoutParams(
+                                            0,
+                                            LinearLayout.LayoutParams.WRAP_CONTENT,
+                                            1f
+                                    )
                 }
-        layout.addView(btnSave)
+        saveButtonLayout.addView(btnSave)
+
+        val btnSaveDefault =
+                Button(this).apply {
+                    text = "Save as Default"
+                    background.setTint(android.graphics.Color.parseColor("#2196F3"))
+                    setTextColor(android.graphics.Color.WHITE)
+                    setOnClickListener { saveAsDefault() }
+                    layoutParams =
+                            LinearLayout.LayoutParams(
+                                            0,
+                                            LinearLayout.LayoutParams.WRAP_CONTENT,
+                                            1f
+                                    )
+                                    .apply { setMargins(16, 0, 0, 0) }
+                }
+        saveButtonLayout.addView(btnSaveDefault)
+        layout.addView(saveButtonLayout)
 
         // TEST SECTION
         val testLayout =
@@ -459,8 +490,21 @@ class AppConfigActivity : AppCompatActivity() {
                             )
                 }
 
+        // Show JSON preview dialog (unless silent auto-test)
         if (!silent) {
-            val message = if (isApp && isUpdate) "Sending Update Test..." else "Sending New Test..."
+            showJsonPreviewDialog(json, isUpdate, silent) {
+                // User confirmed - proceed with sending
+                sendTestPayload(json, isUpdate, silent)
+            }
+        } else {
+            // Silent mode - send directly
+            sendTestPayload(json, isUpdate, silent)
+        }
+    }
+
+    private fun sendTestPayload(json: String, isUpdate: Boolean, silent: Boolean) {
+        if (!silent) {
+            val message = if (isUpdate) "Sending Update Test..." else "Sending New Test..."
             Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
         }
 
@@ -542,5 +586,50 @@ class AppConfigActivity : AppCompatActivity() {
                 PrefsManager.setPayloadTestStatus(this@AppConfigActivity, 2)
             }
         }
+    }
+
+    private fun saveAsDefault() {
+        val template = editJson.text.toString()
+        val isApp = (radioGroupMode.checkedRadioButtonId == R.id.radio_app)
+        
+        if (template.isEmpty()) {
+            Toast.makeText(this, "Cannot save empty template", Toast.LENGTH_SHORT).show()
+            return
+        }
+        
+        // Save as default template for the current mode
+        if (isApp) {
+            PrefsManager.saveAppJsonTemplate(this, template)
+            Toast.makeText(this, "Saved as Default App Template", Toast.LENGTH_SHORT).show()
+        } else {
+            PrefsManager.saveSmsJsonTemplate(this, template)
+            Toast.makeText(this, "Saved as Default SMS Template", Toast.LENGTH_SHORT).show()
+        }
+        
+        android.util.Log.i("AppConfigActivity", "Default template saved for mode: ${if (isApp) "App" else "SMS"}")
+    }
+
+    private fun showJsonPreviewDialog(json: String, isUpdate: Boolean, silent: Boolean, onConfirm: () -> Unit) {
+        // Create scrollable text view for JSON
+        val scrollView = ScrollView(this)
+        val textView = TextView(this).apply {
+            text = json
+            textSize = 12f
+            setPadding(32, 32, 32, 32)
+            setTextIsSelectable(true)
+            typeface = android.graphics.Typeface.MONOSPACE
+        }
+        scrollView.addView(textView)
+        
+        AlertDialog.Builder(this)
+                .setTitle("📋 JSON Payload Preview")
+                .setMessage("Review the JSON that will be sent to your endpoint:")
+                .setView(scrollView)
+                .setPositiveButton("✓ Send") { _, _ ->
+                    onConfirm()
+                }
+                .setNegativeButton("✗ Cancel", null)
+                .setCancelable(true)
+                .show()
     }
 }

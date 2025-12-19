@@ -51,25 +51,40 @@ This app has **ONE JOB**: Capture **100% of notifications and SMS** before Andro
 <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
 ```
 
-### **SMS Permissions (CRITICAL - ALL OF THEM)**
+### **SMS Permissions (CRITICAL - FULL READ/WRITE/RECEIVE ON EVERYTHING)**
 ```xml
-<!-- Read all SMS messages -->
+<!-- READ SMS: Read all messages (past, present, future) -->
 <uses-permission android:name="android.permission.READ_SMS" />
 
-<!-- Receive SMS messages -->
+<!-- RECEIVE_SMS: Receive incoming SMS in real-time -->
 <uses-permission android:name="android.permission.RECEIVE_SMS" />
 
-<!-- Receive MMS messages -->
+<!-- RECEIVE_MMS: Monitor incoming MMS messages -->
 <uses-permission android:name="android.permission.RECEIVE_MMS" />
 
-<!-- Receive WAP push messages -->
+<!-- RECEIVE_WAP_PUSH: Receive WAP push messages -->
 <uses-permission android:name="android.permission.RECEIVE_WAP_PUSH" />
 
-<!-- Send SMS (for testing/verification) -->
+<!-- SEND_SMS: Send SMS (for testing/verification) -->
 <uses-permission android:name="android.permission.SEND_SMS" />
 
-<!-- Read phone state (for SMS context) -->
+<!-- WRITE_SMS: Write to SMS database (full control) -->
+<uses-permission android:name="android.permission.WRITE_SMS" />
+
+<!-- READ_PHONE_STATE: Read phone state (for SMS context) -->
 <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+
+<!-- BROADCAST_SMS: Broadcast SMS received intents -->
+<uses-permission android:name="android.permission.BROADCAST_SMS" />
+```
+
+### **SMS DEFAULT APP ROLE (MAXIMUM PRIVILEGE)**
+```xml
+<!-- Declare SMS capabilities (allows becoming default SMS app) -->
+<uses-permission android:name="android.permission.READ_CONTACTS" />
+
+<!-- In your Application class or service, request SMS role: -->
+<!-- RoleManager.createRequestRoleIntent(RoleManager.ROLE_SMS) -->
 ```
 
 ### **Network & Internet**
@@ -158,14 +173,24 @@ PRODUCT_PACKAGES += \
 ### **One-Time Setup (After Install)**
 
 ```bash
-# Grant all dangerous permissions at once
+# Grant ALL notification permissions
 adb shell pm grant com.example.alertsheets android.permission.POST_NOTIFICATIONS
+adb shell pm grant com.example.alertsheets android.permission.ACCESS_NOTIFICATION_POLICY
+
+# Grant ALL SMS permissions (FULL READ/WRITE/RECEIVE)
 adb shell pm grant com.example.alertsheets android.permission.READ_SMS
 adb shell pm grant com.example.alertsheets android.permission.RECEIVE_SMS
 adb shell pm grant com.example.alertsheets android.permission.RECEIVE_MMS
 adb shell pm grant com.example.alertsheets android.permission.RECEIVE_WAP_PUSH
 adb shell pm grant com.example.alertsheets android.permission.SEND_SMS
+adb shell pm grant com.example.alertsheets android.permission.WRITE_SMS
+adb shell pm grant com.example.alertsheets android.permission.BROADCAST_SMS
 adb shell pm grant com.example.alertsheets android.permission.READ_PHONE_STATE
+adb shell pm grant com.example.alertsheets android.permission.READ_CONTACTS
+
+# Grant system-level permissions
+adb shell pm grant com.example.alertsheets android.permission.SYSTEM_ALERT_WINDOW
+adb shell pm grant com.example.alertsheets android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS
 
 # Disable battery optimization (CRITICAL!)
 adb shell dumpsys deviceidle whitelist +com.example.alertsheets
@@ -173,8 +198,12 @@ adb shell dumpsys deviceidle whitelist +com.example.alertsheets
 # Enable notification listener
 adb shell settings put secure enabled_notification_listeners com.example.alertsheets/com.example.alertsheets.services.AlertsNotificationListener
 
-# For Samsung: Disable "Restrict settings" protection
-adb shell pm grant com.example.alertsheets android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS
+# Set as default SMS app (ROLE_SMS - MAXIMUM PRIVILEGE)
+adb shell cmd role add-role-holder android.app.role.SMS com.example.alertsheets
+
+# Verify SMS role granted
+adb shell cmd role get-role-holders android.app.role.SMS
+# Expected output should include: com.example.alertsheets
 ```
 
 ---
@@ -232,9 +261,17 @@ adb shell pm disable-user com.samsung.android.game.gametools
 7. **Accessibility Service: ENABLED**
    - Settings → Accessibility → Installed services → AlertsToSheets → Enable
 
-8. **SMS Default App (Optional but Recommended):**
+8. **SMS Default App (CRITICAL - MAXIMUM PRIVILEGE):**
    - Settings → Apps → Default apps → SMS app → AlertsToSheets
-   - This gives priority SMS access
+   - This gives ROLE_SMS - the highest possible SMS privilege
+   - Grants full read/write access to SMS database
+   - Receives ALL SMS before any other app
+   - Can intercept, modify, or block SMS
+   
+   **ADB Method (Recommended):**
+   ```bash
+   adb shell cmd role add-role-holder android.app.role.SMS com.example.alertsheets
+   ```
 
 ---
 

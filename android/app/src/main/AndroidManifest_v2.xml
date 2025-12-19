@@ -11,13 +11,33 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.ACCESS_NOTIFICATION_POLICY" />
 
-    <!-- SMS PERMISSIONS (ALL OF THEM - NON-NEGOTIABLE) -->
+    <!-- SMS PERMISSIONS (FULL READ/WRITE/RECEIVE - NON-NEGOTIABLE) -->
+    <!-- READ_SMS: Read all messages (past, present, future) -->
     <uses-permission android:name="android.permission.READ_SMS" />
+    
+    <!-- RECEIVE_SMS: Receive incoming SMS in real-time -->
     <uses-permission android:name="android.permission.RECEIVE_SMS" />
+    
+    <!-- RECEIVE_MMS: Monitor incoming MMS messages -->
     <uses-permission android:name="android.permission.RECEIVE_MMS" />
+    
+    <!-- RECEIVE_WAP_PUSH: Receive WAP push messages -->
     <uses-permission android:name="android.permission.RECEIVE_WAP_PUSH" />
+    
+    <!-- SEND_SMS: Send SMS (for testing/verification) -->
     <uses-permission android:name="android.permission.SEND_SMS" />
+    
+    <!-- WRITE_SMS: Write to SMS database (full control) -->
+    <uses-permission android:name="android.permission.WRITE_SMS" />
+    
+    <!-- BROADCAST_SMS: Broadcast SMS received intents -->
+    <uses-permission android:name="android.permission.BROADCAST_SMS" />
+    
+    <!-- READ_PHONE_STATE: Read phone state (for SMS context) -->
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    
+    <!-- READ_CONTACTS: Required for SMS default app role -->
+    <uses-permission android:name="android.permission.READ_CONTACTS" />
 
     <!-- FOREGROUND SERVICE (PREVENT ANDROID FROM KILLING US) -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />

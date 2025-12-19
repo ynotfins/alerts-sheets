@@ -16,6 +16,11 @@ function doPost(e) {
       ).setMimeType(ContentService.MimeType.JSON);
     }
 
+    // 1. SMS Message Handling (NEW)
+    if (data.source === "sms") {
+      return handleSmsMessage(data, sheet);
+    }
+
     // Key Fields
     const rawId = data.incidentId ? data.incidentId.toString().trim() : "";
     const incidentId = rawId.startsWith("#") ? rawId.substring(1) : rawId; // Strip # for search
@@ -184,4 +189,42 @@ function doPost(e) {
   } finally {
     lock.releaseLock();
   }
+}
+
+// NEW: Handle SMS Messages
+function handleSmsMessage(data, sheet) {
+  const now = new Date();
+  const formattedTime = Utilities.formatDate(
+    now,
+    Session.getScriptTimeZone(),
+    "MM/dd/yyyy hh:mm:ss a"
+  );
+
+  // SMS Fields
+  const sender = data.sender || "Unknown";
+  const message = data.message || "";
+  const timestamp = data.timestamp || formattedTime;
+
+  // SMS Row Format - Simplified for SMS
+  // Status | Timestamp | ID (SMS-ID) | State (blank) | County (blank) | 
+  // City (blank) | Address (SMS Sender) | Type (SMS) | Details (Message) | Original (Full)
+  
+  const row = [
+    "SMS", // Status
+    timestamp, // Timestamp
+    `SMS-${Date.now()}`, // Unique SMS ID
+    "", // State (blank for SMS)
+    "", // County (blank for SMS)
+    "", // City (blank for SMS)
+    sender, // Address column shows sender
+    "SMS Message", // Type
+    message, // Details shows the message text
+    `From: ${sender}\n${message}` // Original Body
+  ];
+
+  sheet.appendRow(row);
+
+  return ContentService.createTextOutput(
+    JSON.stringify({ result: "success", type: "sms", sender: sender })
+  ).setMimeType(ContentService.MimeType.JSON);
 }

@@ -446,16 +446,17 @@ class AppConfigActivity : AppCompatActivity() {
                         )
                     }
                 } else {
-                    // SMS Mode - Generic Template Test
-                    val uniqueId = "SMS-${System.currentTimeMillis().toString().takeLast(4)}"
+                    // SMS Mode - More realistic test message
+                    val testSender = "+1-555-0123"
+                    val testMessage = "ALERT: Fire reported at 123 Main St. Units responding. This is a test SMS message with more realistic content to verify full text appears in spreadsheet."
+                    
                     TemplateEngine.applyGeneric(
                                     template,
                                     "sms", // pkg
-                                    "TEST-SENDER", // title/sender
-                                    "This is a test SMS message.", // text/message
+                                    testSender, // title/sender
+                                    testMessage, // text/message
                                     ""
                             )
-                            .replace("{{id}}", uniqueId)
                 }
 
         if (!silent) {

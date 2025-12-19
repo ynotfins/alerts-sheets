@@ -2,7 +2,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#121212"
+    android:background="#000000"
     android:orientation="vertical"
     android:padding="16dp">
 
@@ -88,11 +88,11 @@
                 android:gravity="center"
                 android:orientation="vertical">
                 <ImageView
-                    android:layout_width="32dp"
-                    android:layout_height="32dp"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
                     android:src="@android:drawable/ic_menu_agenda"
-                    android:tint="#FF9800"
-                    android:layout_marginBottom="8dp" />
+                    android:tint="#A855F7"
+                    android:layout_marginBottom="12dp" />
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -129,11 +129,11 @@
                 android:gravity="center"
                 android:orientation="vertical">
                 <ImageView
-                    android:layout_width="32dp"
-                    android:layout_height="32dp"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
                     android:src="@android:drawable/sym_action_chat"
-                    android:tint="#03A9F4"
-                    android:layout_marginBottom="8dp" />
+                    android:tint="#4A9EFF"
+                    android:layout_marginBottom="12dp" />
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -170,11 +170,11 @@
                 android:gravity="center"
                 android:orientation="vertical">
                 <ImageView
-                    android:layout_width="32dp"
-                    android:layout_height="32dp"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
                     android:src="@android:drawable/ic_menu_preferences"
-                    android:tint="#9E9E9E"
-                    android:layout_marginBottom="8dp" />
+                    android:tint="#00D980"
+                    android:layout_marginBottom="12dp" />
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -211,11 +211,11 @@
                 android:gravity="center"
                 android:orientation="vertical">
                 <ImageView
-                    android:layout_width="32dp"
-                    android:layout_height="32dp"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
                     android:src="@android:drawable/ic_menu_upload"
-                    android:tint="#4CAF50"
-                    android:layout_marginBottom="8dp" />
+                    android:tint="#FF4757"
+                    android:layout_marginBottom="12dp" />
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -253,11 +253,11 @@
                 android:gravity="center"
                 android:orientation="vertical">
                 <ImageView
-                    android:layout_width="32dp"
-                    android:layout_height="32dp"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
                     android:src="@android:drawable/ic_secure"
-                    android:tint="#FFFFFF"
-                    android:layout_marginBottom="8dp" />
+                    android:tint="#4A9EFF"
+                    android:layout_marginBottom="12dp" />
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -295,11 +295,11 @@
                 android:gravity="center"
                 android:orientation="vertical">
                 <ImageView
-                    android:layout_width="32dp"
-                    android:layout_height="32dp"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
                     android:src="@android:drawable/ic_menu_info_details"
-                    android:tint="#FFFFFF"
-                    android:layout_marginBottom="8dp" />
+                    android:tint="#FF8A3D"
+                    android:layout_marginBottom="12dp" />
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"

@@ -40,6 +40,10 @@ class AppConfigActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        
+        // Enable back button in action bar
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        
         val layout =
                 LinearLayout(this).apply {
                     orientation = LinearLayout.VERTICAL
@@ -211,7 +215,7 @@ class AppConfigActivity : AppCompatActivity() {
 
         val btnTest =
                 Button(this).apply {
-                    text = "Test New Incident"
+                    text = "Test New Notification"
                     background.setTint(android.graphics.Color.parseColor("#4CAF50"))
                     setTextColor(android.graphics.Color.WHITE)
                     setOnClickListener { performTest(isUpdate = false) }
@@ -219,7 +223,7 @@ class AppConfigActivity : AppCompatActivity() {
 
         val btnTestUpdate =
                 Button(this).apply {
-                    text = "Test Update"
+                    text = "Test - Same as Previous"
                     background.setTint(android.graphics.Color.parseColor("#FF9800"))
                     setTextColor(android.graphics.Color.WHITE)
                     setOnClickListener { performTest(isUpdate = true) }
@@ -276,6 +280,11 @@ class AppConfigActivity : AppCompatActivity() {
                 }
 
         setContentView(layout)
+    }
+
+    override fun onSupportNavigateUp(): Boolean {
+        finish()
+        return true
     }
 
     private fun loadTemplatesForCurrentMode() {

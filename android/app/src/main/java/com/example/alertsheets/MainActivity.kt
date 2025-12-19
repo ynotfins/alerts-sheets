@@ -86,10 +86,10 @@ class MainActivity : AppCompatActivity() {
         val enabled = PrefsManager.getMasterEnabled(this)
         if (enabled) {
             btnMaster.text = "LIVE"
-            btnMaster.background.setTint(Color.parseColor("#4CAF50")) // Green
+            btnMaster.background.setTint(SamsungTheme.Green) // Samsung Green
         } else {
             btnMaster.text = "PAUSED"
-            btnMaster.background.setTint(Color.parseColor("#F44336")) // Red
+            btnMaster.background.setTint(SamsungTheme.Red) // Samsung Red
         }
     }
 
@@ -151,9 +151,9 @@ class MainActivity : AppCompatActivity() {
 
     private fun setDotColor(view: ImageView, isGreen: Boolean) {
         if (isGreen) {
-            view.setColorFilter(Color.parseColor("#4CAF50"))
+            view.setColorFilter(SamsungTheme.Green)
         } else {
-            view.setColorFilter(Color.parseColor("#F44336"))
+            view.setColorFilter(SamsungTheme.Red)
         }
     }
 

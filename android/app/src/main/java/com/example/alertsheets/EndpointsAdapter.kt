@@ -6,11 +6,12 @@ import android.view.ViewGroup
 import android.widget.Switch
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import com.example.alertsheets.domain.models.Endpoint
 
 class EndpointsAdapter(
     private var endpoints: List<Endpoint>,
     private val onToggle: (Endpoint, Boolean) -> Unit,
-    private val onDelete: (Endpoint) -> Unit // Will add delete on long press later
+    private val onDelete: (Endpoint) -> Unit
 ) : RecyclerView.Adapter<EndpointsAdapter.ViewHolder>() {
 
     class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
@@ -32,15 +33,14 @@ class EndpointsAdapter(
         holder.url.text = item.url
         
         holder.switchEnabled.setOnCheckedChangeListener(null)
-        holder.switchEnabled.isChecked = item.isEnabled
+        holder.switchEnabled.isChecked = item.enabled
         
         holder.switchEnabled.setOnCheckedChangeListener { _, isChecked ->
             onToggle(item, isChecked)
         }
         
         holder.btnEdit.setOnClickListener {
-            // Edit action
-             onDelete(item) // Re-using callback temporarily or we can add onEdit parameter
+            onDelete(item)
         }
         
         // Long click to delete

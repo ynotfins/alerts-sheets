@@ -15,6 +15,7 @@ import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import com.example.alertsheets.LogRepository
 import com.example.alertsheets.R
+import com.example.alertsheets.data.repositories.EndpointRepository
 import com.example.alertsheets.domain.SourceManager
 import com.example.alertsheets.domain.models.SourceType
 import com.example.alertsheets.utils.SmsRoleManager
@@ -133,7 +134,8 @@ class MainActivity : AppCompatActivity() {
         dotPayloads.setColorFilter(0xFF00D980.toInt())
         
         // Endpoints card: Check if any endpoints are enabled
-        val endpoints = com.example.alertsheets.PrefsManager.getEndpoints(this).filter { it.isEnabled }
+        val endpointRepo = EndpointRepository(this)
+        val endpoints = endpointRepo.getEnabled()
         dotEndpoints.setColorFilter(
             if (endpoints.isNotEmpty()) 0xFF00D980.toInt() else 0xFFFF5252.toInt()
         )

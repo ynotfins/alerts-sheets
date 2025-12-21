@@ -1,7 +1,9 @@
 package com.example.alertsheets.domain
 
 import android.content.Context
+import com.example.alertsheets.data.repositories.EndpointRepository
 import com.example.alertsheets.data.repositories.SourceRepository
+import com.example.alertsheets.domain.models.Endpoint
 import com.example.alertsheets.domain.models.Source
 import com.example.alertsheets.domain.models.SourceType
 
@@ -13,12 +15,14 @@ import com.example.alertsheets.domain.models.SourceType
  * - Manage source lifecycle (enable/disable)
  * - Track source statistics
  * - Provide UI-friendly source lists
+ * - Access to endpoints (for DataPipeline)
  * 
  * This is a singleton accessed throughout the app
  */
 class SourceManager(context: Context) {
     
     private val repository = SourceRepository(context.applicationContext)
+    private val endpointRepo = EndpointRepository(context.applicationContext)
     
     /**
      * Find source for an app notification
@@ -56,6 +60,20 @@ class SourceManager(context: Context) {
         
         // Only return if enabled
         return if (source?.enabled == true) source else null
+    }
+    
+    /**
+     * Get endpoint by ID (for DataPipeline)
+     */
+    fun getEndpointById(endpointId: String): Endpoint? {
+        return endpointRepo.getById(endpointId)
+    }
+    
+    /**
+     * Get all endpoints
+     */
+    fun getEndpoints(): List<Endpoint> {
+        return endpointRepo.getAll()
     }
     
     /**

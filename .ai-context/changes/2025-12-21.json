@@ -1,43 +1,8 @@
 {
-  "timestamp": "2025-12-21_03-00-35",
-  "commit": "873e545d85b505660dfeaffb257aff2820659342",
-  "message": "docs: Add deep structural analysis reports
-
-Created comprehensive system documentation:
-
-systemPatterns.md (9,500 lines):
-- Complete architectural decomposition
-- 6 layer analysis (Capture, Processing, Transform, Storage, Network, UI)
-- Data flow patterns (Notification→Sheet, SMS→Sheet)
-- Coupling analysis (12 deps in NotificationService)
-- 8 critical architectural issues identified
-- Duplication cataloging (5 file pairs, 15% waste)
-- Module structure recommendations
-- Testability scoring (4/10 - needs DI)
-
-techContext.md (12,000 lines):
-- Tech debt score: 6.5/10 (Moderate-High)
-- 3 P0 critical issues (dual system, duplicate receivers)
-- 7 high/medium priority issues
-- Dependency audit (all deps secure, up-to-date)
-- 6-phase refactor roadmap (Phases 1-2 complete)
-- Security posture analysis
-- Performance metrics
-- Code quality metrics (Maintainability Index: 72/100)
-- Definition of Done for V2 migration
-
-Key Findings:
-- Dual configuration system (V1 PrefsManager + V2 SourceManager coexist)
-- 2 SMS receivers both active (race condition risk)
-- 2 notification services running (battery drain)
-- 5 duplicate file pairs (TemplateEngine, Parser, etc.)
-- PrefsManager is God Object (15+ dependents)
-- No dependency injection (hard to test)
-- 54 files in root package (poor organization)
-
-Status: 60% V2 migration complete, clear path forward",
+  "timestamp": "2025-12-21_03-18-47",
+  "commit": "36ef4a7991842db2f03084a3078dea0c2991f4f4",
+  "message": "docs: Add logical contradictions report - critical architectural issues identified",
   "files_changed": [
-    "systemPatterns.md",
-    "techContext.md"
+    "LOGICAL_CONTRADICTIONS_REPORT.md"
   ]
 }

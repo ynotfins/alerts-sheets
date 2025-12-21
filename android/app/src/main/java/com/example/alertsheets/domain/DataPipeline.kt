@@ -74,21 +74,19 @@ class DataPipeline(private val context: Context) {
                 logger.log("✓ Parsed: ${parsedWithTimestamp.incidentId}")
                 
                 // Step 4: Get template
-                val template = templateRepo.getById(source.templateId)
-                if (template == null) {
+                val templateContent = templateRepo.getById(source.templateId)
+                if (templateContent == null) {
                     logger.error("❌ No template found: ${source.templateId}")
                     sourceManager.recordNotificationProcessed(source.id, success = false)
                     return@launch
                 }
                 
-                // TODO: DataPipeline is experimental/incomplete - commenting out for now
-                /*
                 // Step 5: Apply template (with per-source auto-clean!)
-                val json = TemplateEngine.apply(template, parsedWithTimestamp, source)
+                val json = TemplateEngine.apply(templateContent, parsedWithTimestamp, source)
                 logger.log("✓ Template applied (autoClean=${source.autoClean})")
                 
                 // Step 6: Get endpoint
-                val endpoint = endpointRepo.getById(source.endpointId)
+                val endpoint = sourceManager.getEndpointById(source.endpointId)
                 if (endpoint == null || !endpoint.enabled) {
                     logger.error("❌ No endpoint found or disabled: ${source.endpointId}")
                     sourceManager.recordNotificationProcessed(source.id, success = false)
@@ -117,7 +115,6 @@ class DataPipeline(private val context: Context) {
                     
                     // TODO: Add to retry queue if configured
                 }
-                */
                 
             } catch (e: Exception) {
                 Log.e(TAG, "Pipeline error", e)

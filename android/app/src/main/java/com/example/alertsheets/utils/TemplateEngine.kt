@@ -18,12 +18,16 @@ import java.util.Locale
 object TemplateEngine {
     
     /**
-     * Apply template with parsed data
+     * Apply template string with parsed data
      * Auto-clean is applied based on source configuration
+     * 
+     * @param templateContent The JSON template string
+     * @param data Parsed notification data
+     * @param source Source configuration (contains autoClean setting)
      */
-    fun apply(template: Template, data: ParsedData, source: Source): String {
+    fun apply(templateContent: String, data: ParsedData, source: Source): String {
         val variableMap = data.toVariableMap()
-        return applyVariables(template.content, variableMap, source.autoClean)
+        return applyVariables(templateContent, variableMap, source.autoClean)
     }
     
     /**

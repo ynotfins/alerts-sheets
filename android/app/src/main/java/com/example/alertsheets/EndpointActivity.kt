@@ -11,6 +11,8 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.alertsheets.data.repositories.EndpointRepository
+import com.example.alertsheets.domain.models.Endpoint
+import com.example.alertsheets.domain.models.EndpointStats
 
 /**
  * EndpointActivity - V2 Repository-based endpoint management
@@ -60,7 +62,11 @@ class EndpointActivity : AppCompatActivity() {
         endpoints = endpointRepository.getAll().toMutableList()
         adapter = EndpointsAdapter(endpoints, 
             onToggle = { endpoint, isEnabled ->
-                endpoint.isEnabled = isEnabled
+                val updated = endpoint.copy(enabled = isEnabled, updatedAt = System.currentTimeMillis())
+                val index = endpoints.indexOf(endpoint)
+                if (index >= 0) {
+                    endpoints[index] = updated
+                }
                 saveEndpoints()
             },
             onDelete = { endpoint ->
@@ -90,9 +96,21 @@ class EndpointActivity : AppCompatActivity() {
                 val url = inputUrl.text.toString().trim()
                 if (url.isNotEmpty()) {
                     val finalName = if (name.isEmpty()) "Endpoint ${endpoints.size + 1}" else name
-                    endpoints.add(Endpoint(name = finalName, url = url))
+                    val newEndpoint = Endpoint(
+                        id = "endpoint-${System.currentTimeMillis()}",
+                        name = finalName,
+                        url = url,
+                        enabled = true,
+                        timeout = 30000,
+                        retryCount = 3,
+                        headers = emptyMap(),
+                        stats = EndpointStats(),
+                        createdAt = System.currentTimeMillis(),
+                        updatedAt = System.currentTimeMillis()
+                    )
+                    endpoints.add(newEndpoint)
                     saveEndpoints()
-                    adapter.updateData(endpoints) // Fix adapter update
+                    adapter.updateData(endpoints)
                 }
             }
             .setNegativeButton("Cancel", null)

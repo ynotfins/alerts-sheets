@@ -2,7 +2,10 @@ package com.example.alertsheets
 
 import android.content.Context
 import android.util.Log
+import com.example.alertsheets.data.repositories.EndpointRepository
 import com.example.alertsheets.domain.SourceManager
+import com.example.alertsheets.domain.models.Endpoint
+import com.example.alertsheets.domain.models.EndpointStats
 import com.example.alertsheets.domain.models.Source
 import com.example.alertsheets.domain.models.SourceStats
 import com.example.alertsheets.domain.models.SourceType
@@ -14,6 +17,7 @@ import com.example.alertsheets.utils.AppConstants
  * Migrates:
  * - SMS targets → Source objects with type=SMS
  * - App targets → Source objects with type=APP
+ * - Endpoints → V2 Endpoint model with JsonStorage
  * - Preserves all settings (enabled, filters, etc.)
  */
 object MigrationManager {
@@ -49,23 +53,69 @@ object MigrationManager {
     
     private fun migrateData(context: Context) {
         val sourceManager = SourceManager(context)
+        val endpointRepo = EndpointRepository(context)
         
-        // 1. Migrate SMS targets
+        // 1. ✅ Ensure default endpoint exists FIRST
+        if (!endpointRepo.hasEndpoints()) {
+            Log.i(TAG, "Creating default endpoint...")
+            createDefaultEndpoint(context, endpointRepo)
+        }
+        
+        // 2. Migrate SMS targets
         migrateSmsTargets(context, sourceManager)
         
-        // 2. Migrate app targets
+        // 3. Migrate app targets
         migrateAppTargets(context, sourceManager)
         
-        // 3. ✅ Ensure sources.json exists even if no old data
-        // This prevents SourceRepository from returning empty list
-        // and makes dashboard show "Monitoring: 0 Apps, 0 SMS" instead of phantom sources
+        // 4. Ensure sources.json exists even if no old data
         if (sourceManager.getAllSources().isEmpty()) {
             Log.i(TAG, "No sources after migration - creating empty sources file")
-            // Don't need to save anything, just ensure storage is initialized
-            // The SourceRepository will handle empty list correctly now
         }
         
         Log.i(TAG, "Migration data transfer complete")
+    }
+    
+    /**
+     * Create default endpoint on first launch
+     */
+    private fun createDefaultEndpoint(context: Context, endpointRepo: EndpointRepository) {
+        // Try to migrate from V1 endpoints first
+        val v1Endpoints = PrefsManager.getEndpoints(context)
+        
+        if (v1Endpoints.isNotEmpty()) {
+            Log.i(TAG, "Migrating ${v1Endpoints.size} V1 endpoints to V2...")
+            v1Endpoints.forEach { v1Endpoint ->
+                val v2Endpoint = Endpoint(
+                    id = "endpoint-${System.currentTimeMillis()}",
+                    name = v1Endpoint.name,
+                    url = v1Endpoint.url,
+                    enabled = v1Endpoint.isEnabled,
+                    timeout = 30000,
+                    retryCount = 3,
+                    headers = emptyMap(),
+                    stats = EndpointStats(),
+                    createdAt = System.currentTimeMillis(),
+                    updatedAt = System.currentTimeMillis()
+                )
+                endpointRepo.save(v2Endpoint)
+            }
+        } else {
+            // Create default endpoint
+            Log.i(TAG, "No V1 endpoints found, creating default endpoint")
+            val defaultEndpoint = Endpoint(
+                id = AppConstants.ENDPOINT_DEFAULT,
+                name = "Google Apps Script",
+                url = "https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec",
+                enabled = true,
+                timeout = 30000,
+                retryCount = 3,
+                headers = emptyMap(),
+                stats = EndpointStats(),
+                createdAt = System.currentTimeMillis(),
+                updatedAt = System.currentTimeMillis()
+            )
+            endpointRepo.save(defaultEndpoint)
+        }
     }
     
     private fun migrateSmsTargets(context: Context, sourceManager: SourceManager) {

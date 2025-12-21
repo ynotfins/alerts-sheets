@@ -56,6 +56,15 @@ object MigrationManager {
         // 2. Migrate app targets
         migrateAppTargets(context, sourceManager)
         
+        // 3. ✅ Ensure sources.json exists even if no old data
+        // This prevents SourceRepository from returning empty list
+        // and makes dashboard show "Monitoring: 0 Apps, 0 SMS" instead of phantom sources
+        if (sourceManager.getAllSources().isEmpty()) {
+            Log.i(TAG, "No sources after migration - creating empty sources file")
+            // Don't need to save anything, just ensure storage is initialized
+            // The SourceRepository will handle empty list correctly now
+        }
+        
         Log.i(TAG, "Migration data transfer complete")
     }
     

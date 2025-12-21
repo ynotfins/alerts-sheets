@@ -21,11 +21,12 @@ class SourceRepository(private val context: Context) {
      * Get all sources
      */
     fun getAll(): List<Source> {
-        val json = storage.read() ?: return getDefaultSources()
+        val json = storage.read() ?: return emptyList()  // ✅ NO HARDCODED DEFAULTS
         return try {
-            gson.fromJson(json, object : TypeToken<List<Source>>() {}.type)
+            val sources: List<Source> = gson.fromJson(json, object : TypeToken<List<Source>>() {}.type)
+            sources ?: emptyList()
         } catch (e: Exception) {
-            getDefaultSources()
+            emptyList()  // ✅ Return empty on parse error
         }
     }
     
@@ -104,45 +105,15 @@ class SourceRepository(private val context: Context) {
         save(source.copy(stats = newStats))
     }
     
-    /**
-     * Get default sources (BNN + Generic)
-     */
-    private fun getDefaultSources(): List<Source> {
-        return listOf(
-            Source(
-                id = "com.example.bnn",
-                type = SourceType.APP,
-                name = "BNN Alerts",
-                enabled = true,
-                templateId = "rock-solid-bnn-format",
-                autoClean = false,  // BNN doesn't need cleaning
-                parserId = "bnn",
-                endpointId = "default-endpoint",
-                iconColor = 0xFFA855F7.toInt() // Purple
-            ),
-            Source(
-                id = "generic-app",
-                type = SourceType.APP,
-                name = "All Other Apps",
-                enabled = false,
-                templateId = "rock-solid-app-default",
-                autoClean = true,  // Generic apps might have emojis
-                parserId = "generic",
-                endpointId = "default-endpoint",
-                iconColor = 0xFF4A9EFF.toInt() // Blue
-            ),
-            Source(
-                id = "sms:dispatch",
-                type = SourceType.SMS,
-                name = "Dispatch SMS",
-                enabled = true,
-                templateId = "rock-solid-sms-default",
-                autoClean = true,  // SMS often has emojis
-                parserId = "sms",
-                endpointId = "default-endpoint",
-                iconColor = 0xFF00D980.toInt() // Green
-            )
-        )
-    }
+    // ✅ REMOVED: getDefaultSources()
+    // No more hardcoded defaults. Sources are created ONLY by:
+    // 1. Migration (from V1 PrefsManager data)
+    // 2. User adding apps/SMS through UI
+    // 3. Manual Source creation
+    //
+    // This ensures:
+    // - No phantom sources that can't be deleted
+    // - Dashboard shows accurate counts
+    // - User has full control over what's monitored
 }
 

@@ -11,14 +11,23 @@ import android.widget.ProgressBar
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.example.alertsheets.domain.SourceManager
+import com.example.alertsheets.domain.models.Source
+import com.example.alertsheets.domain.models.SourceType
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
+/**
+ * AppsListActivity - V2 Source-based app selection
+ * 
+ * NOW USES SOURCEMANAGER (not PrefsManager)
+ */
 class AppsListActivity : AppCompatActivity() {
 
     private lateinit var adapter: AppsAdapter
+    private lateinit var sourceManager: SourceManager
     private var allApps = mutableListOf<ApplicationInfo>()
     private var filteredApps = mutableListOf<ApplicationInfo>()
     private var selectedApps = mutableSetOf<String>()
@@ -28,8 +37,14 @@ class AppsListActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_apps_list)
-
-        selectedApps = PrefsManager.getTargetApps(this).toMutableSet()
+        
+        // ✅ V2: Use SourceManager
+        sourceManager = SourceManager(applicationContext)
+        
+        // Load currently monitored apps from SourceManager
+        selectedApps = sourceManager.getSourcesByType(SourceType.APP)
+            .map { it.id }
+            .toMutableSet()
 
         val recycler = findViewById<RecyclerView>(R.id.recycler_all_apps)
         recycler.layoutManager = LinearLayoutManager(this)
@@ -40,8 +55,15 @@ class AppsListActivity : AppCompatActivity() {
 
         adapter =
                 AppsAdapter(filteredApps, selectedApps) { pkg, isSelected ->
-                    if (isSelected) selectedApps.add(pkg) else selectedApps.remove(pkg)
-                    PrefsManager.saveTargetApps(this, selectedApps)
+                    if (isSelected) {
+                        // ✅ V2: Add as Source
+                        addAppSource(pkg)
+                        selectedApps.add(pkg)
+                    } else {
+                        // ✅ V2: Remove Source
+                        sourceManager.deleteSource(pkg)
+                        selectedApps.remove(pkg)
+                    }
                 }
         recycler.adapter = adapter
 
@@ -84,15 +106,19 @@ class AppsListActivity : AppCompatActivity() {
         for (app in allApps) {
             // Filter system apps based on toggle
             val isSystemApp = (app.flags and ApplicationInfo.FLAG_SYSTEM) != 0
+            val isUpdatedSystemApp = (app.flags and ApplicationInfo.FLAG_UPDATED_SYSTEM_APP) != 0
+            
+            // ✅ FIX: Treat updated system apps (like BNN installed via APK) as user apps
+            val treatAsUserApp = isUpdatedSystemApp || !isSystemApp
             
             // When "System Apps" checkbox is checked: show ONLY system apps
-            // When unchecked: show ONLY non-system (installed) apps
+            // When unchecked: show user apps (including updated system apps)
             if (showSystemApps) {
-                // User wants system apps - skip non-system apps
-                if (!isSystemApp) continue
+                // User wants system apps - skip user apps
+                if (treatAsUserApp) continue
             } else {
-                // User wants installed apps - skip system apps
-                if (isSystemApp) continue
+                // User wants user/installed apps - skip pure system apps
+                if (!treatAsUserApp) continue
             }
             
             // Filter by search query
@@ -113,5 +139,46 @@ class AppsListActivity : AppCompatActivity() {
         }
         
         adapter.notifyDataSetChanged()
+    }
+    
+    /**
+     * ✅ V2: Add app as Source with intelligent defaults
+     */
+    private fun addAppSource(packageName: String) {
+        val pm = packageManager
+        
+        // Get app info
+        val appInfo = try {
+            pm.getApplicationInfo(packageName, 0)
+        } catch (e: Exception) {
+            null
+        }
+        
+        val appName = appInfo?.let { 
+            pm.getApplicationLabel(it).toString() 
+        } ?: packageName
+        
+        // Detect if BNN
+        val isBnn = packageName.contains("bnn", ignoreCase = true)
+        
+        // Create Source with smart defaults
+        val source = Source(
+            id = packageName,
+            type = SourceType.APP,
+            name = appName,
+            enabled = true,
+            
+            // BNN gets special treatment
+            autoClean = !isBnn,  // BNN doesn't need emoji cleaning
+            templateId = if (isBnn) "rock-solid-bnn-format" else "rock-solid-app-default",
+            parserId = if (isBnn) "bnn" else "generic",
+            endpointId = "default-endpoint",
+            
+            iconColor = if (isBnn) 0xFFA855F7.toInt() else 0xFF4A9EFF.toInt(), // Purple or Blue
+            createdAt = System.currentTimeMillis(),
+            updatedAt = System.currentTimeMillis()
+        )
+        
+        sourceManager.saveSource(source)
     }
 }

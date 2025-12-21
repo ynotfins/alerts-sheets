@@ -209,9 +209,14 @@ class AppConfigActivity : AppCompatActivity() {
         // TEST SECTION
         val testLayout =
                 LinearLayout(this).apply {
-                    orientation = LinearLayout.HORIZONTAL
+                    orientation = LinearLayout.VERTICAL  // ✅ Changed to vertical for better layout
                     setPadding(0, 24, 0, 0)
                 }
+        
+        // First row: Test buttons
+        val testRowLayout = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+        }
 
         val btnTest =
                 Button(this).apply {
@@ -236,6 +241,24 @@ class AppConfigActivity : AppCompatActivity() {
                                     .apply { setMargins(16, 0, 0, 0) }
                 }
 
+        testRowLayout.addView(btnTest)
+        testRowLayout.addView(btnTestUpdate)
+        
+        // ✅ NEW: Dirty Test button (emoji-rich SMS)
+        val btnDirtyTest =
+                Button(this).apply {
+                    text = "🔥 Dirty Test (Emoji SMS)"
+                    background.setTint(android.graphics.Color.parseColor("#E91E63"))  // Pink
+                    setTextColor(android.graphics.Color.WHITE)
+                    setOnClickListener { performDirtyTest() }
+                    layoutParams =
+                            LinearLayout.LayoutParams(
+                                            LinearLayout.LayoutParams.WRAP_CONTENT,
+                                            LinearLayout.LayoutParams.WRAP_CONTENT
+                                    )
+                                    .apply { setMargins(0, 12, 0, 0) }
+                }
+
         val checkAutoTest =
                 android.widget.CheckBox(this).apply {
                     text = "Auto-Test on Exit"
@@ -244,12 +267,15 @@ class AppConfigActivity : AppCompatActivity() {
                     tag = "auto_test"
                 }
 
-        testLayout.addView(btnTest)
-        testLayout.addView(btnTestUpdate)
+        testLayout.addView(testRowLayout)
+        testLayout.addView(btnDirtyTest)  // ✅ Add dirty test button
         layout.addView(testLayout)
         layout.addView(checkAutoTest) // Move checkbox below buttons
 
         // Logic
+        
+        // ✅ FIX: Prevent race condition by setting listener AFTER initial load
+        var isInitializing = true
 
         // Load initial - restore last mode
         val lastMode = PrefsManager.getLastConfigMode(this) // "APP" or "SMS"
@@ -262,8 +288,14 @@ class AppConfigActivity : AppCompatActivity() {
         }
         
         loadConfig(isAppMode)
+        
+        // ✅ FIX: Set initialization complete BEFORE setting listener
+        isInitializing = false
 
         radioGroupMode.setOnCheckedChangeListener { _, checkedId ->
+            // ✅ FIX: Ignore listener events during initialization
+            if (isInitializing) return@setOnCheckedChangeListener
+            
             val isApp = (checkedId == R.id.radio_app)
             // Save mode preference
             PrefsManager.saveLastConfigMode(this, if (isApp) "APP" else "SMS")
@@ -722,5 +754,56 @@ class AppConfigActivity : AppCompatActivity() {
                 .setNegativeButton("✗ Cancel", null)
                 .setCancelable(true)
                 .show()
+    }
+    
+    /**
+     * ✅ NEW: Dirty Test with emoji-rich SMS
+     * Tests auto-clean functionality with real-world emoji-heavy notification
+     */
+    private fun performDirtyTest() {
+        val template = editJson.text.toString()
+        val isApp = (radioGroupMode.checkedRadioButtonId == R.id.radio_app)
+        
+        // Real-world emoji-rich SMS from user
+        val dirtyMessage = """
+🔥 New Fire Alert in Middlesex County
+
+📍 31 Grand Avenue, Cedar Knolls, NJ 07927-1506, USA
+🗺️ https://maps.google.com/?q=31+Grand+Avenue,+Cedar+Knolls,+NJ+07927-1506,+USA
+📋 Residential Fire - Fire with smoke condition reported; occupants advised to evacuate.
+ℹ️ https://www.adjustleads.com/app/alerts/294913
+        """.trimIndent()
+        
+        val json = if (isApp) {
+            // Treat as generic app notification (like AdjustLeads)
+            TemplateEngine.applyGeneric(
+                template,
+                "com.adjustleads.app",
+                "🔥 New Fire Alert",
+                dirtyMessage,
+                dirtyMessage
+            )
+        } else {
+            // Treat as SMS
+            TemplateEngine.applyGeneric(
+                template,
+                "sms",
+                "+15614193784",  // Fire dispatch number
+                dirtyMessage,
+                ""
+            )
+        }
+        
+        // Show preview
+        runOnUiThread {
+            AlertDialog.Builder(this)
+                .setTitle("🔥 Dirty Test JSON")
+                .setMessage("Sending emoji-rich notification to test auto-clean:\n\n${json.take(500)}...")
+                .setPositiveButton("Send") { _, _ ->
+                    sendTestPayload(json, isUpdate = false, silent = false)
+                }
+                .setNegativeButton("Cancel", null)
+                .show()
+        }
     }
 }

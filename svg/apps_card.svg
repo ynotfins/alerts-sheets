@@ -1,0 +1,20 @@
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <!-- Pure black background -->
+  <rect width="200" height="200" rx="20" fill="#000000"/>
+  
+  <!-- Apps icon (clipboard with grid) - ENLARGED 75% height -->
+  <g transform="translate(100, 75)">
+    <!-- Clipboard frame -->
+    <rect x="-32" y="-65" width="64" height="85" rx="6" fill="none" stroke="#BB86FC" stroke-width="5"/>
+    <rect x="-20" y="-72" width="40" height="13" rx="4" fill="#BB86FC"/>
+    
+    <!-- Grid squares (2x2) -->
+    <rect x="-20" y="-45" width="16" height="16" rx="3" fill="#BB86FC"/>
+    <rect x="4" y="-45" width="16" height="16" rx="3" fill="#BB86FC"/>
+    <rect x="-20" y="-23" width="16" height="16" rx="3" fill="#BB86FC"/>
+    <rect x="4" y="-23" width="16" height="16" rx="3" fill="#BB86FC"/>
+  </g>
+  
+  <!-- Text label -->
+  <text x="100" y="175" font-family="Roboto, Arial, sans-serif" font-size="20" fill="#FFFFFF" text-anchor="middle" font-weight="500">Apps</text>
+</svg>

@@ -178,22 +178,35 @@ class PermissionsActivity : AppCompatActivity() {
 
     private fun checkNotifListener(): Boolean {
         val flat = Settings.Secure.getString(contentResolver, "enabled_notification_listeners")
-        val isEnabledLegacy = flat != null && flat.contains(packageName)
+        // Check if our service is in the enabled listeners string
+        val serviceName = "$packageName/com.example.alertsheets.services.AlertsNotificationListener"
+        val isEnabledLegacy = flat != null && (flat.contains(packageName) || flat.contains(serviceName))
         val isEnabledCompat =
                 NotificationManagerCompat.getEnabledListenerPackages(this).contains(packageName)
         val result = isEnabledLegacy || isEnabledCompat
         Log.d(
                 TAG,
-                "checkNotifListener() = $result (legacy=$isEnabledLegacy, compat=$isEnabledCompat)"
+                "checkNotifListener() = $result (legacy=$isEnabledLegacy, compat=$isEnabledCompat, flat=$flat)"
         )
         return result
     }
 
     private fun checkSmsPermission(): Boolean {
-        val result =
+        // Check if we are the default SMS app (which gives us SMS permissions)
+        val defaultSmsPackage = try {
+            android.provider.Telephony.Sms.getDefaultSmsPackage(this)
+        } catch (e: Exception) {
+            null
+        }
+        val isDefaultSms = defaultSmsPackage == packageName
+        
+        // Also check the permission
+        val hasPermission =
                 ContextCompat.checkSelfPermission(this, android.Manifest.permission.RECEIVE_SMS) ==
                         android.content.pm.PackageManager.PERMISSION_GRANTED
-        Log.d(TAG, "checkSmsPermission() = $result")
+        
+        val result = isDefaultSms || hasPermission
+        Log.d(TAG, "checkSmsPermission() = $result (isDefaultSms=$isDefaultSms, hasPermission=$hasPermission, defaultPkg=$defaultSmsPackage)")
         return result
     }
 

@@ -1,0 +1,222 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.example.alertsheets"
+    android:versionCode="1"
+    android:versionName="1.0" >
+
+    <uses-sdk
+        android:minSdkVersion="26"
+        android:targetSdkVersion="34" />
+
+    <!-- ============================================ -->
+    <!-- GOD MODE PERMISSIONS (CRITICAL - DO NOT REMOVE) -->
+    <!-- ============================================ -->
+
+
+    <!-- NOTIFICATION PERMISSIONS (HIGHEST PRIORITY) -->
+    <uses-permission android:name="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.ACCESS_NOTIFICATION_POLICY" />
+
+    <!-- SMS PERMISSIONS (FULL READ/WRITE/RECEIVE - NON-NEGOTIABLE) -->
+    <!-- READ_SMS: Read all messages (past, present, future) -->
+    <uses-permission android:name="android.permission.READ_SMS" />
+
+    <!-- RECEIVE_SMS: Receive incoming SMS in real-time -->
+    <uses-permission android:name="android.permission.RECEIVE_SMS" />
+
+    <!-- RECEIVE_MMS: Monitor incoming MMS messages -->
+    <uses-permission android:name="android.permission.RECEIVE_MMS" />
+
+    <!-- RECEIVE_WAP_PUSH: Receive WAP push messages -->
+    <uses-permission android:name="android.permission.RECEIVE_WAP_PUSH" />
+
+    <!-- SEND_SMS: Send SMS (for testing/verification) -->
+    <uses-permission android:name="android.permission.SEND_SMS" />
+
+    <!-- WRITE_SMS: Write to SMS database (full control) -->
+    <uses-permission android:name="android.permission.WRITE_SMS" />
+
+    <!-- BROADCAST_SMS: Broadcast SMS received intents -->
+    <uses-permission android:name="android.permission.BROADCAST_SMS" />
+
+    <!-- READ_PHONE_STATE: Read phone state (for SMS context) -->
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+
+    <!-- READ_CONTACTS: Required for SMS default app role -->
+    <uses-permission android:name="android.permission.READ_CONTACTS" />
+
+    <!-- FOREGROUND SERVICE (PREVENT ANDROID FROM KILLING US) -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+
+    <!-- BATTERY OPTIMIZATION BYPASS (CRITICAL) -->
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
+
+    <!-- BOOT & RESTART -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+
+    <!-- OVERLAYS & ALERTS -->
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
+
+    <!-- EXACT ALARMS (FOR RETRY LOGIC) -->
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+
+    <!-- NETWORK -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+    <!-- ACCESSIBILITY (BACKUP NOTIFICATION CAPTURE) -->
+    <uses-permission android:name="android.permission.BIND_ACCESSIBILITY_SERVICE" />
+
+    <permission
+        android:name="com.example.alertsheets.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+        android:protectionLevel="signature" />
+
+    <uses-permission android:name="com.example.alertsheets.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" />
+
+    <application
+        android:name="com.example.alertsheets.AlertsApplication"
+        android:allowBackup="false"
+        android:appComponentFactory="androidx.core.app.CoreComponentFactory"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:debuggable="true"
+        android:extractNativeLibs="false"
+        android:fullBackupContent="false"
+        android:hasCode="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.AlertsToSheets" >
+
+        <!-- ============================================ -->
+        <!-- MAIN ACTIVITY -->
+        <!-- ============================================ -->
+        <activity
+            android:name="com.example.alertsheets.ui.MainActivity"
+            android:exported="true"
+            android:launchMode="singleTask" >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!-- ============================================ -->
+        <!-- V1 ACTIVITIES (TEMPORARY - DURING MIGRATION) -->
+        <!-- ============================================ -->
+        <activity
+            android:name="com.example.alertsheets.AppConfigActivity"
+            android:label="Payloads"
+            android:parentActivityName="com.example.alertsheets.ui.MainActivity" />
+        <activity
+            android:name="com.example.alertsheets.LogActivity"
+            android:label="Activity Logs"
+            android:parentActivityName="com.example.alertsheets.ui.MainActivity" />
+        <activity
+            android:name="com.example.alertsheets.SmsConfigActivity"
+            android:label="SMS Configuration"
+            android:parentActivityName="com.example.alertsheets.ui.MainActivity" />
+        <activity
+            android:name="com.example.alertsheets.EndpointActivity"
+            android:label="Endpoints"
+            android:parentActivityName="com.example.alertsheets.ui.MainActivity" />
+        <activity
+            android:name="com.example.alertsheets.AppsListActivity"
+            android:label="App Sources"
+            android:parentActivityName="com.example.alertsheets.ui.MainActivity" />
+        <activity
+            android:name="com.example.alertsheets.PermissionsActivity"
+            android:label="Permissions"
+            android:parentActivityName="com.example.alertsheets.ui.MainActivity" />
+
+        <!-- ============================================ -->
+        <!-- NOTIFICATION LISTENER (PRIMARY CAPTURE) -->
+        <!-- ============================================ -->
+        <service
+            android:name="com.example.alertsheets.services.AlertsNotificationListener"
+            android:exported="true"
+            android:foregroundServiceType="dataSync"
+            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE" >
+            <intent-filter android:priority="999" >
+                <action android:name="android.service.notification.NotificationListenerService" />
+            </intent-filter>
+        </service>
+
+        <!-- ============================================ -->
+        <!-- SMS RECEIVER (HIGHEST PRIORITY) -->
+        <!-- ============================================ -->
+        <receiver
+            android:name="com.example.alertsheets.services.AlertsSmsReceiver"
+            android:exported="true"
+            android:permission="android.permission.BROADCAST_SMS" >
+            <intent-filter android:priority="2147483647" >
+                <action android:name="android.provider.Telephony.SMS_RECEIVED" />
+                <action android:name="android.provider.Telephony.SMS_DELIVER" />
+            </intent-filter>
+            <intent-filter android:priority="2147483647" >
+                <action android:name="android.provider.Telephony.WAP_PUSH_RECEIVED" />
+
+                <data android:mimeType="application/vnd.wap.mms-message" />
+            </intent-filter>
+            <intent-filter android:priority="2147483647" >
+                <action android:name="android.provider.Telephony.WAP_PUSH_DELIVER" />
+
+                <data android:mimeType="application/vnd.wap.mms-message" />
+            </intent-filter>
+        </receiver>
+
+        <!-- ============================================ -->
+        <!-- BOOT RECEIVER (AUTO-START) -->
+        <!-- ============================================ -->
+        <receiver
+            android:name="com.example.alertsheets.services.BootReceiver"
+            android:enabled="true"
+            android:exported="true" >
+            <intent-filter android:priority="999" >
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.QUICKBOOT_POWERON" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+            </intent-filter>
+        </receiver>
+
+        <provider
+            android:name="androidx.startup.InitializationProvider"
+            android:authorities="com.example.alertsheets.androidx-startup"
+            android:exported="false" >
+            <meta-data
+                android:name="androidx.emoji2.text.EmojiCompatInitializer"
+                android:value="androidx.startup" />
+            <meta-data
+                android:name="androidx.lifecycle.ProcessLifecycleInitializer"
+                android:value="androidx.startup" />
+            <meta-data
+                android:name="androidx.profileinstaller.ProfileInstallerInitializer"
+                android:value="androidx.startup" />
+        </provider>
+
+        <receiver
+            android:name="androidx.profileinstaller.ProfileInstallReceiver"
+            android:directBootAware="false"
+            android:enabled="true"
+            android:exported="true"
+            android:permission="android.permission.DUMP" >
+            <intent-filter>
+                <action android:name="androidx.profileinstaller.action.INSTALL_PROFILE" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="androidx.profileinstaller.action.SKIP_FILE" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="androidx.profileinstaller.action.SAVE_PROFILE" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="androidx.profileinstaller.action.BENCHMARK_OPERATION" />
+            </intent-filter>
+        </receiver>
+    </application>
+
+</manifest>

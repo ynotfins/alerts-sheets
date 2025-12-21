@@ -1,0 +1,8 @@
+# Firebase Functions - DO NOT COMMIT CREDENTIALS
+.env
+.env.local
+.env.*.local
+node_modules/
+*.log
+
+

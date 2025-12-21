@@ -1,0 +1,19 @@
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <!-- Pure black background -->
+  <rect width="200" height="200" rx="20" fill="#000000"/>
+  
+  <!-- SMS icon (chat bubble) - ENLARGED 75% height -->
+  <g transform="translate(100, 75)">
+    <!-- Chat bubble (rounded rectangle) -->
+    <ellipse cx="0" cy="-15" rx="45" ry="38" fill="#64D2FF"/>
+    <!-- Tail (speech bubble pointer) -->
+    <path d="M -25 12 L -32 30 L -12 18 Z" fill="#64D2FF"/>
+    <!-- Three dots inside bubble -->
+    <circle cx="-15" cy="-15" r="4" fill="#000000"/>
+    <circle cx="0" cy="-15" r="4" fill="#000000"/>
+    <circle cx="15" cy="-15" r="4" fill="#000000"/>
+  </g>
+  
+  <!-- Text label -->
+  <text x="100" y="175" font-family="Roboto, Arial, sans-serif" font-size="20" fill="#FFFFFF" text-anchor="middle" font-weight="500">SMS</text>
+</svg>

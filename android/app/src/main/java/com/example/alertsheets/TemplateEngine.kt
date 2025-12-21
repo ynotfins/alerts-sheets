@@ -45,8 +45,14 @@ object TemplateEngine {
     }
 
     private fun escape(s: String): String {
-        // Basic JSON escape
-        return s.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n")
+        // Comprehensive JSON escape including emojis and special characters
+        return s.replace("\\", "\\\\")
+                .replace("\"", "\\\"")
+                .replace("\n", "\\n")
+                .replace("\r", "\\r")
+                .replace("\t", "\\t")
+                .replace("\b", "\\b")
+                .replace("\u000C", "\\f")
     }
 
     /**
@@ -54,7 +60,10 @@ object TemplateEngine {
      * sets.
      */
     fun cleanText(input: String): String {
-        val cleaned = input.replace(Regex("[^\\p{L}\\p{N}\\p{P}\\p{Z}]"), "")
+        // Remove emojis, control chars, but keep standard punctuation and newlines
+        val cleaned = input.replace(Regex("[\uD800-\uDFFF]"), "") // Remove surrogates (emojis)
+                .replace(Regex("[\\p{So}\\p{Sk}\\p{Sm}\\p{Sc}&&[^\\p{Ascii}]]"), "") // Remove non-ASCII symbols
+                .replace(Regex("[\\x00-\\x08\\x0B\\x0C\\x0E-\\x1F\\x7F]"), "") // Remove control chars except \n, \r, \t
         return cleaned.trim()
     }
 

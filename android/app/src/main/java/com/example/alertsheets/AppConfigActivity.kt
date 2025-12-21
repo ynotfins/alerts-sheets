@@ -10,6 +10,8 @@ import android.widget.RadioGroup
 import android.widget.Spinner
 import android.widget.TextView
 import android.widget.Toast
+import android.widget.ScrollView
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -38,6 +40,10 @@ class AppConfigActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        
+        // Enable back button in action bar
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        
         val layout =
                 LinearLayout(this).apply {
                     orientation = LinearLayout.VERTICAL
@@ -82,22 +88,53 @@ class AppConfigActivity : AppCompatActivity() {
         // Template Selector
         val labelTemplate =
                 TextView(this).apply {
-                    text = "Load Preset Template:"
+                    text = "Select Template:"
                     setPadding(0, 16, 0, 8)
                 }
         layout.addView(labelTemplate)
 
         spinnerTemplate = Spinner(this)
-        // Default items for App
-        val adapter =
-                ArrayAdapter(
-                        this,
-                        android.R.layout.simple_spinner_item,
-                        listOf("Select...", "Default App", "BNN Format")
-                )
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        spinnerTemplate.adapter = adapter
+        loadTemplatesForCurrentMode() // Load templates dynamically
         layout.addView(spinnerTemplate)
+
+        // Template Management Buttons
+        val templateButtonLayout =
+                LinearLayout(this).apply {
+                    orientation = LinearLayout.HORIZONTAL
+                    setPadding(0, 8, 0, 16)
+                }
+
+        val btnSaveNewTemplate =
+                Button(this).apply {
+                    text = "+ Save as New"
+                    background.setTint(android.graphics.Color.parseColor("#4CAF50"))
+                    setTextColor(android.graphics.Color.WHITE)
+                    setOnClickListener { showSaveTemplateDialog() }
+                    layoutParams =
+                            LinearLayout.LayoutParams(
+                                            0,
+                                            LinearLayout.LayoutParams.WRAP_CONTENT,
+                                            1f
+                                    )
+                }
+        templateButtonLayout.addView(btnSaveNewTemplate)
+
+        val btnDeleteTemplate =
+                Button(this).apply {
+                    text = "🗑️ Delete"
+                    background.setTint(android.graphics.Color.parseColor("#F44336"))
+                    setTextColor(android.graphics.Color.WHITE)
+                    setOnClickListener { deleteCurrentTemplate() }
+                    layoutParams =
+                            LinearLayout.LayoutParams(
+                                            0,
+                                            LinearLayout.LayoutParams.WRAP_CONTENT,
+                                            1f
+                                    )
+                                    .apply { setMargins(16, 0, 0, 0) }
+                }
+        templateButtonLayout.addView(btnDeleteTemplate)
+        layout.addView(templateButtonLayout)
 
         // Clean Data Option
         val checkClean =
@@ -161,10 +198,10 @@ class AppConfigActivity : AppCompatActivity() {
                 }
         layout.addView(btnClean)
 
-        // Save Button
+        // Save Button (Keep simple - just saves to prefs for legacy compat)
         btnSave =
                 Button(this).apply {
-                    text = "Save Configuration"
+                    text = "Apply Changes"
                     setOnClickListener { save() }
                 }
         layout.addView(btnSave)
@@ -178,7 +215,7 @@ class AppConfigActivity : AppCompatActivity() {
 
         val btnTest =
                 Button(this).apply {
-                    text = "Test New Incident"
+                    text = "Test New Notification"
                     background.setTint(android.graphics.Color.parseColor("#4CAF50"))
                     setTextColor(android.graphics.Color.WHITE)
                     setOnClickListener { performTest(isUpdate = false) }
@@ -186,7 +223,7 @@ class AppConfigActivity : AppCompatActivity() {
 
         val btnTestUpdate =
                 Button(this).apply {
-                    text = "Test Update"
+                    text = "Test - Same as Previous"
                     background.setTint(android.graphics.Color.parseColor("#FF9800"))
                     setTextColor(android.graphics.Color.WHITE)
                     setOnClickListener { performTest(isUpdate = true) }
@@ -214,13 +251,24 @@ class AppConfigActivity : AppCompatActivity() {
 
         // Logic
 
-        // Load initial
-        loadConfig(isAppMode = true)
+        // Load initial - restore last mode
+        val lastMode = PrefsManager.getLastConfigMode(this) // "APP" or "SMS"
+        val isAppMode = (lastMode == "APP")
+        
+        if (isAppMode) {
+            radioGroupMode.check(R.id.radio_app)
+        } else {
+            radioGroupMode.check(R.id.radio_sms)
+        }
+        
+        loadConfig(isAppMode)
 
         radioGroupMode.setOnCheckedChangeListener { _, checkedId ->
             val isApp = (checkedId == R.id.radio_app)
+            // Save mode preference
+            PrefsManager.saveLastConfigMode(this, if (isApp) "APP" else "SMS")
             loadConfig(isApp)
-            updateUIForMode(isApp)
+            loadTemplatesForCurrentMode() // Reload templates when mode changes
         }
 
         // Template Selection Logic
@@ -232,41 +280,46 @@ class AppConfigActivity : AppCompatActivity() {
                             position: Int,
                             id: Long
                     ) {
-                        if (position == 0) return
-
-                        // Determine Mode based on Radio
-                        val isApp = (radioGroupMode.checkedRadioButtonId == R.id.radio_app)
-
-                        if (isApp) {
-                            when (position) {
-                                1 -> editJson.setText(getAppTemplate())
-                                2 -> editJson.setText(getBnnTemplate())
-                            }
-                        } else {
-                            // SMS Mode
-                            when (position) {
-                                1 -> editJson.setText(getSmsTemplate())
-                            }
+                        val selected = parent?.getItemAtPosition(position) as? JsonTemplate
+                        selected?.let {
+                            editJson.setText(it.content)
+                            // Save as active template
+                            PrefsManager.setActiveTemplateName(this@AppConfigActivity, it.mode, it.name)
                         }
-                        spinnerTemplate.setSelection(0) // Reset
                     }
                     override fun onNothingSelected(parent: android.widget.AdapterView<*>?) {}
                 }
 
-        setContentView(layout)
+        // Wrap in ScrollView for proper scrolling
+        val scrollView = ScrollView(this)
+        scrollView.addView(layout)
+        setContentView(scrollView)
     }
 
-    private fun updateUIForMode(isApp: Boolean) {
-        // Update Spinner content
-        val items =
-                if (isApp) {
-                    listOf("Select Preset...", "Default App", "BNN Format")
-                } else {
-                    listOf("Select Preset...", "Default SMS")
-                }
-        val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, items)
+    override fun onSupportNavigateUp(): Boolean {
+        finish()
+        return true
+    }
+
+    private fun loadTemplatesForCurrentMode() {
+        val isApp = (radioGroupMode.checkedRadioButtonId == R.id.radio_app)
+        val mode = if (isApp) TemplateMode.APP else TemplateMode.SMS
+        val templates = PrefsManager.getAllTemplatesForMode(this, mode)
+        
+        val adapter = ArrayAdapter(
+            this,
+            android.R.layout.simple_spinner_item,
+            templates
+        )
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         spinnerTemplate.adapter = adapter
+        
+        // Try to restore last selected template
+        val activeTemplateName = PrefsManager.getActiveTemplateName(this, mode)
+        val activeIndex = templates.indexOfFirst { it.name == activeTemplateName }
+        if (activeIndex >= 0) {
+            spinnerTemplate.setSelection(activeIndex)
+        }
     }
 
     private fun loadConfig(isAppMode: Boolean) {
@@ -446,20 +499,34 @@ class AppConfigActivity : AppCompatActivity() {
                         )
                     }
                 } else {
-                    // SMS Mode - Generic Template Test
-                    val uniqueId = "SMS-${System.currentTimeMillis().toString().takeLast(4)}"
+                    // SMS Mode - More realistic test message
+                    val testSender = "+1-555-0123"
+                    val testMessage = "ALERT: Fire reported at 123 Main St. Units responding. This is a test SMS message with more realistic content to verify full text appears in spreadsheet."
+                    
                     TemplateEngine.applyGeneric(
                                     template,
                                     "sms", // pkg
-                                    "TEST-SENDER", // title/sender
-                                    "This is a test SMS message.", // text/message
+                                    testSender, // title/sender
+                                    testMessage, // text/message
                                     ""
                             )
-                            .replace("{{id}}", uniqueId)
                 }
 
+        // Show JSON preview dialog (unless silent auto-test)
         if (!silent) {
-            val message = if (isApp && isUpdate) "Sending Update Test..." else "Sending New Test..."
+            showJsonPreviewDialog(json, isUpdate, silent) {
+                // User confirmed - proceed with sending
+                sendTestPayload(json, isUpdate, silent)
+            }
+        } else {
+            // Silent mode - send directly
+            sendTestPayload(json, isUpdate, silent)
+        }
+    }
+
+    private fun sendTestPayload(json: String, isUpdate: Boolean, silent: Boolean) {
+        if (!silent) {
+            val message = if (isUpdate) "Sending Update Test..." else "Sending New Test..."
             Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
         }
 
@@ -503,14 +570,29 @@ class AppConfigActivity : AppCompatActivity() {
                     val success = response.isSuccessful
 
                     if (success) {
+                        // Parse response to extract what was saved
+                        val responseData = try {
+                            val jsonResponse = org.json.JSONObject(responseBody)
+                            when {
+                                jsonResponse.has("id") -> "ID: ${jsonResponse.getString("id")}"
+                                jsonResponse.has("sender") -> "From: ${jsonResponse.getString("sender")}"
+                                else -> "Saved"
+                            }
+                        } catch (e: Exception) {
+                            "OK"
+                        }
+                        
                         if (!silent)
                                 runOnUiThread {
-                                    Toast.makeText(
-                                                    this@AppConfigActivity,
-                                                    "Test SUCCESS! Status: $statusCode",
-                                                    Toast.LENGTH_LONG
-                                            )
-                                            .show()
+                                    // Show detailed success message with response data
+                                    val message = "✓ Test SUCCESS (HTTP $statusCode)\n$responseData\n\nResponse: $responseBody"
+                                    
+                                    // Create custom toast with scrollable view for long responses
+                                    AlertDialog.Builder(this@AppConfigActivity)
+                                        .setTitle("✓ Test Successful")
+                                        .setMessage("HTTP $statusCode\n\n$responseData\n\nFull Response:\n$responseBody")
+                                        .setPositiveButton("OK", null)
+                                        .show()
                                 }
                         PrefsManager.setPayloadTestStatus(this@AppConfigActivity, 1)
                     } else {
@@ -540,6 +622,105 @@ class AppConfigActivity : AppCompatActivity() {
                         }
                 PrefsManager.setPayloadTestStatus(this@AppConfigActivity, 2)
             }
+        } // End launch coroutine
+    } // End sendTestPayload
+
+    private fun showSaveTemplateDialog() {
+        val template = editJson.text.toString()
+        val isApp = (radioGroupMode.checkedRadioButtonId == R.id.radio_app)
+        val mode = if (isApp) TemplateMode.APP else TemplateMode.SMS
+        
+        if (template.isEmpty()) {
+            Toast.makeText(this, "Cannot save empty template", Toast.LENGTH_SHORT).show()
+            return
         }
+        
+        // Show dialog to enter template name
+        val input = EditText(this).apply {
+            hint = "Enter template name"
+            setPadding(32, 32, 32, 32)
+        }
+        
+        AlertDialog.Builder(this)
+                .setTitle("💾 Save Custom Template")
+                .setMessage("Give your template a name:")
+                .setView(input)
+                .setPositiveButton("Save") { _, _ ->
+                    val name = input.text.toString().trim()
+                    if (name.isEmpty()) {
+                        Toast.makeText(this, "Template name cannot be empty", Toast.LENGTH_SHORT).show()
+                        return@setPositiveButton
+                    }
+                    
+                    if (name.startsWith("🪨")) {
+                        Toast.makeText(this, "Cannot use 🪨 - reserved for Rock Solid templates", Toast.LENGTH_SHORT).show()
+                        return@setPositiveButton
+                    }
+                    
+                    val newTemplate = JsonTemplate(
+                        name = name,
+                        content = template,
+                        isRockSolid = false,
+                        mode = mode
+                    )
+                    
+                    PrefsManager.saveCustomTemplate(this@AppConfigActivity, newTemplate)
+                    loadTemplatesForCurrentMode() // Refresh spinner
+                    
+                    Toast.makeText(this@AppConfigActivity, "✓ Template '$name' saved!", Toast.LENGTH_LONG).show()
+                    android.util.Log.i("AppConfigActivity", "Custom template saved: $name (${mode.name})")
+                }
+                .setNegativeButton("Cancel", null)
+                .show()
+    }
+
+    private fun deleteCurrentTemplate() {
+        val selected = spinnerTemplate.selectedItem as? JsonTemplate
+        
+        if (selected == null) {
+            Toast.makeText(this, "No template selected", Toast.LENGTH_SHORT).show()
+            return
+        }
+        
+        if (selected.isRockSolid) {
+            Toast.makeText(this, "🪨 Rock Solid templates cannot be deleted", Toast.LENGTH_LONG).show()
+            return
+        }
+        
+        AlertDialog.Builder(this)
+                .setTitle("Delete Template?")
+                .setMessage("Are you sure you want to delete '${selected.name}'?")
+                .setPositiveButton("Delete") { _, _ ->
+                    PrefsManager.deleteCustomTemplate(this@AppConfigActivity, selected.name, selected.mode)
+                    loadTemplatesForCurrentMode() // Refresh spinner
+                    Toast.makeText(this@AppConfigActivity, "Template deleted", Toast.LENGTH_SHORT).show()
+                }
+                .setNegativeButton("Cancel", null)
+                .show()
+    }
+
+
+    private fun showJsonPreviewDialog(json: String, isUpdate: Boolean, silent: Boolean, onConfirm: () -> Unit) {
+        // Create scrollable text view for JSON
+        val scrollView = ScrollView(this)
+        val textView = TextView(this).apply {
+            text = json
+            textSize = 12f
+            setPadding(32, 32, 32, 32)
+            setTextIsSelectable(true)
+            typeface = android.graphics.Typeface.MONOSPACE
+        }
+        scrollView.addView(textView)
+        
+        AlertDialog.Builder(this)
+                .setTitle("📋 JSON Payload Preview")
+                .setMessage("Review the JSON that will be sent to your endpoint:")
+                .setView(scrollView)
+                .setPositiveButton("✓ Send") { _, _ ->
+                    onConfirm()
+                }
+                .setNegativeButton("✗ Cancel", null)
+                .setCancelable(true)
+                .show()
     }
 }

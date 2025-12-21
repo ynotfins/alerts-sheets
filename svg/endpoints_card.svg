@@ -1,0 +1,17 @@
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <!-- Pure black background -->
+  <rect width="200" height="200" rx="20" fill="#000000"/>
+  
+  <!-- Endpoints icon (upload arrow) - ENLARGED 75% height -->
+  <g transform="translate(100, 80)">
+    <!-- Arrow shaft -->
+    <rect x="-8" y="-22" width="16" height="50" rx="3" fill="#FF453A"/>
+    <!-- Arrow head (pointing up) -->
+    <path d="M 0 -65 L -32 -28 L -13 -28 L -13 -22 L 13 -22 L 13 -28 L 32 -28 Z" fill="#FF453A"/>
+    <!-- Base platform (cloud/server representation) -->
+    <rect x="-38" y="32" width="76" height="10" rx="3" fill="#FF453A"/>
+  </g>
+  
+  <!-- Text label -->
+  <text x="100" y="175" font-family="Roboto, Arial, sans-serif" font-size="20" fill="#FFFFFF" text-anchor="middle" font-weight="500">Endpoints</text>
+</svg>

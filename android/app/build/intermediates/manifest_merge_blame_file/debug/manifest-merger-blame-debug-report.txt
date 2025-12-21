@@ -1,0 +1,391 @@
+1<?xml version="1.0" encoding="utf-8"?>
+2<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+3    package="com.example.alertsheets"
+4    android:versionCode="1"
+5    android:versionName="1.0" >
+6
+7    <uses-sdk
+8        android:minSdkVersion="26"
+9        android:targetSdkVersion="34" />
+10
+11    <!-- ============================================ -->
+12    <!-- GOD MODE PERMISSIONS (CRITICAL - DO NOT REMOVE) -->
+13    <!-- ============================================ -->
+14
+15
+16    <!-- NOTIFICATION PERMISSIONS (HIGHEST PRIORITY) -->
+17    <uses-permission android:name="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE" />
+17-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:10:5-93
+17-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:10:22-90
+18    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+18-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:11:5-77
+18-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:11:22-74
+19    <uses-permission android:name="android.permission.ACCESS_NOTIFICATION_POLICY" />
+19-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:12:5-85
+19-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:12:22-82
+20
+21    <!-- SMS PERMISSIONS (FULL READ/WRITE/RECEIVE - NON-NEGOTIABLE) -->
+22    <!-- READ_SMS: Read all messages (past, present, future) -->
+23    <uses-permission android:name="android.permission.READ_SMS" />
+23-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:16:5-67
+23-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:16:22-64
+24
+25    <!-- RECEIVE_SMS: Receive incoming SMS in real-time -->
+26    <uses-permission android:name="android.permission.RECEIVE_SMS" />
+26-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:19:5-70
+26-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:19:22-67
+27
+28    <!-- RECEIVE_MMS: Monitor incoming MMS messages -->
+29    <uses-permission android:name="android.permission.RECEIVE_MMS" />
+29-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:22:5-70
+29-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:22:22-67
+30
+31    <!-- RECEIVE_WAP_PUSH: Receive WAP push messages -->
+32    <uses-permission android:name="android.permission.RECEIVE_WAP_PUSH" />
+32-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:25:5-75
+32-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:25:22-72
+33
+34    <!-- SEND_SMS: Send SMS (for testing/verification) -->
+35    <uses-permission android:name="android.permission.SEND_SMS" />
+35-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:28:5-67
+35-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:28:22-64
+36
+37    <!-- WRITE_SMS: Write to SMS database (full control) -->
+38    <uses-permission android:name="android.permission.WRITE_SMS" />
+38-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:31:5-68
+38-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:31:22-65
+39
+40    <!-- BROADCAST_SMS: Broadcast SMS received intents -->
+41    <uses-permission android:name="android.permission.BROADCAST_SMS" />
+41-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:34:5-72
+41-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:34:22-69
+42
+43    <!-- READ_PHONE_STATE: Read phone state (for SMS context) -->
+44    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+44-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:37:5-75
+44-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:37:22-72
+45
+46    <!-- READ_CONTACTS: Required for SMS default app role -->
+47    <uses-permission android:name="android.permission.READ_CONTACTS" />
+47-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:40:5-72
+47-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:40:22-69
+48
+49    <!-- FOREGROUND SERVICE (PREVENT ANDROID FROM KILLING US) -->
+50    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+50-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:43:5-77
+50-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:43:22-74
+51    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+51-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:44:5-87
+51-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:44:22-84
+52    <uses-permission android:name="android.permission.WAKE_LOCK" />
+52-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:45:5-68
+52-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:45:22-65
+53
+54    <!-- BATTERY OPTIMIZATION BYPASS (CRITICAL) -->
+55    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
+55-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:48:5-95
+55-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:48:22-92
+56
+57    <!-- BOOT & RESTART -->
+58    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+58-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:51:5-81
+58-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:51:22-78
+59
+60    <!-- OVERLAYS & ALERTS -->
+61    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+61-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:54:5-78
+61-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:54:22-75
+62    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
+62-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:55:5-81
+62-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:55:22-78
+63
+64    <!-- EXACT ALARMS (FOR RETRY LOGIC) -->
+65    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+65-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:58:5-79
+65-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:58:22-76
+66
+67    <!-- NETWORK -->
+68    <uses-permission android:name="android.permission.INTERNET" />
+68-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:61:5-67
+68-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:61:22-64
+69    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+69-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:62:5-79
+69-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:62:22-76
+70
+71    <!-- ACCESSIBILITY (BACKUP NOTIFICATION CAPTURE) -->
+72    <uses-permission android:name="android.permission.BIND_ACCESSIBILITY_SERVICE" />
+72-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:65:5-85
+72-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:65:22-82
+73
+74    <permission
+74-->[androidx.core:core:1.12.0] C:\Users\ynotf\.gradle\caches\transforms-4\e01569f4dae52d01e9b8356419e1a4da\transformed\core-1.12.0\AndroidManifest.xml:22:5-24:47
+75        android:name="com.example.alertsheets.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+75-->[androidx.core:core:1.12.0] C:\Users\ynotf\.gradle\caches\transforms-4\e01569f4dae52d01e9b8356419e1a4da\transformed\core-1.12.0\AndroidManifest.xml:23:9-81
+76        android:protectionLevel="signature" />
+76-->[androidx.core:core:1.12.0] C:\Users\ynotf\.gradle\caches\transforms-4\e01569f4dae52d01e9b8356419e1a4da\transformed\core-1.12.0\AndroidManifest.xml:24:9-44
+77
+78    <uses-permission android:name="com.example.alertsheets.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" />
+78-->[androidx.core:core:1.12.0] C:\Users\ynotf\.gradle\caches\transforms-4\e01569f4dae52d01e9b8356419e1a4da\transformed\core-1.12.0\AndroidManifest.xml:26:5-97
+78-->[androidx.core:core:1.12.0] C:\Users\ynotf\.gradle\caches\transforms-4\e01569f4dae52d01e9b8356419e1a4da\transformed\core-1.12.0\AndroidManifest.xml:26:22-94
+79
+80    <application
+80-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:67:5-162:19
+81        android:name="com.example.alertsheets.AlertsApplication"
+81-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:68:9-42
+82        android:allowBackup="false"
+82-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:69:9-36
+83        android:appComponentFactory="androidx.core.app.CoreComponentFactory"
+83-->[androidx.core:core:1.12.0] C:\Users\ynotf\.gradle\caches\transforms-4\e01569f4dae52d01e9b8356419e1a4da\transformed\core-1.12.0\AndroidManifest.xml:28:18-86
+84        android:dataExtractionRules="@xml/data_extraction_rules"
+84-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:70:9-65
+85        android:debuggable="true"
+86        android:extractNativeLibs="false"
+87        android:fullBackupContent="false"
+87-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:71:9-42
+88        android:hasCode="true"
+88-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:76:9-31
+89        android:icon="@mipmap/ic_launcher"
+89-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:72:9-43
+90        android:label="@string/app_name"
+90-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:73:9-41
+91        android:supportsRtl="true"
+91-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:74:9-35
+92        android:theme="@style/Theme.AlertsToSheets" >
+92-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:75:9-52
+93
+94        <!-- ============================================ -->
+95        <!-- MAIN ACTIVITY -->
+96        <!-- ============================================ -->
+97        <activity
+97-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:82:9-90:20
+98            android:name="com.example.alertsheets.ui.MainActivity"
+98-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:83:13-44
+99            android:exported="true"
+99-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:84:13-36
+100            android:launchMode="singleTask" >
+100-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:85:13-44
+101            <intent-filter>
+101-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:86:13-89:29
+102                <action android:name="android.intent.action.MAIN" />
+102-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:87:17-69
+102-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:87:25-66
+103
+104                <category android:name="android.intent.category.LAUNCHER" />
+104-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:88:17-77
+104-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:88:27-74
+105            </intent-filter>
+106        </activity>
+107
+108        <!-- ============================================ -->
+109        <!-- V1 ACTIVITIES (TEMPORARY - DURING MIGRATION) -->
+110        <!-- ============================================ -->
+111        <activity
+111-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:95:9-97:61
+112            android:name="com.example.alertsheets.AppConfigActivity"
+112-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:95:19-52
+113            android:label="Payloads"
+113-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:96:13-37
+114            android:parentActivityName="com.example.alertsheets.ui.MainActivity" />
+114-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:97:13-58
+115        <activity
+115-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:98:9-100:61
+116            android:name="com.example.alertsheets.LogActivity"
+116-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:98:19-46
+117            android:label="Activity Logs"
+117-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:99:13-42
+118            android:parentActivityName="com.example.alertsheets.ui.MainActivity" />
+118-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:100:13-58
+119        <activity
+119-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:101:9-103:61
+120            android:name="com.example.alertsheets.SmsConfigActivity"
+120-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:101:19-52
+121            android:label="SMS Configuration"
+121-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:102:13-46
+122            android:parentActivityName="com.example.alertsheets.ui.MainActivity" />
+122-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:103:13-58
+123        <activity
+123-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:104:9-106:61
+124            android:name="com.example.alertsheets.EndpointActivity"
+124-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:104:19-51
+125            android:label="Endpoints"
+125-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:105:13-38
+126            android:parentActivityName="com.example.alertsheets.ui.MainActivity" />
+126-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:106:13-58
+127        <activity
+127-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:107:9-109:61
+128            android:name="com.example.alertsheets.AppsListActivity"
+128-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:107:19-51
+129            android:label="App Sources"
+129-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:108:13-40
+130            android:parentActivityName="com.example.alertsheets.ui.MainActivity" />
+130-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:109:13-58
+131        <activity
+131-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:110:9-112:61
+132            android:name="com.example.alertsheets.PermissionsActivity"
+132-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:110:19-54
+133            android:label="Permissions"
+133-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:111:13-40
+134            android:parentActivityName="com.example.alertsheets.ui.MainActivity" />
+134-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:112:13-58
+135
+136        <!-- ============================================ -->
+137        <!-- NOTIFICATION LISTENER (PRIMARY CAPTURE) -->
+138        <!-- ============================================ -->
+139        <service
+139-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:117:9-125:19
+140            android:name="com.example.alertsheets.services.AlertsNotificationListener"
+140-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:118:13-64
+141            android:exported="true"
+141-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:119:13-36
+142            android:foregroundServiceType="dataSync"
+142-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:121:13-53
+143            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE" >
+143-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:120:13-87
+144            <intent-filter android:priority="999" >
+144-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:122:13-124:29
+144-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:122:28-50
+145                <action android:name="android.service.notification.NotificationListenerService" />
+145-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:123:17-99
+145-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:123:25-96
+146            </intent-filter>
+147        </service>
+148
+149        <!-- ============================================ -->
+150        <!-- SMS RECEIVER (HIGHEST PRIORITY) -->
+151        <!-- ============================================ -->
+152        <receiver
+152-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:130:9-146:20
+153            android:name="com.example.alertsheets.services.AlertsSmsReceiver"
+153-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:131:13-55
+154            android:exported="true"
+154-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:132:13-36
+155            android:permission="android.permission.BROADCAST_SMS" >
+155-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:133:13-66
+156            <intent-filter android:priority="2147483647" >
+156-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:134:13-137:29
+156-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:134:28-57
+157                <action android:name="android.provider.Telephony.SMS_RECEIVED" />
+157-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:135:17-82
+157-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:135:25-79
+158                <action android:name="android.provider.Telephony.SMS_DELIVER" />
+158-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:136:17-81
+158-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:136:25-78
+159            </intent-filter>
+160            <intent-filter android:priority="2147483647" >
+160-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:138:13-141:29
+160-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:138:28-57
+161                <action android:name="android.provider.Telephony.WAP_PUSH_RECEIVED" />
+161-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:139:17-87
+161-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:139:25-84
+162
+163                <data android:mimeType="application/vnd.wap.mms-message" />
+163-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:140:17-76
+163-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:140:23-73
+164            </intent-filter>
+165            <intent-filter android:priority="2147483647" >
+165-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:142:13-145:29
+165-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:142:28-57
+166                <action android:name="android.provider.Telephony.WAP_PUSH_DELIVER" />
+166-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:143:17-86
+166-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:143:25-83
+167
+168                <data android:mimeType="application/vnd.wap.mms-message" />
+168-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:140:17-76
+168-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:140:23-73
+169            </intent-filter>
+170        </receiver>
+171
+172        <!-- ============================================ -->
+173        <!-- BOOT RECEIVER (AUTO-START) -->
+174        <!-- ============================================ -->
+175        <receiver
+175-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:151:9-160:20
+176            android:name="com.example.alertsheets.services.BootReceiver"
+176-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:152:13-50
+177            android:enabled="true"
+177-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:154:13-35
+178            android:exported="true" >
+178-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:153:13-36
+179            <intent-filter android:priority="999" >
+179-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:155:13-159:29
+179-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:155:28-50
+180                <action android:name="android.intent.action.BOOT_COMPLETED" />
+180-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:156:17-79
+180-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:156:25-76
+181                <action android:name="android.intent.action.QUICKBOOT_POWERON" />
+181-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:157:17-82
+181-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:157:25-79
+182                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+182-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:158:17-84
+182-->D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:158:25-81
+183            </intent-filter>
+184        </receiver>
+185
+186        <provider
+186-->[androidx.emoji2:emoji2:1.2.0] C:\Users\ynotf\.gradle\caches\transforms-4\fc77bb1d96859cb7649eccd003aae77d\transformed\jetified-emoji2-1.2.0\AndroidManifest.xml:24:9-32:20
+187            android:name="androidx.startup.InitializationProvider"
+187-->[androidx.emoji2:emoji2:1.2.0] C:\Users\ynotf\.gradle\caches\transforms-4\fc77bb1d96859cb7649eccd003aae77d\transformed\jetified-emoji2-1.2.0\AndroidManifest.xml:25:13-67
+188            android:authorities="com.example.alertsheets.androidx-startup"
+188-->[androidx.emoji2:emoji2:1.2.0] C:\Users\ynotf\.gradle\caches\transforms-4\fc77bb1d96859cb7649eccd003aae77d\transformed\jetified-emoji2-1.2.0\AndroidManifest.xml:26:13-68
+189            android:exported="false" >
+189-->[androidx.emoji2:emoji2:1.2.0] C:\Users\ynotf\.gradle\caches\transforms-4\fc77bb1d96859cb7649eccd003aae77d\transformed\jetified-emoji2-1.2.0\AndroidManifest.xml:27:13-37
+190            <meta-data
+190-->[androidx.emoji2:emoji2:1.2.0] C:\Users\ynotf\.gradle\caches\transforms-4\fc77bb1d96859cb7649eccd003aae77d\transformed\jetified-emoji2-1.2.0\AndroidManifest.xml:29:13-31:52
+191                android:name="androidx.emoji2.text.EmojiCompatInitializer"
+191-->[androidx.emoji2:emoji2:1.2.0] C:\Users\ynotf\.gradle\caches\transforms-4\fc77bb1d96859cb7649eccd003aae77d\transformed\jetified-emoji2-1.2.0\AndroidManifest.xml:30:17-75
+192                android:value="androidx.startup" />
+192-->[androidx.emoji2:emoji2:1.2.0] C:\Users\ynotf\.gradle\caches\transforms-4\fc77bb1d96859cb7649eccd003aae77d\transformed\jetified-emoji2-1.2.0\AndroidManifest.xml:31:17-49
+193            <meta-data
+193-->[androidx.lifecycle:lifecycle-process:2.6.2] C:\Users\ynotf\.gradle\caches\transforms-4\9ee48067f323ddc9439cac238ddab970\transformed\jetified-lifecycle-process-2.6.2\AndroidManifest.xml:29:13-31:52
+194                android:name="androidx.lifecycle.ProcessLifecycleInitializer"
+194-->[androidx.lifecycle:lifecycle-process:2.6.2] C:\Users\ynotf\.gradle\caches\transforms-4\9ee48067f323ddc9439cac238ddab970\transformed\jetified-lifecycle-process-2.6.2\AndroidManifest.xml:30:17-78
+195                android:value="androidx.startup" />
+195-->[androidx.lifecycle:lifecycle-process:2.6.2] C:\Users\ynotf\.gradle\caches\transforms-4\9ee48067f323ddc9439cac238ddab970\transformed\jetified-lifecycle-process-2.6.2\AndroidManifest.xml:31:17-49
+196            <meta-data
+196-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\ynotf\.gradle\caches\transforms-4\65f3899b7d4fe91515c77df3084e6d44\transformed\jetified-profileinstaller-1.3.0\AndroidManifest.xml:29:13-31:52
+197                android:name="androidx.profileinstaller.ProfileInstallerInitializer"
+197-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\ynotf\.gradle\caches\transforms-4\65f3899b7d4fe91515c77df3084e6d44\transformed\jetified-profileinstaller-1.3.0\AndroidManifest.xml:30:17-85
+198                android:value="androidx.startup" />
+198-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\ynotf\.gradle\caches\transforms-4\65f3899b7d4fe91515c77df3084e6d44\transformed\jetified-profileinstaller-1.3.0\AndroidManifest.xml:31:17-49
+199        </provider>
+200
+201        <receiver
+201-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\ynotf\.gradle\caches\transforms-4\65f3899b7d4fe91515c77df3084e6d44\transformed\jetified-profileinstaller-1.3.0\AndroidManifest.xml:34:9-52:20
+202            android:name="androidx.profileinstaller.ProfileInstallReceiver"
+202-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\ynotf\.gradle\caches\transforms-4\65f3899b7d4fe91515c77df3084e6d44\transformed\jetified-profileinstaller-1.3.0\AndroidManifest.xml:35:13-76
+203            android:directBootAware="false"
+203-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\ynotf\.gradle\caches\transforms-4\65f3899b7d4fe91515c77df3084e6d44\transformed\jetified-profileinstaller-1.3.0\AndroidManifest.xml:36:13-44
+204            android:enabled="true"
+204-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\ynotf\.gradle\caches\transforms-4\65f3899b7d4fe91515c77df3084e6d44\transformed\jetified-profileinstaller-1.3.0\AndroidManifest.xml:37:13-35
+205            android:exported="true"
+205-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\ynotf\.gradle\caches\transforms-4\65f3899b7d4fe91515c77df3084e6d44\transformed\jetified-profileinstaller-1.3.0\AndroidManifest.xml:38:13-36
+206            android:permission="android.permission.DUMP" >
+206-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\ynotf\.gradle\caches\transforms-4\65f3899b7d4fe91515c77df3084e6d44\transformed\jetified-profileinstaller-1.3.0\AndroidManifest.xml:39:13-57
+207            <intent-filter>
+207-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\ynotf\.gradle\caches\transforms-4\65f3899b7d4fe91515c77df3084e6d44\transformed\jetified-profileinstaller-1.3.0\AndroidManifest.xml:40:13-42:29
+208                <action android:name="androidx.profileinstaller.action.INSTALL_PROFILE" />
+208-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\ynotf\.gradle\caches\transforms-4\65f3899b7d4fe91515c77df3084e6d44\transformed\jetified-profileinstaller-1.3.0\AndroidManifest.xml:41:17-91
+208-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\ynotf\.gradle\caches\transforms-4\65f3899b7d4fe91515c77df3084e6d44\transformed\jetified-profileinstaller-1.3.0\AndroidManifest.xml:41:25-88
+209            </intent-filter>
+210            <intent-filter>
+210-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\ynotf\.gradle\caches\transforms-4\65f3899b7d4fe91515c77df3084e6d44\transformed\jetified-profileinstaller-1.3.0\AndroidManifest.xml:43:13-45:29
+211                <action android:name="androidx.profileinstaller.action.SKIP_FILE" />
+211-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\ynotf\.gradle\caches\transforms-4\65f3899b7d4fe91515c77df3084e6d44\transformed\jetified-profileinstaller-1.3.0\AndroidManifest.xml:44:17-85
+211-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\ynotf\.gradle\caches\transforms-4\65f3899b7d4fe91515c77df3084e6d44\transformed\jetified-profileinstaller-1.3.0\AndroidManifest.xml:44:25-82
+212            </intent-filter>
+213            <intent-filter>
+213-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\ynotf\.gradle\caches\transforms-4\65f3899b7d4fe91515c77df3084e6d44\transformed\jetified-profileinstaller-1.3.0\AndroidManifest.xml:46:13-48:29
+214                <action android:name="androidx.profileinstaller.action.SAVE_PROFILE" />
+214-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\ynotf\.gradle\caches\transforms-4\65f3899b7d4fe91515c77df3084e6d44\transformed\jetified-profileinstaller-1.3.0\AndroidManifest.xml:47:17-88
+214-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\ynotf\.gradle\caches\transforms-4\65f3899b7d4fe91515c77df3084e6d44\transformed\jetified-profileinstaller-1.3.0\AndroidManifest.xml:47:25-85
+215            </intent-filter>
+216            <intent-filter>
+216-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\ynotf\.gradle\caches\transforms-4\65f3899b7d4fe91515c77df3084e6d44\transformed\jetified-profileinstaller-1.3.0\AndroidManifest.xml:49:13-51:29
+217                <action android:name="androidx.profileinstaller.action.BENCHMARK_OPERATION" />
+217-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\ynotf\.gradle\caches\transforms-4\65f3899b7d4fe91515c77df3084e6d44\transformed\jetified-profileinstaller-1.3.0\AndroidManifest.xml:50:17-95
+217-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\ynotf\.gradle\caches\transforms-4\65f3899b7d4fe91515c77df3084e6d44\transformed\jetified-profileinstaller-1.3.0\AndroidManifest.xml:50:25-92
+218            </intent-filter>
+219        </receiver>
+220    </application>
+221
+222</manifest>

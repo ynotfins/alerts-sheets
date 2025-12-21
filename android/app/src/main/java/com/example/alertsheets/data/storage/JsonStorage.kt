@@ -99,19 +99,24 @@ class JsonStorage(private val context: Context, private val filename: String) {
                 
             } catch (e: IOException) {
                 Log.e(TAG, "${AppConstants.Errors.FILE_WRITE_FAILED}: $filename", e)
-                
-                // Clean up temp file on failure
-                try {
-                    if (tempFile.exists()) {
-                        tempFile.delete()
-                    }
-                } catch (cleanupError: Exception) {
-                    Log.e(TAG, "Failed to clean up temp file", cleanupError)
-                }
-                
+                // Clean up temp file on failure  
+                cleanupTempFile()
             } catch (e: Exception) {
                 Log.e(TAG, "Unexpected error writing $filename", e)
             }
+        }
+    }
+    
+    /**
+     * Helper to clean up temp file
+     */
+    private fun cleanupTempFile() {
+        try {
+            if (tempFile.exists()) {
+                tempFile.delete()
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to clean up temp file", e)
         }
     }
     

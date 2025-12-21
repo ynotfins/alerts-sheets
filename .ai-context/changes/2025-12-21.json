@@ -1,8 +1,25 @@
 {
-  "timestamp": "2025-12-21_02-14-38",
-  "commit": "29c8dc88bb6810b42cabde47e0525a7916b6853e",
-  "message": "docs: Add Phase 2 completion report - V2 migration complete",
+  "timestamp": "2025-12-21_02-20-07",
+  "commit": "811837c4a39a6caaea441b877740f595e566a436",
+  "message": "fix: Compilation errors - constants and return types
+
+- Fixed remaining PREFS_NAME → AppConstants.PREFS_NAME
+- Fixed JsonStorage return type errors (synchronized block)
+- Fixed PermissionsActivity NotificationAccessibilityService reference
+- Added FrameLayout and Button imports to MainActivity
+- Added alias methods to PrefsManager for TemplateRepository
+
+Ready for rebuild.",
   "files_changed": [
-    "PHASE_2_COMPLETE_REPORT.md"
+    ".ai-context/changes/2025-12-21.json",
+    "android/.gradle/8.7/executionHistory/executionHistory.lock",
+    "android/.gradle/8.7/fileHashes/fileHashes.bin",
+    "android/.gradle/8.7/fileHashes/fileHashes.lock",
+    "android/.gradle/8.7/fileHashes/resourceHashesCache.bin",
+    "android/.gradle/buildOutputCleanup/buildOutputCleanup.lock",
+    "android/app/src/main/java/com/example/alertsheets/PermissionsActivity.kt",
+    "android/app/src/main/java/com/example/alertsheets/PrefsManager.kt",
+    "android/app/src/main/java/com/example/alertsheets/data/storage/JsonStorage.kt",
+    "android/app/src/main/java/com/example/alertsheets/ui/MainActivity.kt"
   ]
 }

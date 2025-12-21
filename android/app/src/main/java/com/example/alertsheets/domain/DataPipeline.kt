@@ -81,6 +81,8 @@ class DataPipeline(private val context: Context) {
                     return@launch
                 }
                 
+                // TODO: DataPipeline is experimental/incomplete - commenting out for now
+                /*
                 // Step 5: Apply template (with per-source auto-clean!)
                 val json = TemplateEngine.apply(template, parsedWithTimestamp, source)
                 logger.log("✓ Template applied (autoClean=${source.autoClean})")
@@ -115,6 +117,7 @@ class DataPipeline(private val context: Context) {
                     
                     // TODO: Add to retry queue if configured
                 }
+                */
                 
             } catch (e: Exception) {
                 Log.e(TAG, "Pipeline error", e)

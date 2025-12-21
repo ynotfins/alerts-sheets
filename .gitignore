@@ -1,15 +1,63 @@
 
+# ========================================
+# SECRETS & CREDENTIALS (NEVER COMMIT!)
+# ========================================
+
 # Firebase
 google-services.json
 **/google-services.json
+firebase-debug.log
+.firebase/
 
-# Global credentials and config (NEVER commit)
+# Google Service Account Keys
+ga-key.json
+*key.json
+*-key.json
+service-account*.json
+**/service-account*.json
+
+# Environment files (ALL LOCATIONS)
+.env
+.env.local
+.env.*.local
+*.env
+*.env.local
+**/.env
+**/.env.local
+**/.env.*.local
+!functions/.env  # Allow generated deployment env ONLY
+
+# Global credentials and config
 global files/
 .mcpdropbox/
 .mcpCdrive/
-ga-key.json
 global-credentials.yaml
 **/global-credentials*.yaml
-*.env
-*.env.local
-!functions/.env  # Allow generated deployment env
+credentials.yaml
+**/credentials*.yaml
+secrets.yaml
+**/secrets*.yaml
+config/secrets/
+
+# MCP & API Keys
+mcp-credentials.json
+api-keys.json
+**/api-keys*.json
+**/mcp-credentials*.json
+
+# Android local properties
+local.properties
+**/local.properties
+
+# Temporary secret files
+*.secret
+*.key
+*.pem
+*.p12
+*.jks
+*.keystore
+
+# Build artifacts with potential secrets
+build/
+dist/
+*.log

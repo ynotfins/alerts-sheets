@@ -218,37 +218,9 @@ class PermissionsActivity : AppCompatActivity() {
     }
 
     private fun checkAccessibility(): Boolean {
-        var accessibilityEnabled = 0
-        val service = "$packageName/${NotificationAccessibilityService::class.java.canonicalName}"
-        try {
-            accessibilityEnabled =
-                    Settings.Secure.getInt(
-                            applicationContext.contentResolver,
-                            android.provider.Settings.Secure.ACCESSIBILITY_ENABLED
-                    )
-        } catch (e: Settings.SettingNotFoundException) {
-            Log.e(TAG, "Error finding setting, default accessibility to not found: " + e.message)
-        }
-        val mStringColonSplitter = TextUtils.SimpleStringSplitter(':')
-
-        if (accessibilityEnabled == 1) {
-            val settingValue =
-                    Settings.Secure.getString(
-                            applicationContext.contentResolver,
-                            Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES
-                    )
-            if (settingValue != null) {
-                mStringColonSplitter.setString(settingValue)
-                while (mStringColonSplitter.hasNext()) {
-                    val accessibilityService = mStringColonSplitter.next()
-                    if (accessibilityService.equals(service, ignoreCase = true)) {
-                        Log.d(TAG, "checkAccessibility() = TRUE (service=$service found)")
-                        return true
-                    }
-                }
-            }
-        }
-        Log.d(TAG, "checkAccessibility() = FALSE (service=$service not found)")
+        // V2: NotificationAccessibilityService was removed in Phase 1 (dead code)
+        // We only use AlertsNotificationListener now (NotificationListenerService)
+        // This method is kept for legacy compatibility but always returns false
         return false
     }
 }

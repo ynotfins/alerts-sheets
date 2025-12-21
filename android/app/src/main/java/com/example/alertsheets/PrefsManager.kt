@@ -80,9 +80,9 @@ object PrefsManager {
     // Deprecated single template, splitting into App and SMS
 
     fun getAppJsonTemplate(context: Context): String {
-        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        val prefs = context.getSharedPreferences(AppConstants.PREFS_NAME, Context.MODE_PRIVATE)
         // Fallback to old key if new key missing (Migration)
-        val legacy = prefs.getString("json_template", null)
+        val legacy = prefs.getString(AppConstants.PrefsKeys.JSON_TEMPLATE, null)
 
         val default =
                 """
@@ -97,16 +97,16 @@ object PrefsManager {
             }
         """.trimIndent()
 
-        return prefs.getString("json_template_app", legacy ?: default) ?: default
+        return prefs.getString(AppConstants.PrefsKeys.APP_JSON_TEMPLATE, legacy ?: default) ?: default
     }
 
     fun saveAppJsonTemplate(context: Context, template: String) {
-        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        prefs.edit().putString("json_template_app", template).apply()
+        val prefs = context.getSharedPreferences(AppConstants.PREFS_NAME, Context.MODE_PRIVATE)
+        prefs.edit().putString(AppConstants.PrefsKeys.APP_JSON_TEMPLATE, template).apply()
     }
 
     fun getSmsJsonTemplate(context: Context): String {
-        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        val prefs = context.getSharedPreferences(AppConstants.PREFS_NAME, Context.MODE_PRIVATE)
         // Default SMS Template
         val default =
                 """
@@ -118,12 +118,12 @@ object PrefsManager {
               "timestamp": "{{timestamp}}"
             }
         """.trimIndent()
-        return prefs.getString("json_template_sms", default) ?: default
+        return prefs.getString(AppConstants.PrefsKeys.SMS_JSON_TEMPLATE, default) ?: default
     }
 
     fun saveSmsJsonTemplate(context: Context, template: String) {
-        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        prefs.edit().putString("json_template_sms", template).apply()
+        val prefs = context.getSharedPreferences(AppConstants.PREFS_NAME, Context.MODE_PRIVATE)
+        prefs.edit().putString(AppConstants.PrefsKeys.SMS_JSON_TEMPLATE, template).apply()
     }
 
     /**
@@ -142,7 +142,7 @@ object PrefsManager {
     // --- AppConfig Methods ---
 
     fun getAppConfig(context: Context, packageName: String): AppConfig {
-        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        val prefs = context.getSharedPreferences(AppConstants.PREFS_NAME, Context.MODE_PRIVATE)
         val json = prefs.getString("config_$packageName", null)
         return if (json != null) {
             gson.fromJson(json, AppConfig::class.java)
@@ -152,7 +152,7 @@ object PrefsManager {
     }
 
     fun saveAppConfig(context: Context, config: AppConfig) {
-        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        val prefs = context.getSharedPreferences(AppConstants.PREFS_NAME, Context.MODE_PRIVATE)
         val json = gson.toJson(config)
         prefs.edit().putString("config_${config.packageName}", json).apply()
     }
@@ -176,12 +176,12 @@ object PrefsManager {
     private const val KEY_LAST_TEST_ID = "lastTestIncidentId"
 
     fun saveLastTestId(context: Context, id: String) {
-        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        val prefs = context.getSharedPreferences(AppConstants.PREFS_NAME, Context.MODE_PRIVATE)
         prefs.edit().putString(KEY_LAST_TEST_ID, id).apply()
     }
 
     fun getLastTestId(context: Context): String {
-        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        val prefs = context.getSharedPreferences(AppConstants.PREFS_NAME, Context.MODE_PRIVATE)
         return prefs.getString(KEY_LAST_TEST_ID, "") ?: ""
     }
 
@@ -251,7 +251,7 @@ object PrefsManager {
     private const val KEY_CUSTOM_TEMPLATES = "custom_templates_v2"
 
     fun getCustomTemplates(context: Context): List<JsonTemplate> {
-        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        val prefs = context.getSharedPreferences(AppConstants.PREFS_NAME, Context.MODE_PRIVATE)
         val json = prefs.getString(KEY_CUSTOM_TEMPLATES, null) ?: return emptyList()
         val type = object : TypeToken<List<JsonTemplate>>() {}.type
         return gson.fromJson(json, type)
@@ -268,7 +268,7 @@ object PrefsManager {
             current.add(template)
         }
         
-        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        val prefs = context.getSharedPreferences(AppConstants.PREFS_NAME, Context.MODE_PRIVATE)
         val json = gson.toJson(current)
         prefs.edit().putString(KEY_CUSTOM_TEMPLATES, json).apply()
     }
@@ -277,7 +277,7 @@ object PrefsManager {
         val current = getCustomTemplates(context).toMutableList()
         current.removeAll { it.name == templateName && it.mode == mode }
         
-        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        val prefs = context.getSharedPreferences(AppConstants.PREFS_NAME, Context.MODE_PRIVATE)
         val json = gson.toJson(current)
         prefs.edit().putString(KEY_CUSTOM_TEMPLATES, json).apply()
     }
@@ -293,7 +293,7 @@ object PrefsManager {
 
     // Current active template name
     fun getActiveTemplateName(context: Context, mode: TemplateMode): String {
-        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        val prefs = context.getSharedPreferences(AppConstants.PREFS_NAME, Context.MODE_PRIVATE)
         val key = "active_template_${mode.name.lowercase()}"
         return prefs.getString(key, null) ?: when (mode) {
             TemplateMode.APP -> "🪨 Rock Solid App Default"
@@ -302,8 +302,13 @@ object PrefsManager {
     }
 
     fun setActiveTemplateName(context: Context, mode: TemplateMode, templateName: String) {
-        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        val prefs = context.getSharedPreferences(AppConstants.PREFS_NAME, Context.MODE_PRIVATE)
         val key = "active_template_${mode.name.lowercase()}"
         prefs.edit().putString(key, templateName).apply()
     }
+
+    // Alias methods for TemplateRepository compatibility
+    fun getUserTemplates(context: Context) = getCustomTemplates(context)
+    fun saveUserTemplate(context: Context, template: JsonTemplate) = saveCustomTemplate(context, template)
+    fun deleteUserTemplate(context: Context, templateName: String) = deleteCustomTemplate(context, templateName, TemplateMode.APP)
 }

@@ -71,79 +71,85 @@ class JsonStorage(private val context: Context, private val filename: String) {
      * 2. Rename temp → actual (atomic operation)
      * 3. This prevents corruption if app crashes during write
      */
-    fun write(json: String) = synchronized(lock) {
-        try {
-            // Validate input
-            if (json.isBlank()) {
-                Log.w(TAG, "Attempting to write empty JSON to $filename, skipping")
-                return
-            }
-            
-            // Write to temp file first (atomic write pattern)
-            tempFile.writeText(json)
-            
-            // Rename temp → actual (atomic operation on most filesystems)
-            if (!tempFile.renameTo(file)) {
-                // Fallback: direct write if rename fails
-                Log.w(TAG, "Atomic rename failed for $filename, using direct write")
-                file.writeText(json)
-            }
-            
-            // Clean up temp file if it still exists
-            if (tempFile.exists()) {
-                tempFile.delete()
-            }
-            
-            Log.d(TAG, "Successfully wrote ${json.length} bytes to $filename")
-            
-        } catch (e: IOException) {
-            Log.e(TAG, "${AppConstants.Errors.FILE_WRITE_FAILED}: $filename", e)
-            
-            // Clean up temp file on failure
+    fun write(json: String) {
+        synchronized(lock) {
             try {
+                // Validate input
+                if (json.isBlank()) {
+                    Log.w(TAG, "Attempting to write empty JSON to $filename, skipping")
+                    return
+                }
+                
+                // Write to temp file first (atomic write pattern)
+                tempFile.writeText(json)
+                
+                // Rename temp → actual (atomic operation on most filesystems)
+                if (!tempFile.renameTo(file)) {
+                    // Fallback: direct write if rename fails
+                    Log.w(TAG, "Atomic rename failed for $filename, using direct write")
+                    file.writeText(json)
+                }
+                
+                // Clean up temp file if it still exists
                 if (tempFile.exists()) {
                     tempFile.delete()
                 }
-            } catch (cleanupError: Exception) {
-                Log.e(TAG, "Failed to clean up temp file", cleanupError)
+                
+                Log.d(TAG, "Successfully wrote ${json.length} bytes to $filename")
+                
+            } catch (e: IOException) {
+                Log.e(TAG, "${AppConstants.Errors.FILE_WRITE_FAILED}: $filename", e)
+                
+                // Clean up temp file on failure
+                try {
+                    if (tempFile.exists()) {
+                        tempFile.delete()
+                    }
+                } catch (cleanupError: Exception) {
+                    Log.e(TAG, "Failed to clean up temp file", cleanupError)
+                }
+                
+            } catch (e: Exception) {
+                Log.e(TAG, "Unexpected error writing $filename", e)
             }
-            
-        } catch (e: Exception) {
-            Log.e(TAG, "Unexpected error writing $filename", e)
         }
     }
     
     /**
      * Check if file exists
      */
-    fun exists(): Boolean = synchronized(lock) {
-        return file.exists()
+    fun exists(): Boolean {
+        return synchronized(lock) {
+            file.exists()
+        }
     }
     
     /**
      * Delete file
      * Thread-safe with proper error handling
      */
-    fun delete(): Boolean = synchronized(lock) {
-        return try {
-            if (file.exists()) {
-                val deleted = file.delete()
-                if (deleted) {
-                    Log.d(TAG, "Successfully deleted $filename")
+    fun delete(): Boolean {
+        return synchronized(lock) {
+            try {
+                if (file.exists()) {
+                    val deleted = file.delete()
+                    if (deleted) {
+                        Log.d(TAG, "Successfully deleted $filename")
+                    } else {
+                        Log.w(TAG, "Failed to delete $filename (file.delete() returned false)")
+                    }
+                    deleted
                 } else {
-                    Log.w(TAG, "Failed to delete $filename (file.delete() returned false)")
+                    Log.d(TAG, "File $filename does not exist, nothing to delete")
+                    true  // Success (file is gone)
                 }
-                deleted
-            } else {
-                Log.d(TAG, "File $filename does not exist, nothing to delete")
-                true  // Success (file is gone)
+            } catch (e: SecurityException) {
+                Log.e(TAG, "Permission denied deleting $filename", e)
+                false
+            } catch (e: Exception) {
+                Log.e(TAG, "Unexpected error deleting $filename", e)
+                false
             }
-        } catch (e: SecurityException) {
-            Log.e(TAG, "Permission denied deleting $filename", e)
-            false
-        } catch (e: Exception) {
-            Log.e(TAG, "Unexpected error deleting $filename", e)
-            false
         }
     }
     

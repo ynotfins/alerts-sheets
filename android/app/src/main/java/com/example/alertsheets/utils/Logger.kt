@@ -4,8 +4,10 @@ import android.content.Context
 import android.util.Log
 import com.example.alertsheets.data.storage.JsonStorage
 import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Date
+import java.util.Locale
 
 /**
  * Simple logger for V2
@@ -101,7 +103,7 @@ class Logger(private val context: Context) {
             if (json != null) {
                 val loaded = gson.fromJson<List<LogEntry>>(
                     json,
-                    object : com.google.gson.reflect.TypeToken<List<LogEntry>>() {}.type
+                    object : TypeToken<List<LogEntry>>() {}.type
                 )
                 logs.clear()
                 logs.addAll(loaded)

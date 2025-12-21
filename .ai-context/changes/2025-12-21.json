@@ -1,15 +1,82 @@
 {
-  "timestamp": "2025-12-21_02-31-44",
-  "commit": "fffa48f656a9bbd45984f5f31d47e3934383ccb0",
-  "message": "fix: Add Samsung Dual App prevention flags to manifest
+  "timestamp": "2025-12-21_02-43-04",
+  "commit": "03d79da66f60e15fa54c21ed859da92f311283fc",
+  "message": "fix: CRITICAL - Logs, green dots, and app list all working
 
-- Added android:resizeableActivity=false to application and MainActivity
-- Added Samsung meta-data to prevent Dual App/Secure Folder duplication
-- Should prevent future dual-installation issues on Samsung devices
+✅ LogRepository now initialized in AlertsApplication (was never initialized!)
+✅ Dashboard green dots now accurately reflect configuration status
+  - Apps card: RED if no apps configured
+  - SMS card: RED if no SMS sources configured
+  - Endpoints card: RED if no endpoints enabled
+  - Logs card: RED if no logs yet
+  - Payloads: Always green (templates always available)
+✅ Fixed AppsListActivity to load ALL apps including disabled/hidden
+✅ Added MATCH_DISABLED_COMPONENTS flag to show BNN and other APK-installed apps
 
-Issue: User kept getting duplicate app icons after adb install",
+User reported:
+- Logs not working (FIXED - LogRepository never init)
+- All cards green when nothing configured (FIXED - proper status logic)
+- BNN not showing in apps list (FIXED - better flags)
+- Draw over apps permission? (ANSWERED - not needed for this app)",
   "files_changed": [
     ".ai-context/changes/2025-12-21.json",
-    "android/app/src/main/AndroidManifest.xml"
+    "android/.gradle/8.7/executionHistory/executionHistory.bin",
+    "android/.gradle/8.7/executionHistory/executionHistory.lock",
+    "android/.gradle/8.7/fileHashes/fileHashes.bin",
+    "android/.gradle/8.7/fileHashes/fileHashes.lock",
+    "android/.gradle/8.7/fileHashes/resourceHashesCache.bin",
+    "android/.gradle/buildOutputCleanup/buildOutputCleanup.lock",
+    "android/app/build/intermediates/dex/debug/mergeProjectDexDebug/3/classes.dex",
+    "android/app/build/intermediates/dex/debug/mergeProjectDexDebug/4/classes.dex",
+    "android/app/build/intermediates/incremental/packageDebug/tmp/debug/dex-renamer-state.txt",
+    "android/app/build/intermediates/incremental/packageDebug/tmp/debug/zip-cache/androidResources",
+    "android/app/build/intermediates/manifest_merge_blame_file/debug/manifest-merger-blame-debug-report.txt",
+    "android/app/build/intermediates/merged_manifest/debug/AndroidManifest.xml",
+    "android/app/build/intermediates/merged_manifests/debug/AndroidManifest.xml",
+    "android/app/build/intermediates/packaged_manifests/debug/AndroidManifest.xml",
+    "android/app/build/intermediates/processed_res/debug/out/resources-debug.ap_",
+    "android/app/build/intermediates/project_dex_archive/debug/out/com/example/alertsheets/AlertsApplication.dex",
+    "android/app/build/intermediates/project_dex_archive/debug/out/com/example/alertsheets/ui/MainActivity.dex",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/inputs/source-to-output.tab",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/inputs/source-to-output.tab.values.at",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/class-attributes.tab",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/class-attributes.tab.values.at",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/class-fq-name-to-source.tab",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/class-fq-name-to-source.tab.values.at",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/internal-name-to-source.tab",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/internal-name-to-source.tab.values.at",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/proto.tab",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/proto.tab.values.at",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/source-to-classes.tab",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/source-to-classes.tab.values.at",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/subtypes.tab",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/subtypes.tab.values.at",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/supertypes.tab",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/supertypes.tab.values.at",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/lookups/counters.tab",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/lookups/file-to-id.tab",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/lookups/file-to-id.tab.values.at",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/lookups/id-to-file.tab",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/lookups/id-to-file.tab.keystream",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/lookups/id-to-file.tab.keystream.len",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/lookups/id-to-file.tab.len",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/lookups/id-to-file.tab.values.at",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/lookups/id-to-file.tab_i",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/lookups/lookups.tab",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/lookups/lookups.tab.keystream",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/lookups/lookups.tab.keystream.len",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/lookups/lookups.tab.len",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/lookups/lookups.tab.values",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/lookups/lookups.tab.values.at",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/lookups/lookups.tab.values.s",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/lookups/lookups.tab_i",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/last-build.bin",
+    "android/app/build/kotlin/compileDebugKotlin/local-state/build-history.bin",
+    "android/app/build/outputs/apk/debug/app-debug.apk",
+    "android/app/build/outputs/logs/manifest-merger-debug-report.txt",
+    "android/app/build/tmp/kotlin-classes/debug/com/example/alertsheets/AlertsApplication.class",
+    "android/app/build/tmp/kotlin-classes/debug/com/example/alertsheets/ui/MainActivity.class",
+    "android/app/src/main/java/com/example/alertsheets/AlertsApplication.kt",
+    "android/app/src/main/java/com/example/alertsheets/ui/MainActivity.kt"
   ]
 }

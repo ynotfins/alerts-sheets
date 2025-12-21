@@ -1,9 +1,11 @@
 package com.example.alertsheets
 
 import android.content.pm.ApplicationInfo
+import android.content.pm.PackageManager
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
+import android.util.Log
 import android.view.View
 import android.widget.CheckBox
 import android.widget.EditText
@@ -96,15 +98,48 @@ class AppsListActivity : AppCompatActivity() {
                 filterApps()
             }
 
-            // Load apps (IO thread)
+            // Load apps (IO thread) - GET ALL APPS INCLUDING SYSTEM, USER, DISABLED, ETC
             val pm = packageManager
             val apps = withContext(Dispatchers.IO) {
-                pm.getInstalledApplications(android.content.pm.PackageManager.GET_META_DATA)
-                        .sortedBy { it.loadLabel(pm).toString().lowercase() }
+                // ✅ CRITICAL FIX: Use multiple flags to get EVERY app on the device
+                pm.getInstalledApplications(
+                    android.content.pm.PackageManager.GET_META_DATA or
+                    android.content.pm.PackageManager.MATCH_DISABLED_COMPONENTS or
+                    android.content.pm.PackageManager.MATCH_UNINSTALLED_PACKAGES
+                ).sortedBy { 
+                    try {
+                        it.loadLabel(pm).toString().lowercase()
+                    } catch (e: Exception) {
+                        it.packageName.lowercase()
+                    }
+                }
             }
             
             allApps.clear()
             allApps.addAll(apps)
+            
+            // ✅ DEBUG: Log what we found
+            Log.d("AppsListActivity", "📱 Loaded ${apps.size} total apps")
+            val systemCount = apps.count { (it.flags and ApplicationInfo.FLAG_SYSTEM) != 0 }
+            val userCount = apps.size - systemCount
+            val updatedSystemCount = apps.count { (it.flags and ApplicationInfo.FLAG_UPDATED_SYSTEM_APP) != 0 }
+            Log.d("AppsListActivity", "  - System apps: $systemCount")
+            Log.d("AppsListActivity", "  - User apps: $userCount")
+            Log.d("AppsListActivity", "  - Updated system apps: $updatedSystemCount")
+            
+            // ✅ DEBUG: Check for BNN specifically
+            val bnnApps = apps.filter { it.packageName.contains("bnn", ignoreCase = true) }
+            if (bnnApps.isNotEmpty()) {
+                bnnApps.forEach { 
+                    val name = try { pm.getApplicationLabel(it).toString() } catch (e: Exception) { it.packageName }
+                    val isSystem = (it.flags and ApplicationInfo.FLAG_SYSTEM) != 0
+                    val isUpdated = (it.flags and ApplicationInfo.FLAG_UPDATED_SYSTEM_APP) != 0
+                    Log.d("AppsListActivity", "  🔥 BNN FOUND: $name (${it.packageName}) - System=$isSystem, Updated=$isUpdated")
+                }
+            } else {
+                Log.w("AppsListActivity", "  ⚠️ BNN NOT FOUND in installed apps!")
+            }
+            
             filterApps()
             progressBar.visibility = View.GONE
         }
@@ -120,6 +155,10 @@ class AppsListActivity : AppCompatActivity() {
         val pm = packageManager
         filteredApps.clear()
         
+        var skippedSystemApps = 0
+        var skippedUserApps = 0
+        var addedApps = 0
+        
         for (app in allApps) {
             // Filter system apps based on toggle
             val isSystemApp = (app.flags and ApplicationInfo.FLAG_SYSTEM) != 0
@@ -132,10 +171,16 @@ class AppsListActivity : AppCompatActivity() {
             // When unchecked: show user apps (including updated system apps)
             if (showSystemApps) {
                 // User wants system apps - skip user apps
-                if (treatAsUserApp) continue
+                if (treatAsUserApp) {
+                    skippedUserApps++
+                    continue
+                }
             } else {
                 // User wants user/installed apps - skip pure system apps
-                if (!treatAsUserApp) continue
+                if (!treatAsUserApp) {
+                    skippedSystemApps++
+                    continue
+                }
             }
             
             // Filter by search query
@@ -153,7 +198,14 @@ class AppsListActivity : AppCompatActivity() {
             }
             
             filteredApps.add(app)
+            addedApps++
         }
+        
+        // ✅ DEBUG: Log filtering results
+        Log.d("AppsListActivity", "🔍 Filter results (showSystemApps=$showSystemApps, search='$searchQuery'):")
+        Log.d("AppsListActivity", "  - Added to list: $addedApps")
+        Log.d("AppsListActivity", "  - Skipped system apps: $skippedSystemApps")
+        Log.d("AppsListActivity", "  - Skipped user apps: $skippedUserApps")
         
         adapter.notifyDataSetChanged()
     }

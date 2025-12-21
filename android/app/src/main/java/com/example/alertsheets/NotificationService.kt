@@ -100,21 +100,65 @@ class NotificationService : NotificationListenerService() {
 
     override fun onNotificationPosted(sbn: StatusBarNotification?) {
         super.onNotificationPosted(sbn)
-        if (sbn == null) return
-
+        
+        // ✅ Edge case: null notification
+        if (sbn == null) {
+            Log.w("NotificationService", "Received null StatusBarNotification, ignoring")
+            return
+        }
+        
+        try {
+            processNotification(sbn)
+        } catch (e: Exception) {
+            Log.e("NotificationService", "Fatal error processing notification from ${sbn.packageName}", e)
+            // Don't crash the service, just log and continue
+        }
+    }
+    
+    /**
+     * Process notification with comprehensive error handling
+     */
+    private fun processNotification(sbn: StatusBarNotification) {
         // 0. Master Switch Check (V2: Always on, but we'll keep check for now)
         if (!PrefsManager.getMasterEnabled(this)) {
             Log.d("NotificationService", "Master Switch OFF. Ignoring notification.")
             return
         }
+        
+        // ✅ Edge case: Check if app still installed
+        val packageManager = packageManager
+        val isAppInstalled = try {
+            packageManager.getApplicationInfo(sbn.packageName, 0)
+            true
+        } catch (e: Exception) {
+            false
+        }
+        
+        if (!isAppInstalled) {
+            Log.w("NotificationService", "Notification from uninstalled app: ${sbn.packageName}, ignoring")
+            return
+        }
 
         val extras = sbn.notification.extras
-        // Get the title and text content
+        
+        // ✅ Edge case: null extras (malformed notification)
+        if (extras == null) {
+            Log.w("NotificationService", "Notification has null extras: ${sbn.packageName}")
+            return
+        }
+        
+        // Get the title and text content (handle nulls gracefully)
         val title = extras.getString(Notification.EXTRA_TITLE) ?: ""
         val text = extras.getCharSequence(Notification.EXTRA_TEXT)?.toString() ?: ""
         val bigText = extras.getCharSequence(Notification.EXTRA_BIG_TEXT)?.toString() ?: ""
 
         val fullContent = listOf(title, text, bigText).filter { it.isNotBlank() }.joinToString("\n")
+        
+        // ✅ Edge case: completely empty notification
+        if (fullContent.isBlank()) {
+            Log.d("NotificationService", "Empty notification from ${sbn.packageName}, ignoring")
+            return
+        }
 
         Log.d("NotificationService", "Received: $fullContent")
 

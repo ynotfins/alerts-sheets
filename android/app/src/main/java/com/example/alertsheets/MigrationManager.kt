@@ -6,6 +6,7 @@ import com.example.alertsheets.domain.SourceManager
 import com.example.alertsheets.domain.models.Source
 import com.example.alertsheets.domain.models.SourceStats
 import com.example.alertsheets.domain.models.SourceType
+import com.example.alertsheets.utils.AppConstants
 
 /**
  * One-time migration from V1 (PrefsManager) to V2 (SourceManager)
@@ -18,14 +19,13 @@ import com.example.alertsheets.domain.models.SourceType
 object MigrationManager {
     
     private const val TAG = "MigrationManager"
-    private const val MIGRATION_KEY = "v2_migration_complete"
     
     /**
      * Check if migration is needed and execute if so
      */
     fun migrateIfNeeded(context: Context) {
-        val prefs = context.getSharedPreferences("app_prefs_v2", Context.MODE_PRIVATE)
-        val alreadyMigrated = prefs.getBoolean(MIGRATION_KEY, false)
+        val prefs = context.getSharedPreferences(AppConstants.PREFS_NAME, Context.MODE_PRIVATE)
+        val alreadyMigrated = prefs.getBoolean(AppConstants.MIGRATION_KEY, false)
         
         if (alreadyMigrated) {
             Log.i(TAG, "Migration already complete, skipping")
@@ -38,8 +38,8 @@ object MigrationManager {
             migrateData(context)
             
             // Mark migration complete
-            prefs.edit().putBoolean(MIGRATION_KEY, true).apply()
-            Log.i(TAG, "✓ Migration complete!")
+            prefs.edit().putBoolean(AppConstants.MIGRATION_KEY, true).apply()
+            Log.i(TAG, "✓ ${AppConstants.Success.MIGRATION_COMPLETE}")
             
         } catch (e: Exception) {
             Log.e(TAG, "Migration failed: ${e.message}", e)

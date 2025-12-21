@@ -1,32 +1,65 @@
 package com.example.alertsheets.data.repositories
 
 import android.content.Context
+import android.util.Log
 import com.example.alertsheets.domain.models.Source
 import com.example.alertsheets.domain.models.SourceStats
 import com.example.alertsheets.domain.models.SourceType
 import com.example.alertsheets.data.storage.JsonStorage
+import com.example.alertsheets.utils.AppConstants
 import com.google.gson.Gson
+import com.google.gson.JsonSyntaxException
 import com.google.gson.reflect.TypeToken
 
 /**
  * Repository for managing Sources
- * Handles CRUD operations and statistics updates
+ * Handles CRUD operations and statistics updates with robust error handling
  */
 class SourceRepository(private val context: Context) {
     
-    private val storage = JsonStorage(context, "sources.json")
+    private val TAG = "SourceRepository"
+    private val storage = JsonStorage(context, AppConstants.FILE_SOURCES)
     private val gson = Gson()
     
     /**
-     * Get all sources
+     * Get all sources with robust error handling
+     * 
+     * ERROR RECOVERY:
+     * - Missing file → return empty list
+     * - Corrupt JSON → log error, return empty list
+     * - Parse error → log error, return empty list
+     * 
+     * NEVER crashes, always returns valid list
      */
     fun getAll(): List<Source> {
-        val json = storage.read() ?: return emptyList()  // ✅ NO HARDCODED DEFAULTS
+        val json = storage.read() ?: run {
+            Log.d(TAG, "No sources.json found, returning empty list")
+            return emptyList()  // ✅ NO HARDCODED DEFAULTS
+        }
+        
         return try {
             val sources: List<Source> = gson.fromJson(json, object : TypeToken<List<Source>>() {}.type)
-            sources ?: emptyList()
+            
+            if (sources == null) {
+                Log.w(TAG, "Parsed sources.json as null, returning empty list")
+                return emptyList()
+            }
+            
+            Log.d(TAG, "Successfully loaded ${sources.size} sources")
+            sources
+            
+        } catch (e: JsonSyntaxException) {
+            Log.e(TAG, "${AppConstants.Errors.CORRUPT_SOURCES_JSON}: ${e.message}", e)
+            // TODO: Could backup corrupt file for debugging
+            emptyList()
+            
+        } catch (e: IllegalStateException) {
+            Log.e(TAG, "Invalid JSON structure in sources.json", e)
+            emptyList()
+            
         } catch (e: Exception) {
-            emptyList()  // ✅ Return empty on parse error
+            Log.e(TAG, "${AppConstants.Errors.JSON_PARSE_FAILED}: sources.json", e)
+            emptyList()
         }
     }
     
@@ -59,28 +92,56 @@ class SourceRepository(private val context: Context) {
     }
     
     /**
-     * Save source (create or update)
+     * Save source (create or update) with error handling
+     * 
+     * ERROR RECOVERY:
+     * - If write fails, logs error but doesn't crash
+     * - Previous data remains intact if write fails (atomic writes in JsonStorage)
      */
     fun save(source: Source) {
-        val all = getAll().toMutableList()
-        val index = all.indexOfFirst { it.id == source.id }
-        
-        if (index >= 0) {
-            all[index] = source.copy(updatedAt = System.currentTimeMillis())
-        } else {
-            all.add(source)
+        try {
+            val all = getAll().toMutableList()
+            val index = all.indexOfFirst { it.id == source.id }
+            
+            if (index >= 0) {
+                all[index] = source.copy(updatedAt = System.currentTimeMillis())
+                Log.d(TAG, "Updating existing source: ${source.id}")
+            } else {
+                all.add(source)
+                Log.d(TAG, "Creating new source: ${source.id}")
+            }
+            
+            storage.write(gson.toJson(all))
+            Log.d(TAG, AppConstants.Success.SOURCE_SAVED)
+            
+        } catch (e: OutOfMemoryError) {
+            Log.e(TAG, "Out of memory saving source: ${source.id}", e)
+            // Cannot proceed, but at least we logged it
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to save source: ${source.id}", e)
+            // Write failed, but old data is intact (atomic writes)
         }
-        
-        storage.write(gson.toJson(all))
     }
     
     /**
-     * Delete source
+     * Delete source with error handling
      */
     fun delete(id: String) {
-        val all = getAll().toMutableList()
-        all.removeAll { it.id == id }
-        storage.write(gson.toJson(all))
+        try {
+            val all = getAll().toMutableList()
+            val removed = all.removeAll { it.id == id }
+            
+            if (!removed) {
+                Log.w(TAG, "Attempted to delete non-existent source: $id")
+                return
+            }
+            
+            storage.write(gson.toJson(all))
+            Log.d(TAG, "${AppConstants.Success.SOURCE_DELETED}: $id")
+            
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to delete source: $id", e)
+        }
     }
     
     /**
@@ -92,17 +153,27 @@ class SourceRepository(private val context: Context) {
         sent: Int? = null,
         failed: Int? = null
     ) {
-        val source = getById(id) ?: return
-        val stats = source.stats
-        
-        val newStats = SourceStats(
-            totalProcessed = stats.totalProcessed + (processed ?: 0),
-            totalSent = stats.totalSent + (sent ?: 0),
-            totalFailed = stats.totalFailed + (failed ?: 0),
-            lastActivity = System.currentTimeMillis()
-        )
-        
-        save(source.copy(stats = newStats))
+        try {
+            val source = getById(id)
+            if (source == null) {
+                Log.w(TAG, "Cannot update stats for non-existent source: $id")
+                return
+            }
+            
+            val stats = source.stats
+            
+            val newStats = SourceStats(
+                totalProcessed = stats.totalProcessed + (processed ?: 0),
+                totalSent = stats.totalSent + (sent ?: 0),
+                totalFailed = stats.totalFailed + (failed ?: 0),
+                lastActivity = System.currentTimeMillis()
+            )
+            
+            save(source.copy(stats = newStats))
+            
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to update stats for source: $id", e)
+        }
     }
     
     // ✅ REMOVED: getDefaultSources()

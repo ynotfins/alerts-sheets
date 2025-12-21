@@ -2,6 +2,7 @@ package com.example.alertsheets
 
 import android.content.Context
 import android.util.Log
+import com.example.alertsheets.data.repositories.EndpointRepository
 import com.example.alertsheets.utils.AppConstants
 import com.google.gson.Gson
 import com.google.gson.JsonSyntaxException
@@ -27,6 +28,8 @@ import java.util.concurrent.TimeUnit
  * - Retry logic (optional)
  * - Detailed error logging
  * - Graceful degradation
+ * 
+ * V2: Uses EndpointRepository for cleaner architecture
  */
 object NetworkClient {
     
@@ -58,13 +61,9 @@ object NetworkClient {
             return false
         }
         
-        // Get ALL endpoints that are enabled
-        val endpoints = try {
-            PrefsManager.getEndpoints(context).filter { it.isEnabled }
-        } catch (e: Exception) {
-            Log.e(TAG, "Failed to load endpoints", e)
-            return false
-        }
+        // ✅ V2: Use repository
+        val endpointRepository = EndpointRepository(context)
+        val endpoints = endpointRepository.getEnabled()
 
         if (endpoints.isEmpty()) {
             Log.e(TAG, "No active endpoints configured")

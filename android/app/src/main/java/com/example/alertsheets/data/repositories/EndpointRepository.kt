@@ -1,119 +1,159 @@
 package com.example.alertsheets.data.repositories
 
 import android.content.Context
-import com.example.alertsheets.domain.models.Endpoint
-import com.example.alertsheets.domain.models.EndpointStats
-import com.example.alertsheets.data.storage.JsonStorage
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
+import android.util.Log
+import com.example.alertsheets.Endpoint
+import com.example.alertsheets.PrefsManager
+import com.example.alertsheets.utils.AppConstants
 
 /**
  * Repository for managing Endpoints
- * Handles CRUD operations and statistics updates
+ * 
+ * PHASE 2: Facade pattern over PrefsManager
+ * - Provides consistent API with other repositories
+ * - Easy to migrate to JSON storage later
+ * - Centralizes endpoint logic
+ * 
+ * FUTURE: Migrate to JsonStorage like SourceRepository
  */
 class EndpointRepository(private val context: Context) {
     
-    private val storage = JsonStorage(context, "endpoints.json")
-    private val gson = Gson()
+    private val TAG = "EndpointRepository"
     
     /**
      * Get all endpoints
      */
     fun getAll(): List<Endpoint> {
-        val json = storage.read() ?: return getDefaultEndpoints()
         return try {
-            gson.fromJson(json, object : TypeToken<List<Endpoint>>() {}.type)
+            PrefsManager.getEndpoints(context)
         } catch (e: Exception) {
-            getDefaultEndpoints()
+            Log.e(TAG, "Failed to load endpoints", e)
+            emptyList()
         }
-    }
-    
-    /**
-     * Get endpoint by ID
-     */
-    fun getById(id: String): Endpoint? {
-        return getAll().firstOrNull { it.id == id }
     }
     
     /**
      * Get enabled endpoints only
      */
     fun getEnabled(): List<Endpoint> {
-        return getAll().filter { it.enabled }
+        return try {
+            PrefsManager.getEndpoints(context).filter { it.isEnabled }
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to load enabled endpoints", e)
+            emptyList()
+        }
+    }
+    
+    /**
+     * Get endpoint by URL (closest match to ID)
+     */
+    fun getByUrl(url: String): Endpoint? {
+        return try {
+            getAll().firstOrNull { it.url == url }
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to find endpoint by URL: $url", e)
+            null
+        }
     }
     
     /**
      * Save endpoint (create or update)
+     * 
+     * Note: Current implementation doesn't support true update
+     * (no ID field in Endpoint model). Just saves the entire list.
      */
     fun save(endpoint: Endpoint) {
-        val all = getAll().toMutableList()
-        val index = all.indexOfFirst { it.id == endpoint.id }
-        
-        if (index >= 0) {
-            all[index] = endpoint.copy(updatedAt = System.currentTimeMillis())
-        } else {
-            all.add(endpoint)
+        try {
+            val all = getAll().toMutableList()
+            
+            // Check if endpoint with same URL exists
+            val index = all.indexOfFirst { it.url == endpoint.url }
+            
+            if (index >= 0) {
+                // Update existing
+                all[index] = endpoint
+                Log.d(TAG, "Updating endpoint: ${endpoint.name}")
+            } else {
+                // Add new
+                all.add(endpoint)
+                Log.d(TAG, "Creating new endpoint: ${endpoint.name}")
+            }
+            
+            PrefsManager.saveEndpoints(context, all)
+            Log.d(TAG, "Endpoint saved successfully")
+            
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to save endpoint: ${endpoint.name}", e)
         }
-        
-        storage.write(gson.toJson(all))
     }
     
     /**
-     * Delete endpoint
+     * Save all endpoints (bulk update)
      */
-    fun delete(id: String) {
-        val all = getAll().toMutableList()
-        all.removeAll { it.id == id }
-        storage.write(gson.toJson(all))
-    }
-    
-    /**
-     * Update endpoint statistics
-     */
-    fun updateStats(
-        id: String,
-        success: Boolean,
-        responseTime: Long
-    ) {
-        val endpoint = getById(id) ?: return
-        val stats = endpoint.stats
-        
-        val newAvgResponseTime = if (stats.totalRequests > 0) {
-            ((stats.avgResponseTime * stats.totalRequests) + responseTime) / (stats.totalRequests + 1)
-        } else {
-            responseTime
+    fun saveAll(endpoints: List<Endpoint>) {
+        try {
+            PrefsManager.saveEndpoints(context, endpoints)
+            Log.d(TAG, "Saved ${endpoints.size} endpoints")
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to save endpoints", e)
         }
-        
-        val newStats = EndpointStats(
-            totalRequests = stats.totalRequests + 1,
-            totalSuccess = if (success) stats.totalSuccess + 1 else stats.totalSuccess,
-            totalFailed = if (!success) stats.totalFailed + 1 else stats.totalFailed,
-            avgResponseTime = newAvgResponseTime,
-            lastActivity = System.currentTimeMillis()
-        )
-        
-        save(endpoint.copy(stats = newStats))
     }
     
     /**
-     * Get default endpoint (Google Apps Script)
+     * Delete endpoint by URL
      */
-    private fun getDefaultEndpoints(): List<Endpoint> {
-        // Read URL from existing PrefsManager
-        val sharedPrefs = context.getSharedPreferences("alerts_to_sheets", Context.MODE_PRIVATE)
-        val savedUrl = sharedPrefs.getString("endpoint_url", "")
-        
-        return listOf(
-            Endpoint(
-                id = "default-endpoint",
-                name = "Google Sheets - Main",
-                url = savedUrl ?: "",
-                enabled = true,
-                timeout = 30000,
-                retryCount = 3,
-                headers = emptyMap()
-            )
-        )
+    fun deleteByUrl(url: String) {
+        try {
+            val all = getAll().toMutableList()
+            val removed = all.removeAll { it.url == url }
+            
+            if (!removed) {
+                Log.w(TAG, "Attempted to delete non-existent endpoint: $url")
+                return
+            }
+            
+            PrefsManager.saveEndpoints(context, all)
+            Log.d(TAG, "Endpoint deleted: $url")
+            
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to delete endpoint: $url", e)
+        }
+    }
+    
+    /**
+     * Get default endpoint
+     * Returns the first enabled endpoint or null
+     */
+    fun getDefault(): Endpoint? {
+        return try {
+            getEnabled().firstOrNull()
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to get default endpoint", e)
+            null
+        }
+    }
+    
+    /**
+     * Check if any endpoints are configured
+     */
+    fun hasEndpoints(): Boolean {
+        return try {
+            getAll().isNotEmpty()
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to check for endpoints", e)
+            false
+        }
+    }
+    
+    /**
+     * Check if any enabled endpoints exist
+     */
+    fun hasEnabledEndpoints(): Boolean {
+        return try {
+            getEnabled().isNotEmpty()
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to check for enabled endpoints", e)
+            false
+        }
     }
 }
-

@@ -10,17 +10,24 @@ import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.example.alertsheets.Endpoint 
-import com.example.alertsheets.EndpointsAdapter
-import com.example.alertsheets.PrefsManager
+import com.example.alertsheets.data.repositories.EndpointRepository
 
+/**
+ * EndpointActivity - V2 Repository-based endpoint management
+ * 
+ * NOW USES: EndpointRepository (not PrefsManager directly)
+ */
 class EndpointActivity : AppCompatActivity() {
 
     private lateinit var adapter: EndpointsAdapter
+    private lateinit var endpointRepository: EndpointRepository
     private var endpoints: MutableList<Endpoint> = mutableListOf()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        
+        // ✅ V2: Use repository
+        endpointRepository = EndpointRepository(this)
         
         // Generate Layout Programmatically for speed
         val layout = LinearLayout(this).apply {
@@ -49,7 +56,8 @@ class EndpointActivity : AppCompatActivity() {
         }
         layout.addView(recycler)
 
-        endpoints = PrefsManager.getEndpoints(this).toMutableList()
+        // ✅ V2: Load from repository
+        endpoints = endpointRepository.getAll().toMutableList()
         adapter = EndpointsAdapter(endpoints, 
             onToggle = { endpoint, isEnabled ->
                 endpoint.isEnabled = isEnabled
@@ -65,7 +73,8 @@ class EndpointActivity : AppCompatActivity() {
     }
 
     private fun saveEndpoints() {
-        PrefsManager.saveEndpoints(this, endpoints)
+        // ✅ V2: Save via repository
+        endpointRepository.saveAll(endpoints)
     }
 
     private fun showAddDialog() {

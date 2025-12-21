@@ -157,27 +157,20 @@ object PrefsManager {
         prefs.edit().putString("config_${config.packageName}", json).apply()
     }
 
-    // --- Master Switch & Status ---
-
-    fun getMasterEnabled(context: Context): Boolean {
-        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        return prefs.getBoolean("master_enabled", true) // Default true
-    }
-
-    fun setMasterEnabled(context: Context, enabled: Boolean) {
-        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        prefs.edit().putBoolean("master_enabled", enabled).apply()
-    }
+    // --- Status ---
+    
+    // ✅ REMOVED: Master Switch (V2 uses per-source enabled flags)
+    // Keeping only payload test status for UI feedback
 
     // Status: 0=Unknown, 1=Success, 2=Failed
     fun getPayloadTestStatus(context: Context): Int {
-        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        return prefs.getInt("last_payload_test_status", 0)
+        val prefs = context.getSharedPreferences(AppConstants.PREFS_NAME, Context.MODE_PRIVATE)
+        return prefs.getInt(AppConstants.PrefsKeys.PAYLOAD_TEST_STATUS, 0)
     }
 
     fun setPayloadTestStatus(context: Context, status: Int) {
-        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        prefs.edit().putInt("last_payload_test_status", status).apply()
+        val prefs = context.getSharedPreferences(AppConstants.PREFS_NAME, Context.MODE_PRIVATE)
+        prefs.edit().putInt(AppConstants.PrefsKeys.PAYLOAD_TEST_STATUS, status).apply()
     }
 
     private const val KEY_LAST_TEST_ID = "lastTestIncidentId"

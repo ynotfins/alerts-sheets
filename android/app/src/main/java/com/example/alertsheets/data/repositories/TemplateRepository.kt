@@ -1,90 +1,220 @@
 package com.example.alertsheets.data.repositories
 
 import android.content.Context
-import com.example.alertsheets.domain.models.Template
-import com.example.alertsheets.domain.models.RockSolidTemplates
-import com.example.alertsheets.data.storage.JsonStorage
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
+import android.util.Log
+import com.example.alertsheets.JsonTemplate
+import com.example.alertsheets.PrefsManager
+import com.example.alertsheets.TemplateMode
+import com.example.alertsheets.utils.AppConstants
 
 /**
- * Repository for managing Templates
- * Handles CRUD operations, preserves Rock Solid templates
+ * Repository for managing JSON Templates
+ * 
+ * PHASE 2: Facade pattern over PrefsManager
+ * - Provides consistent API with other repositories  
+ * - Easy to migrate to JSON storage later
+ * - Centralizes template logic
+ * 
+ * FUTURE: Migrate to JsonStorage with Template model
  */
 class TemplateRepository(private val context: Context) {
     
-    private val storage = JsonStorage(context, "templates.json")
-    private val gson = Gson()
-    
-    /**
-     * Get all templates (Rock Solid + Custom)
-     */
-    fun getAll(): List<Template> {
-        val rockSolid = RockSolidTemplates.getAll()
-        val custom = getCustomTemplates()
-        return rockSolid + custom
-    }
+    private val TAG = "TemplateRepository"
     
     /**
      * Get template by ID
+     * Maps old PrefsManager template IDs to actual templates
      */
-    fun getById(id: String): Template? {
-        return getAll().firstOrNull { it.id == id }
-    }
-    
-    /**
-     * Get templates available for a specific source
-     */
-    fun getForSource(sourceId: String): List<Template> {
-        return getAll().filter { it.sourceId == null || it.sourceId == sourceId }
-    }
-    
-    /**
-     * Get custom (non-Rock Solid) templates
-     */
-    private fun getCustomTemplates(): List<Template> {
-        val json = storage.read() ?: return emptyList()
+    fun getById(templateId: String): String? {
         return try {
-            gson.fromJson(json, object : TypeToken<List<Template>>() {}.type)
+            when (templateId) {
+                AppConstants.TEMPLATE_BNN ->  {
+                    // BNN uses its own parser, doesn't need a template
+                    // But return a fallback just in case
+                    PrefsManager.getAppJsonTemplate(context)
+                }
+                AppConstants.TEMPLATE_APP_DEFAULT -> {
+                    PrefsManager.getAppJsonTemplate(context)
+                }
+                AppConstants.TEMPLATE_SMS_DEFAULT -> {
+                    PrefsManager.getSmsJsonTemplate(context)
+                }
+                else -> {
+                    // Try to find custom template by ID
+                    // For now, fall back to app template
+                    Log.w(TAG, "Unknown template ID: $templateId, using app default")
+                    PrefsManager.getAppJsonTemplate(context)
+                }
+            }
         } catch (e: Exception) {
+            Log.e(TAG, "Failed to get template: $templateId", e)
+            null
+        }
+    }
+    
+    /**
+     * Get app notification template
+     */
+    fun getAppTemplate(): String {
+        return try {
+            PrefsManager.getAppJsonTemplate(context)
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to get app template, using fallback", e)
+            getFallbackAppTemplate()
+        }
+    }
+    
+    /**
+     * Get SMS template
+     */
+    fun getSmsTemplate(): String {
+        return try {
+            PrefsManager.getSmsJsonTemplate(context)
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to get SMS template, using fallback", e)
+            getFallbackSmsTemplate()
+        }
+    }
+    
+    /**
+     * Save app template
+     */
+    fun saveAppTemplate(template: String) {
+        try {
+            PrefsManager.saveAppJsonTemplate(context, template)
+            Log.d(TAG, "App template saved")
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to save app template", e)
+        }
+    }
+    
+    /**
+     * Save SMS template
+     */
+    fun saveSmsTemplate(template: String) {
+        try {
+            PrefsManager.saveSmsJsonTemplate(context, template)
+            Log.d(TAG, "SMS template saved")
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to save SMS template", e)
+        }
+    }
+    
+    /**
+     * Get all Rock Solid templates (immutable defaults)
+     */
+    fun getRockSolidTemplates(): List<JsonTemplate> {
+        return try {
+            listOf(
+                PrefsManager.getRockSolidAppTemplate(),
+                PrefsManager.getRockSolidSmsTemplate(),
+                PrefsManager.getRockSolidBnnTemplate()
+            )
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to get Rock Solid templates", e)
             emptyList()
         }
     }
     
     /**
-     * Save template (create or update)
-     * Rock Solid templates cannot be modified
+     * Get all user-created templates
      */
-    fun save(template: Template) {
-        if (template.isRockSolid) {
-            throw IllegalArgumentException("Cannot modify Rock Solid templates")
+    fun getUserTemplates(): List<JsonTemplate> {
+        return try {
+            PrefsManager.getUserTemplates(context)
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to get user templates", e)
+            emptyList()
         }
-        
-        val custom = getCustomTemplates().toMutableList()
-        val index = custom.indexOfFirst { it.id == template.id }
-        
-        if (index >= 0) {
-            custom[index] = template.copy(updatedAt = System.currentTimeMillis())
-        } else {
-            custom.add(template)
-        }
-        
-        storage.write(gson.toJson(custom))
     }
     
     /**
-     * Delete template
-     * Rock Solid templates cannot be deleted
+     * Get all templates (Rock Solid + User)
      */
-    fun delete(id: String) {
-        val template = getById(id)
-        if (template?.isRockSolid == true) {
-            throw IllegalArgumentException("Cannot delete Rock Solid templates")
+    fun getAllTemplates(): List<JsonTemplate> {
+        return try {
+            getRockSolidTemplates() + getUserTemplates()
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to get all templates", e)
+            getRockSolidTemplates()  // Fallback to at least Rock Solid
         }
-        
-        val custom = getCustomTemplates().toMutableList()
-        custom.removeAll { it.id == id }
-        storage.write(gson.toJson(custom))
+    }
+    
+    /**
+     * Save user template
+     */
+    fun saveUserTemplate(template: JsonTemplate) {
+        try {
+            PrefsManager.saveUserTemplate(context, template)
+            Log.d(TAG, "User template saved: ${template.name}")
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to save user template: ${template.name}", e)
+        }
+    }
+    
+    /**
+     * Delete user template
+     */
+    fun deleteUserTemplate(templateName: String) {
+        try {
+            PrefsManager.deleteUserTemplate(context, templateName)
+            Log.d(TAG, "User template deleted: $templateName")
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to delete user template: $templateName", e)
+        }
+    }
+    
+    /**
+     * Get template by name (searches both Rock Solid and User templates)
+     */
+    fun getByName(name: String): JsonTemplate? {
+        return try {
+            getAllTemplates().firstOrNull { it.name == name }
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to get template by name: $name", e)
+            null
+        }
+    }
+    
+    /**
+     * Get templates by mode (APP or SMS)
+     */
+    fun getByMode(mode: TemplateMode): List<JsonTemplate> {
+        return try {
+            getAllTemplates().filter { it.mode == mode }
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to get templates by mode: $mode", e)
+            emptyList()
+        }
+    }
+    
+    // ============================================================
+    // FALLBACK TEMPLATES (Hard-coded for safety)
+    // ============================================================
+    
+    private fun getFallbackAppTemplate(): String {
+        return """
+{
+  "source": "app",
+  "package": "{{package}}",
+  "title": "{{title}}",
+  "text": "{{text}}",
+  "bigText": "{{bigText}}",
+  "time": "{{time}}",
+  "timestamp": "{{timestamp}}"
+}
+        """.trimIndent()
+    }
+    
+    private fun getFallbackSmsTemplate(): String {
+        return """
+{
+  "source": "sms",
+  "sender": "{{sender}}",
+  "body": "{{body}}",
+  "time": "{{time}}",
+  "timestamp": "{{timestamp}}"
+}
+        """.trimIndent()
     }
 }
-

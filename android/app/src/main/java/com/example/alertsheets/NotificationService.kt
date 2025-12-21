@@ -5,6 +5,7 @@ import android.content.Intent
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
 import android.util.Log
+import com.example.alertsheets.data.repositories.TemplateRepository
 import com.example.alertsheets.domain.SourceManager
 import com.example.alertsheets.domain.models.SourceType
 import kotlinx.coroutines.CoroutineScope
@@ -18,10 +19,12 @@ class NotificationService : NotificationListenerService() {
     // ✅ FIX: Use SupervisorJob for proper lifecycle management
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     private lateinit var sourceManager: SourceManager
+    private lateinit var templateRepository: TemplateRepository  // ✅ V2: Repository pattern
 
     override fun onCreate() {
         super.onCreate()
         sourceManager = SourceManager(this)
+        templateRepository = TemplateRepository(this)  // ✅ V2: Initialize repository
         createNotificationChannel()
         
         // V2 Migration: Run once (async to avoid ANR)
@@ -119,11 +122,8 @@ class NotificationService : NotificationListenerService() {
      * Process notification with comprehensive error handling
      */
     private fun processNotification(sbn: StatusBarNotification) {
-        // 0. Master Switch Check (V2: Always on, but we'll keep check for now)
-        if (!PrefsManager.getMasterEnabled(this)) {
-            Log.d("NotificationService", "Master Switch OFF. Ignoring notification.")
-            return
-        }
+        // ✅ V2: No master switch - control via per-source enabled flag
+        // This simplifies logic and gives users granular control
         
         // ✅ Edge case: Check if app still installed
         val packageManager = packageManager
@@ -221,9 +221,9 @@ class NotificationService : NotificationListenerService() {
                             "NotificationService",
                             "✗ BNN PARSE FAILED! Using generic template. Content: ${fullContent.take(200)}"
                     )
-                    // Fallback to generic template for this source
-                    val template = PrefsManager.getTemplateById(this, source.templateId)
-                            ?: PrefsManager.getAppJsonTemplate(this)
+                    // ✅ V2: Fallback to generic template via repository
+                    val template = templateRepository.getById(source.templateId)
+                            ?: templateRepository.getAppTemplate()
                     jsonToSend =
                             TemplateEngine.applyGeneric(
                                     template,
@@ -247,10 +247,10 @@ class NotificationService : NotificationListenerService() {
                 return
             }
         } else {
-            // ✅ V2: Generic Pipeline with Source template
+            // ✅ V2: Generic Pipeline with Source template (via repository)
             if (DeDuplicator.shouldProcess(fullContent)) {
-                val template = PrefsManager.getTemplateById(this, source.templateId)
-                        ?: PrefsManager.getAppJsonTemplate(this)
+                val template = templateRepository.getById(source.templateId)
+                        ?: templateRepository.getAppTemplate()  // ✅ V2: Repository fallback
                 jsonToSend =
                         TemplateEngine.applyGeneric(
                                 template,

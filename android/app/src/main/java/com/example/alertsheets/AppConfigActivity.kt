@@ -13,6 +13,8 @@ import android.widget.Toast
 import android.widget.ScrollView
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import com.example.alertsheets.data.repositories.TemplateRepository
+import com.example.alertsheets.utils.TemplateEngine
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -25,6 +27,7 @@ class AppConfigActivity : AppCompatActivity() {
     private lateinit var spinnerTemplate: Spinner
     private lateinit var btnSave: Button
     private lateinit var radioGroupMode: RadioGroup
+    private lateinit var templateRepository: TemplateRepository
 
     // Available Variables for User Reference
     private val appVariables =
@@ -40,6 +43,9 @@ class AppConfigActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        
+        // ✅ V2: Initialize repository
+        templateRepository = TemplateRepository(this)
         
         // Enable back button in action bar
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
@@ -187,7 +193,7 @@ class AppConfigActivity : AppCompatActivity() {
                     setOnClickListener {
                         val current = editJson.text.toString()
                         val cleaned = TemplateEngine.cleanText(current)
-                        editJson.setText(cleaned)
+                        editJson.setText(cleaned as CharSequence)
                         Toast.makeText(
                                         this@AppConfigActivity,
                                         "Removed Emojis/Symbols",
@@ -336,7 +342,7 @@ class AppConfigActivity : AppCompatActivity() {
     private fun loadTemplatesForCurrentMode() {
         val isApp = (radioGroupMode.checkedRadioButtonId == R.id.radio_app)
         val mode = if (isApp) TemplateMode.APP else TemplateMode.SMS
-        val templates = PrefsManager.getAllTemplatesForMode(this, mode)
+        val templates = templateRepository.getByMode(mode)
         
         val adapter = ArrayAdapter(
             this,
@@ -356,9 +362,9 @@ class AppConfigActivity : AppCompatActivity() {
 
     private fun loadConfig(isAppMode: Boolean) {
         if (isAppMode) {
-            editJson.setText(PrefsManager.getAppJsonTemplate(this))
+            editJson.setText(templateRepository.getAppTemplate())
         } else {
-            editJson.setText(PrefsManager.getSmsJsonTemplate(this))
+            editJson.setText(templateRepository.getSmsTemplate())
         }
     }
 
@@ -504,30 +510,43 @@ class AppConfigActivity : AppCompatActivity() {
 
                     android.util.Log.i("TEST", "Mock BNN: $mockBnn")
 
-                    // 2. Run through REAL Parser
-                    val parsed = Parser.parse(mockBnn)
+                    // 2. Run through REAL BnnParser
+                    val bnnParser = com.example.alertsheets.domain.parsers.ParserRegistry.get("bnn")
+                    val parsed = bnnParser?.parse(
+                        com.example.alertsheets.domain.models.RawNotification(
+                            packageName = "us.bnn.newsapp",
+                            title = "BNN Alert",
+                            text = mockBnn,
+                            bigText = mockBnn
+                        )
+                    )
 
                     if (parsed != null) {
                         // 3. Serialize exactly like NotificationService
                         val timestamped =
                                 parsed.copy(
                                         timestamp = TemplateEngine.getTimestamp(),
-                                        status = testType
+                                        incidentDetails = "$testType - ${parsed.incidentDetails}"
                                 )
                         val jsonPayload = com.google.gson.Gson().toJson(timestamped)
                         android.util.Log.i("TEST", "Parsed successfully")
                         android.util.Log.i("TEST", "Incident ID in JSON: ${timestamped.incidentId}")
-                        android.util.Log.i("TEST", "Status: ${timestamped.status}")
+                        android.util.Log.i("TEST", "Details: ${timestamped.incidentDetails}")
 
                         jsonPayload
                     } else {
                         // Fallback (Should not happen with valid mock)
+                        val fallbackVars = mapOf(
+                            "package" to "com.test.bnn",
+                            "title" to "Test Title",
+                            "text" to "Test Text",
+                            "bigText" to mockBnn,
+                            "timestamp" to TemplateEngine.getTimestamp()
+                        )
                         TemplateEngine.applyGeneric(
                                 template,
-                                "com.test.bnn",
-                                "Test Title",
-                                "Test Text",
-                                mockBnn
+                                fallbackVars,
+                                false
                         )
                     }
                 } else {
@@ -535,13 +554,19 @@ class AppConfigActivity : AppCompatActivity() {
                     val testSender = "+1-555-0123"
                     val testMessage = "ALERT: Fire reported at 123 Main St. Units responding. This is a test SMS message with more realistic content to verify full text appears in spreadsheet."
                     
-                    TemplateEngine.applyGeneric(
+                    val smsVars = mapOf(
+                        "sender" to testSender,
+                        "message" to testMessage,
+                        "body" to testMessage,
+                        "time" to android.text.format.DateFormat.format("MM/dd/yyyy h:mm a", System.currentTimeMillis()).toString(),
+                        "timestamp" to TemplateEngine.getTimestamp()
+                    )
+                    val jsonPayload = TemplateEngine.applyGeneric(
                                     template,
-                                    "sms", // pkg
-                                    testSender, // title/sender
-                                    testMessage, // text/message
-                                    ""
+                                    smsVars,
+                                    false
                             )
+                    jsonPayload
                 }
 
         // Show JSON preview dialog (unless silent auto-test)
@@ -696,7 +721,7 @@ class AppConfigActivity : AppCompatActivity() {
                         mode = mode
                     )
                     
-                    PrefsManager.saveCustomTemplate(this@AppConfigActivity, newTemplate)
+                    templateRepository.saveUserTemplate(newTemplate)
                     loadTemplatesForCurrentMode() // Refresh spinner
                     
                     Toast.makeText(this@AppConfigActivity, "✓ Template '$name' saved!", Toast.LENGTH_LONG).show()
@@ -723,7 +748,7 @@ class AppConfigActivity : AppCompatActivity() {
                 .setTitle("Delete Template?")
                 .setMessage("Are you sure you want to delete '${selected.name}'?")
                 .setPositiveButton("Delete") { _, _ ->
-                    PrefsManager.deleteCustomTemplate(this@AppConfigActivity, selected.name, selected.mode)
+                    templateRepository.deleteUserTemplate(selected.name)
                     loadTemplatesForCurrentMode() // Refresh spinner
                     Toast.makeText(this@AppConfigActivity, "Template deleted", Toast.LENGTH_SHORT).show()
                 }
@@ -776,21 +801,32 @@ class AppConfigActivity : AppCompatActivity() {
         
         val json = if (isApp) {
             // Treat as generic app notification (like AdjustLeads)
+            val appVars = mapOf(
+                "package" to "com.adjustleads.app",
+                "title" to "🔥 New Fire Alert",
+                "text" to dirtyMessage,
+                "bigText" to dirtyMessage,
+                "time" to android.text.format.DateFormat.format("MM/dd/yyyy h:mm a", System.currentTimeMillis()).toString(),
+                "timestamp" to TemplateEngine.getTimestamp()
+            )
             TemplateEngine.applyGeneric(
                 template,
-                "com.adjustleads.app",
-                "🔥 New Fire Alert",
-                dirtyMessage,
-                dirtyMessage
+                appVars,
+                false
             )
         } else {
             // Treat as SMS
+            val smsVars = mapOf(
+                "sender" to "AdjustLeadsTest",
+                "message" to dirtyMessage,
+                "body" to dirtyMessage,
+                "time" to android.text.format.DateFormat.format("MM/dd/yyyy h:mm a", System.currentTimeMillis()).toString(),
+                "timestamp" to TemplateEngine.getTimestamp()
+            )
             TemplateEngine.applyGeneric(
                 template,
-                "sms",
-                "+15614193784",  // Fire dispatch number
-                dirtyMessage,
-                ""
+                smsVars,
+                false
             )
         }
         

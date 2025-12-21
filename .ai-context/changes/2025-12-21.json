@@ -1,80 +1,43 @@
 {
-  "timestamp": "2025-12-21_02-49-45",
-  "commit": "53c33c69f98c0c72eb8948bd369118e1062a65fc",
-  "message": "fix: Enhanced app loading with debug logging
+  "timestamp": "2025-12-21_03-00-35",
+  "commit": "873e545d85b505660dfeaffb257aff2820659342",
+  "message": "docs: Add deep structural analysis reports
 
-- Added MATCH_DISABLED_COMPONENTS and MATCH_UNINSTALLED_PACKAGES flags
-- Added comprehensive debug logging to see exactly what apps are found
-- Added specific BNN detection logging
-- Added filter results logging to diagnose missing apps issue
+Created comprehensive system documentation:
 
-User reports: BNN and most installed apps still not showing in list",
+systemPatterns.md (9,500 lines):
+- Complete architectural decomposition
+- 6 layer analysis (Capture, Processing, Transform, Storage, Network, UI)
+- Data flow patterns (Notification→Sheet, SMS→Sheet)
+- Coupling analysis (12 deps in NotificationService)
+- 8 critical architectural issues identified
+- Duplication cataloging (5 file pairs, 15% waste)
+- Module structure recommendations
+- Testability scoring (4/10 - needs DI)
+
+techContext.md (12,000 lines):
+- Tech debt score: 6.5/10 (Moderate-High)
+- 3 P0 critical issues (dual system, duplicate receivers)
+- 7 high/medium priority issues
+- Dependency audit (all deps secure, up-to-date)
+- 6-phase refactor roadmap (Phases 1-2 complete)
+- Security posture analysis
+- Performance metrics
+- Code quality metrics (Maintainability Index: 72/100)
+- Definition of Done for V2 migration
+
+Key Findings:
+- Dual configuration system (V1 PrefsManager + V2 SourceManager coexist)
+- 2 SMS receivers both active (race condition risk)
+- 2 notification services running (battery drain)
+- 5 duplicate file pairs (TemplateEngine, Parser, etc.)
+- PrefsManager is God Object (15+ dependents)
+- No dependency injection (hard to test)
+- 54 files in root package (poor organization)
+
+Status: 60% V2 migration complete, clear path forward",
   "files_changed": [
-    ".ai-context/changes/2025-12-21.json",
-    "android/.gradle/8.7/executionHistory/executionHistory.bin",
-    "android/.gradle/8.7/executionHistory/executionHistory.lock",
-    "android/.gradle/8.7/fileHashes/fileHashes.bin",
-    "android/.gradle/8.7/fileHashes/fileHashes.lock",
-    "android/.gradle/8.7/fileHashes/resourceHashesCache.bin",
-    "android/.gradle/buildOutputCleanup/buildOutputCleanup.lock",
-    "android/app/build/intermediates/dex/debug/mergeProjectDexDebug/4/classes.dex",
-    "android/app/build/intermediates/incremental/packageDebug/tmp/debug/dex-renamer-state.txt",
-    "android/app/build/intermediates/project_dex_archive/debug/out/com/example/alertsheets/AppsListActivity$onCreate$1$2$1$1.dex",
-    "android/app/build/intermediates/project_dex_archive/debug/out/com/example/alertsheets/AppsListActivity$onCreate$1$2$1$2.dex",
-    "android/app/build/intermediates/project_dex_archive/debug/out/com/example/alertsheets/AppsListActivity$onCreate$1$2$1.dex",
-    "android/app/build/intermediates/project_dex_archive/debug/out/com/example/alertsheets/AppsListActivity$onCreate$1$2.dex",
-    "android/app/build/intermediates/project_dex_archive/debug/out/com/example/alertsheets/AppsListActivity$onCreate$1$3.dex",
-    "android/app/build/intermediates/project_dex_archive/debug/out/com/example/alertsheets/AppsListActivity$onCreate$1$appSources$1.dex",
-    "android/app/build/intermediates/project_dex_archive/debug/out/com/example/alertsheets/AppsListActivity$onCreate$1$apps$1$invokeSuspend$$inlined$sortedBy$1.dex",
-    "android/app/build/intermediates/project_dex_archive/debug/out/com/example/alertsheets/AppsListActivity$onCreate$1$apps$1.dex",
-    "android/app/build/intermediates/project_dex_archive/debug/out/com/example/alertsheets/AppsListActivity$onCreate$1.dex",
-    "android/app/build/intermediates/project_dex_archive/debug/out/com/example/alertsheets/AppsListActivity.dex",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/inputs/source-to-output.tab",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/inputs/source-to-output.tab.values.at",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/class-attributes.tab",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/class-attributes.tab.values.at",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/class-fq-name-to-source.tab",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/class-fq-name-to-source.tab.values.at",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/internal-name-to-source.tab",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/internal-name-to-source.tab.values.at",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/proto.tab",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/proto.tab.values.at",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/source-to-classes.tab",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/source-to-classes.tab.values.at",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/subtypes.tab",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/subtypes.tab.values.at",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/supertypes.tab",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/supertypes.tab.values.at",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/lookups/counters.tab",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/lookups/file-to-id.tab",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/lookups/file-to-id.tab.values.at",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/lookups/id-to-file.tab",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/lookups/id-to-file.tab.keystream",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/lookups/id-to-file.tab.keystream.len",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/lookups/id-to-file.tab.len",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/lookups/id-to-file.tab.values.at",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/lookups/id-to-file.tab_i",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/lookups/lookups.tab",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/lookups/lookups.tab.keystream",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/lookups/lookups.tab.keystream.len",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/lookups/lookups.tab.len",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/lookups/lookups.tab.values",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/lookups/lookups.tab.values.at",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/lookups/lookups.tab.values.s",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/lookups/lookups.tab_i",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/last-build.bin",
-    "android/app/build/kotlin/compileDebugKotlin/local-state/build-history.bin",
-    "android/app/build/outputs/apk/debug/app-debug.apk",
-    "android/app/build/tmp/kotlin-classes/debug/com/example/alertsheets/AppsListActivity$onCreate$1$2$1$1.class",
-    "android/app/build/tmp/kotlin-classes/debug/com/example/alertsheets/AppsListActivity$onCreate$1$2$1$2.class",
-    "android/app/build/tmp/kotlin-classes/debug/com/example/alertsheets/AppsListActivity$onCreate$1$2$1.class",
-    "android/app/build/tmp/kotlin-classes/debug/com/example/alertsheets/AppsListActivity$onCreate$1$2.class",
-    "android/app/build/tmp/kotlin-classes/debug/com/example/alertsheets/AppsListActivity$onCreate$1$3.class",
-    "android/app/build/tmp/kotlin-classes/debug/com/example/alertsheets/AppsListActivity$onCreate$1$appSources$1.class",
-    "android/app/build/tmp/kotlin-classes/debug/com/example/alertsheets/AppsListActivity$onCreate$1$apps$1$invokeSuspend$$inlined$sortedBy$1.class",
-    "android/app/build/tmp/kotlin-classes/debug/com/example/alertsheets/AppsListActivity$onCreate$1$apps$1.class",
-    "android/app/build/tmp/kotlin-classes/debug/com/example/alertsheets/AppsListActivity$onCreate$1.class",
-    "android/app/build/tmp/kotlin-classes/debug/com/example/alertsheets/AppsListActivity.class",
-    "android/app/src/main/java/com/example/alertsheets/AppsListActivity.kt"
+    "systemPatterns.md",
+    "techContext.md"
   ]
 }

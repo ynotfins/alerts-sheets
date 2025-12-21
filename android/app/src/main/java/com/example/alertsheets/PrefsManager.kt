@@ -5,6 +5,34 @@ import com.example.alertsheets.utils.AppConstants
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 
+/**
+ * ⚠️ V1 LEGACY COMPATIBILITY LAYER ⚠️
+ * 
+ * This PrefsManager is kept for backward compatibility with V1 data.
+ * It acts as a facade over SharedPreferences for:
+ * - Endpoints (used by EndpointRepository)
+ * - Templates (used by TemplateRepository)
+ * - Migration data (MigrationManager)
+ * - UI state (AppConfigActivity)
+ * 
+ * ✅ V2 uses:
+ * - SourceManager + SourceRepository (for apps, SMS, endpoints)
+ * - TemplateRepository (for JSON templates)
+ * - EndpointRepository (for HTTP endpoints)
+ * 
+ * 🚧 TODO: Phase 3 - Migrate to JsonStorage
+ */
+
+/**
+ * V1 Endpoint model for backward compatibility
+ * TODO: Migrate to domain.models.Endpoint
+ */
+data class Endpoint(
+    val name: String,
+    val url: String,
+    var isEnabled: Boolean = true
+)
+
 object PrefsManager {
     private val gson = Gson()
 

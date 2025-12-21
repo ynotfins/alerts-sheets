@@ -114,8 +114,14 @@ class EndpointActivity : AppCompatActivity() {
                 val name = inputName.text.toString().trim()
                 val url = inputUrl.text.toString().trim()
                 if (url.isNotEmpty()) {
-                    endpoint.name = if (name.isEmpty()) "Endpoint" else name
-                    endpoint.url = url
+                    val updated = endpoint.copy(
+                        name = if (name.isEmpty()) "Endpoint" else name,
+                        url = url
+                    )
+                    val index = endpoints.indexOf(endpoint)
+                    if (index >= 0) {
+                        endpoints[index] = updated
+                    }
                     saveEndpoints()
                     adapter.updateData(endpoints)
                 }

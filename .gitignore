@@ -2,3 +2,14 @@
 # Firebase
 google-services.json
 **/google-services.json
+
+# Global credentials and config (NEVER commit)
+global files/
+.mcpdropbox/
+.mcpCdrive/
+ga-key.json
+global-credentials.yaml
+**/global-credentials*.yaml
+*.env
+*.env.local
+!functions/.env  # Allow generated deployment env

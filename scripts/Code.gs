@@ -199,7 +199,7 @@ function doPost(e) {
 
 /**
  * Handle SMS Messages
- * Format: Simple row with sender and message
+ * Intelligently parse SMS content for fire alerts vs generic SMS
  */
 function handleSmsMessage(data, sheet) {
   const now = new Date();
@@ -209,31 +209,128 @@ function handleSmsMessage(data, sheet) {
     "MM/dd/yyyy hh:mm:ss a"
   );
 
-  // SMS Fields
   const sender = data.sender || "Unknown";
   const message = data.message || "";
   const timestamp = data.timestamp || formattedTime;
 
-  // SMS Row Format
-  // Status | Timestamp | ID | State | County | City | Address | Type | Details | Original
-  const row = [
-    "SMS",                          // Status
-    timestamp,                      // Timestamp
-    `SMS-${Date.now()}`,            // Unique SMS ID
-    "",                             // State (blank for SMS)
-    "",                             // County (blank for SMS)
-    "",                             // City (blank for SMS)
-    sender,                         // Address shows sender number
-    "SMS Message",                  // Type
-    message,                        // Details shows message text
-    `From: ${sender}\n${message}`   // Original Body
-  ];
+  // ✅ SMART PARSING: Try to extract fire alert data from SMS content
+  const parsedData = parseFireAlertSms(message, sender);
 
-  sheet.appendRow(row);
+  if (parsedData.isFireAlert) {
+    // Fire Alert SMS - Use structured format
+    const row = [
+      "SMS Fire Alert",              // Status
+      timestamp,                     // Timestamp
+      `SMS-${Date.now()}`,           // Unique SMS ID
+      parsedData.state || "",        // State
+      parsedData.county || "",       // County
+      parsedData.city || "",         // City
+      parsedData.address || "",      // Address
+      parsedData.incidentType || "Fire Alert", // Type
+      parsedData.details || message, // Details
+      `From: ${sender}\n${message}`  // Original Body
+    ];
+    sheet.appendRow(row);
+  } else {
+    // Generic SMS - Use simple format
+    const row = [
+      "SMS",                          // Status
+      timestamp,                      // Timestamp
+      `SMS-${Date.now()}`,            // Unique SMS ID
+      "",                             // State (blank)
+      "",                             // County (blank)
+      "",                             // City (blank)
+      `From: ${sender}`,              // Address shows sender
+      "SMS Message",                  // Type
+      message,                        // Details shows message text
+      `From: ${sender}\n${message}`   // Original Body
+    ];
+    sheet.appendRow(row);
+  }
 
   return ContentService.createTextOutput(
-    JSON.stringify({ result: "success", type: "sms", sender: sender })
+    JSON.stringify({ 
+      result: "success", 
+      type: "sms", 
+      sender: sender,
+      parsed: parsedData.isFireAlert 
+    })
   ).setMimeType(ContentService.MimeType.JSON);
+}
+
+/**
+ * Parse Fire Alert SMS Content
+ * Extracts address, city, county, incident type from SMS text
+ */
+function parseFireAlertSms(message, sender) {
+  const result = {
+    isFireAlert: false,
+    address: "",
+    city: "",
+    county: "",
+    state: "",
+    incidentType: "",
+    details: message
+  };
+
+  // Check if this looks like a fire alert
+  const alertKeywords = /\b(ALERT|Fire|Emergency|Residential|Structure|Vehicle|Medical|EMS|Accident|Rescue)\b/i;
+  if (!alertKeywords.test(message)) {
+    return result; // Not a fire alert
+  }
+
+  result.isFireAlert = true;
+
+  // Extract address patterns
+  // Pattern 1: "Fire reported at 123 Main St"
+  // Pattern 2: "📍 31 Grand Avenue, Cedar Knolls, NJ"
+  // Pattern 3: "Address: 123 Main Street, City, State ZIP"
+  
+  // Try to extract full address with city/state/zip
+  const fullAddressMatch = message.match(/(?:at|📍|Address:)\s*([^,\n]+),\s*([^,\n]+),\s*([A-Z]{2})\s*(\d{5}(?:-\d{4})?)/i);
+  if (fullAddressMatch) {
+    result.address = fullAddressMatch[1].trim();
+    result.city = fullAddressMatch[2].trim();
+    result.state = fullAddressMatch[3].trim();
+  } else {
+    // Try simpler address pattern
+    const simpleAddressMatch = message.match(/(?:at|reported at|located at|📍)\s*([0-9]+\s+[A-Za-z\s]+(?:Street|St|Avenue|Ave|Road|Rd|Drive|Dr|Lane|Ln|Boulevard|Blvd|Way))/i);
+    if (simpleAddressMatch) {
+      result.address = simpleAddressMatch[1].trim();
+    }
+  }
+
+  // Extract county (common in fire alerts)
+  const countyMatch = message.match(/(\w+)\s+County/i);
+  if (countyMatch) {
+    result.county = countyMatch[1].trim();
+  }
+
+  // Extract incident type
+  const typePatterns = [
+    /Residential\s+Fire/i,
+    /Structure\s+Fire/i,
+    /Vehicle\s+Fire/i,
+    /Medical\s+Emergency/i,
+    /Fire\s+with\s+smoke/i,
+    /\b(Fire|Medical|Rescue|Accident|Emergency)\b/i
+  ];
+
+  for (const pattern of typePatterns) {
+    const match = message.match(pattern);
+    if (match) {
+      result.incidentType = match[0].trim();
+      break;
+    }
+  }
+
+  // Extract details (first line or text before URLs)
+  const detailsMatch = message.split(/\n|https?:\/\//)[0].trim();
+  if (detailsMatch) {
+    result.details = detailsMatch;
+  }
+
+  return result;
 }
 
 /**

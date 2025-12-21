@@ -1,15 +1,35 @@
 {
-  "timestamp": "2025-12-21_03-33-28",
-  "commit": "a08d849abfccca1aa5d730ad8230faa581fc3038",
-  "message": "docs: Add comprehensive security audit report
+  "timestamp": "2025-12-21_03-40-04",
+  "commit": "7fb4c2e2d7e6c1d8a3f8ebe744ec009a469118dc",
+  "message": "fix: Smart SMS parsing for fire alerts
 
-✅ SECURITY VERIFICATION COMPLETE:
-- No secrets tracked in Git
-- All credential patterns protected
-- 8 protection categories enforced
-- 100% coverage verified
-- Best practices documented",
+CRITICAL FIX - SMS Field Mapping:
+
+✅ Intelligent SMS Parsing:
+- Detects fire alerts vs generic SMS
+- Extracts address from SMS content
+- Extracts city, county, state from text
+- Extracts incident type (Fire, Medical, etc.)
+- Parses multiple address formats
+
+✅ Fire Alert Patterns Supported:
+- 'Fire reported at 123 Main St'
+- '📍 31 Grand Avenue, Cedar Knolls, NJ'
+- 'Residential Fire - details'
+- County detection from text
+
+✅ Field Mapping Fixed:
+- Address → Actual street address (not phone number)
+- Sender → Shown in Original Body
+- City/County/State → Extracted from SMS
+- Type → Incident type (not just 'SMS Message')
+- Details → Cleaned alert text (not full message)
+
+BEFORE: Phone number in Address field
+AFTER: Real address extracted from SMS content
+
+Ready for real fire alert testing!",
   "files_changed": [
-    "SECURITY_AUDIT_COMPLETE.md"
+    "scripts/Code.gs"
   ]
 }

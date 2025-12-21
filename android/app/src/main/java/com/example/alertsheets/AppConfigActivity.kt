@@ -503,10 +503,14 @@ class AppConfigActivity : AppCompatActivity() {
                         android.util.Log.i("TEST", "Saved to prefs for update test")
                     }
 
-                    // 1. Construct Mock BNN Message
+                    // 1. Construct Mock BNN Message with RANDOMIZED address
                     // User Request: Always bar between incident and source. <C> BNN
+                    val streetNumber = (100..999).random()
+                    val streets = listOf("Test Ave", "Sample St", "Demo Road", "Trial Lane", "Mock Drive")
+                    val randomAddress = "$streetNumber ${streets.random()}"
+                    
                     val mockBnn =
-                            "$statusPrefix NJ | Test County | Test City | 888 Test Ave | TEST-TYPE | Testing $testType - Columns should fill. | <C> BNN | E-1/L-1 | nj312/njn751/nyl785/pa547 | $incidentId"
+                            "$statusPrefix NJ | Test County | Test City | $randomAddress | TEST-TYPE | Testing $testType - Columns should fill. | <C> BNN | E-1/L-1 | nj312/njn751/nyl785/pa547 | $incidentId"
 
                     android.util.Log.i("TEST", "Mock BNN: $mockBnn")
 
@@ -789,14 +793,23 @@ class AppConfigActivity : AppCompatActivity() {
         val template = editJson.text.toString()
         val isApp = (radioGroupMode.checkedRadioButtonId == R.id.radio_app)
         
-        // Real-world emoji-rich SMS from user
+        // ✅ RANDOMIZE: Generate unique address for each dirty test
+        val streetNumber = (10..99).random()
+        val streets = listOf("Grand Avenue", "Valley Road", "Summit Street", "Hillside Drive", "Mountain View")
+        val randomStreet = streets.random()
+        val randomAddress = "$streetNumber $randomStreet"
+        val cities = listOf("Cedar Knolls", "Parsippany", "Morris Plains", "Denville", "Boonton")
+        val randomCity = cities.random()
+        val randomAlertId = (200000..299999).random()
+        
+        // Real-world emoji-rich SMS with randomized data
         val dirtyMessage = """
 🔥 New Fire Alert in Middlesex County
 
-📍 31 Grand Avenue, Cedar Knolls, NJ 07927-1506, USA
-🗺️ https://maps.google.com/?q=31+Grand+Avenue,+Cedar+Knolls,+NJ+07927-1506,+USA
+📍 $randomAddress, $randomCity, NJ 07927, USA
+🗺️ https://maps.google.com/?q=$randomAddress,+$randomCity,+NJ
 📋 Residential Fire - Fire with smoke condition reported; occupants advised to evacuate.
-ℹ️ https://www.adjustleads.com/app/alerts/294913
+ℹ️ https://www.adjustleads.com/app/alerts/$randomAlertId
         """.trimIndent()
         
         val json = if (isApp) {

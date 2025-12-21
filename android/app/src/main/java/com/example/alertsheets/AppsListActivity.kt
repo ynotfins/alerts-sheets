@@ -16,6 +16,8 @@ import com.example.alertsheets.domain.models.Source
 import com.example.alertsheets.domain.models.SourceType
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -33,6 +35,9 @@ class AppsListActivity : AppCompatActivity() {
     private var selectedApps = mutableSetOf<String>()
     private var showSystemApps = false
     private var searchQuery = ""
+    
+    // ✅ FIX: Managed coroutine scope with lifecycle
+    private val scope = CoroutineScope(Dispatchers.Main + SupervisorJob())
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -41,11 +46,6 @@ class AppsListActivity : AppCompatActivity() {
         // ✅ V2: Use SourceManager
         sourceManager = SourceManager(applicationContext)
         
-        // Load currently monitored apps from SourceManager
-        selectedApps = sourceManager.getSourcesByType(SourceType.APP)
-            .map { it.id }
-            .toMutableSet()
-
         val recycler = findViewById<RecyclerView>(R.id.recycler_all_apps)
         recycler.layoutManager = LinearLayoutManager(this)
 
@@ -53,50 +53,67 @@ class AppsListActivity : AppCompatActivity() {
         val searchBox = findViewById<EditText>(R.id.edit_search)
         val systemCheckbox = findViewById<CheckBox>(R.id.check_show_system)
 
-        adapter =
-                AppsAdapter(filteredApps, selectedApps) { pkg, isSelected ->
-                    if (isSelected) {
-                        // ✅ V2: Add as Source
-                        addAppSource(pkg)
-                        selectedApps.add(pkg)
-                    } else {
-                        // ✅ V2: Remove Source
-                        sourceManager.deleteSource(pkg)
-                        selectedApps.remove(pkg)
+        // ✅ FIX: Load everything async on IO thread
+        scope.launch {
+            // Load selected apps from SourceManager (IO thread)
+            val appSources = withContext(Dispatchers.IO) {
+                sourceManager.getSourcesByType(SourceType.APP)
+            }
+            selectedApps = appSources.map { it.id }.toMutableSet()
+
+            adapter =
+                    AppsAdapter(filteredApps, selectedApps) { pkg, isSelected ->
+                        // ✅ FIX: Save on IO thread
+                        scope.launch(Dispatchers.IO) {
+                            if (isSelected) {
+                                addAppSource(pkg)
+                                withContext(Dispatchers.Main) {
+                                    selectedApps.add(pkg)
+                                }
+                            } else {
+                                sourceManager.deleteSource(pkg)
+                                withContext(Dispatchers.Main) {
+                                    selectedApps.remove(pkg)
+                                }
+                            }
+                        }
                     }
+            recycler.adapter = adapter
+
+            // Search functionality
+            searchBox.addTextChangedListener(object : TextWatcher {
+                override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+                override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                    searchQuery = s?.toString()?.lowercase() ?: ""
+                    filterApps()
                 }
-        recycler.adapter = adapter
+                override fun afterTextChanged(s: Editable?) {}
+            })
 
-        // Search functionality
-        searchBox.addTextChangedListener(object : TextWatcher {
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                searchQuery = s?.toString()?.lowercase() ?: ""
+            // System apps toggle
+            systemCheckbox.setOnCheckedChangeListener { _, isChecked ->
+                showSystemApps = isChecked
                 filterApps()
             }
-            override fun afterTextChanged(s: Editable?) {}
-        })
 
-        // System apps toggle
-        systemCheckbox.setOnCheckedChangeListener { _, isChecked ->
-            showSystemApps = isChecked
-            filterApps()
-        }
-
-        // Load apps
-        CoroutineScope(Dispatchers.IO).launch {
+            // Load apps (IO thread)
             val pm = packageManager
-            val apps =
-                    pm.getInstalledApplications(android.content.pm.PackageManager.GET_META_DATA)
-                            .sortedBy { it.loadLabel(pm).toString().lowercase() }
-
-            withContext(Dispatchers.Main) {
-                allApps.clear()
-                allApps.addAll(apps)
-                filterApps()
-                progressBar.visibility = View.GONE
+            val apps = withContext(Dispatchers.IO) {
+                pm.getInstalledApplications(android.content.pm.PackageManager.GET_META_DATA)
+                        .sortedBy { it.loadLabel(pm).toString().lowercase() }
             }
+            
+            allApps.clear()
+            allApps.addAll(apps)
+            filterApps()
+            progressBar.visibility = View.GONE
         }
+    }
+    
+    override fun onDestroy() {
+        super.onDestroy()
+        // ✅ FIX: Cancel all coroutines to prevent memory leaks
+        scope.cancel()
     }
 
     private fun filterApps() {

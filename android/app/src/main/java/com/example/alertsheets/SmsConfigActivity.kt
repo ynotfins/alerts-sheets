@@ -19,12 +19,22 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.example.alertsheets.domain.SourceManager
+import com.example.alertsheets.domain.models.Source
+import com.example.alertsheets.domain.models.SourceType
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 
+/**
+ * SmsConfigActivity - V2 Source-based SMS configuration
+ * 
+ * ✅ NOW USES SOURCEMANAGER (not PrefsManager)
+ * Creates Source objects with type=SMS
+ */
 class SmsConfigActivity : AppCompatActivity() {
 
-    private lateinit var adapter: SmsTargetAdapter
-    private var targets: MutableList<SmsTarget> = mutableListOf()
+    private lateinit var sourceManager: SourceManager
+    private lateinit var adapter: SmsSourceAdapter
+    private var smsSources: MutableList<Source> = mutableListOf()
     
     // For contact picker dialog
     private var currentNumberInput: EditText? = null
@@ -44,16 +54,22 @@ class SmsConfigActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_sms_config)
 
-        targets = PrefsManager.getSmsConfigList(this).toMutableList()
+        // ✅ V2: Use SourceManager
+        sourceManager = SourceManager(applicationContext)
+        smsSources = sourceManager.getSourcesByType(SourceType.SMS).toMutableList()
 
         val recycler = findViewById<RecyclerView>(R.id.recycler_sms)
         recycler.layoutManager = LinearLayoutManager(this)
         
-        adapter = SmsTargetAdapter(targets, 
-            onEdit = { target -> showAddEditDialog(target) },
-            onToggle = { target, isEnabled ->
-                target.isEnabled = isEnabled
-                save()
+        adapter = SmsSourceAdapter(smsSources, 
+            onEdit = { source -> showAddEditDialog(source) },
+            onToggle = { source, isEnabled ->
+                val updated = source.copy(
+                    enabled = isEnabled,
+                    updatedAt = System.currentTimeMillis()
+                )
+                sourceManager.saveSource(updated)
+                loadSources()
             }
         )
         recycler.adapter = adapter
@@ -62,13 +78,14 @@ class SmsConfigActivity : AppCompatActivity() {
             showAddEditDialog(null)
         }
     }
-
-    private fun save() {
-        PrefsManager.saveSmsConfigList(this, targets)
-        adapter.updateData(targets)
+    
+    private fun loadSources() {
+        smsSources.clear()
+        smsSources.addAll(sourceManager.getSourcesByType(SourceType.SMS))
+        adapter.updateData(smsSources)
     }
     
-    private fun showAddEditDialog(target: SmsTarget?) {
+    private fun showAddEditDialog(source: Source?) {
         val view = LayoutInflater.from(this).inflate(R.layout.dialog_add_sms, null)
         
         val inputNumber = view.findViewById<EditText>(R.id.input_number)
@@ -78,19 +95,21 @@ class SmsConfigActivity : AppCompatActivity() {
         val btnPick = view.findViewById<ImageButton>(R.id.btn_pick_contact)
         
         // Populate if edit
-        if (target != null) {
-            inputNumber.setText(target.phoneNumber)
-            inputName.setText(target.name)
-            inputFilter.setText(target.filterText)
-            checkCase.isChecked = target.isCaseSensitive
+        if (source != null) {
+            inputNumber.setText(source.id.removePrefix("sms:"))
+            inputName.setText(source.name)
+            
+            // Get filter from extras
+            val extras = getSharedPreferences("source_extras", MODE_PRIVATE)
+            inputFilter.setText(extras.getString("${source.id}:filterText", ""))
+            checkCase.isChecked = extras.getBoolean("${source.id}:isCaseSensitive", false)
         }
         
-        // Store refs for picker callback (simple way)
+        // Store refs for picker callback
         currentNumberInput = inputNumber
         currentNameInput = inputName
         
         btnPick.setOnClickListener {
-            // Check Perms
             if (checkSelfPermission(Manifest.permission.READ_CONTACTS) == PackageManager.PERMISSION_GRANTED) {
                 launchContactPicker()
             } else {
@@ -98,7 +117,7 @@ class SmsConfigActivity : AppCompatActivity() {
             }
         }
         
-        val title = if (target == null) "Add SMS Target" else "Edit SMS Target"
+        val title = if (source == null) "Add SMS Source" else "Edit SMS Source"
         
         val dialog = AlertDialog.Builder(this)
             .setTitle(title)
@@ -110,39 +129,54 @@ class SmsConfigActivity : AppCompatActivity() {
                     return@setPositiveButton
                 }
                 
-                // Normalization (strip spaces, dashes, parens)
-                // Just keep it relatively raw but maybe strip formatting chars for storage?
-                // Actually keep it as user typed visuals, but norm in logic?
-                // Let's just save as is for now, Receiver will norm.
+                val name = inputName.text.toString().trim().ifEmpty { "Unknown" }
+                val filter = inputFilter.text.toString()
+                val caseSensitive = checkCase.isChecked
                 
-                val name = inputName.text.toString().trim()
-                val filter = inputFilter.text.toString() // allow empty
-                val case = checkCase.isChecked
-                
-                if (target == null) {
-                    // New
-                    val newTarget = SmsTarget(
-                        name = if(name.isEmpty()) "Unknown" else name,
-                        phoneNumber = number,
-                        filterText = filter,
-                        isCaseSensitive = case
+                // ✅ V2: Create or update Source
+                val newSource = if (source == null) {
+                    // New SMS source
+                    Source(
+                        id = "sms:$number",
+                        type = SourceType.SMS,
+                        name = name,
+                        enabled = true,
+                        autoClean = true,  // SMS default: clean emojis
+                        templateId = "rock-solid-sms-default",
+                        parserId = "sms",
+                        endpointId = "default-endpoint",
+                        iconColor = 0xFF00D980.toInt(), // Green
+                        createdAt = System.currentTimeMillis(),
+                        updatedAt = System.currentTimeMillis()
                     )
-                    targets.add(newTarget)
                 } else {
-                    // Update
-                    target.phoneNumber = number
-                    target.name = name
-                    target.filterText = filter
-                    target.isCaseSensitive = case
+                    // Update existing
+                    source.copy(
+                        id = "sms:$number",  // Allow changing number
+                        name = name,
+                        updatedAt = System.currentTimeMillis()
+                    )
                 }
-                save()
+                
+                // Save filter settings to extras (since Source model doesn't have them yet)
+                getSharedPreferences("source_extras", MODE_PRIVATE).edit()
+                    .putString("${newSource.id}:filterText", filter)
+                    .putBoolean("${newSource.id}:isCaseSensitive", caseSensitive)
+                    .putString("${newSource.id}:phoneNumber", number)
+                    .apply()
+                
+                sourceManager.saveSource(newSource)
+                loadSources()
+                
+                Toast.makeText(this, "SMS Source saved", Toast.LENGTH_SHORT).show()
             }
             .setNegativeButton("Cancel", null)
             
-        if (target != null) {
+        if (source != null) {
             dialog.setNeutralButton("Delete") { _, _ ->
-                targets.remove(target)
-                save()
+                sourceManager.deleteSource(source.id)
+                loadSources()
+                Toast.makeText(this, "SMS Source deleted", Toast.LENGTH_SHORT).show()
             }
         }
             
@@ -155,38 +189,23 @@ class SmsConfigActivity : AppCompatActivity() {
     }
     
     private fun processContactUri(uri: Uri) {
-        val projection = arrayOf(
-            ContactsContract.CommonDataKinds.Phone.NUMBER,
-            ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME
-        )
-        
         var cursor: Cursor? = null
         try {
-            cursor = contentResolver.query(uri, projection, null, null, null)
+            cursor = contentResolver.query(uri, null, null, null, null)
             if (cursor != null && cursor.moveToFirst()) {
-                val numIndex = cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER)
                 val nameIndex = cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME)
+                val numberIndex = cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER)
                 
-                val number = if (numIndex >= 0) cursor.getString(numIndex) else ""
-                val name = if (nameIndex >= 0) cursor.getString(nameIndex) else ""
-                
-                currentNumberInput?.setText(number)
-                if (currentNameInput?.text.isNullOrEmpty()) {
+                if (nameIndex >= 0 && numberIndex >= 0) {
+                    val name = cursor.getString(nameIndex)
+                    val number = cursor.getString(numberIndex)
+                    
+                    currentNumberInput?.setText(number)
                     currentNameInput?.setText(name)
                 }
             }
-        } catch (e: Exception) {
-            e.printStackTrace()
-            Toast.makeText(this, "Failed to load contact", Toast.LENGTH_SHORT).show()
         } finally {
             cursor?.close()
-        }
-    }
-
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == 101 && grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-             launchContactPicker()
         }
     }
 }

@@ -9,10 +9,14 @@ import com.example.alertsheets.domain.SourceManager
 import com.example.alertsheets.domain.models.SourceType
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
 
 class NotificationService : NotificationListenerService() {
 
-    private val scope = CoroutineScope(Dispatchers.IO)
+    // ✅ FIX: Use SupervisorJob for proper lifecycle management
+    private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     private lateinit var sourceManager: SourceManager
 
     override fun onCreate() {
@@ -20,8 +24,17 @@ class NotificationService : NotificationListenerService() {
         sourceManager = SourceManager(this)
         createNotificationChannel()
         
-        // V2 Migration: Run once
-        MigrationManager.migrateIfNeeded(this)
+        // V2 Migration: Run once (async to avoid ANR)
+        scope.launch {
+            MigrationManager.migrateIfNeeded(this@NotificationService)
+        }
+    }
+    
+    override fun onDestroy() {
+        super.onDestroy()
+        // ✅ FIX: Cancel all coroutines to prevent memory leaks
+        scope.cancel()
+        Log.i("NotificationService", "Service destroyed, coroutines cancelled")
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {

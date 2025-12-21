@@ -3,6 +3,7 @@ package com.example.alertsheets
 import android.content.Context
 import android.util.Log
 import com.example.alertsheets.data.repositories.EndpointRepository
+import com.example.alertsheets.domain.models.Endpoint
 import com.example.alertsheets.utils.AppConstants
 import com.google.gson.Gson
 import com.google.gson.JsonSyntaxException

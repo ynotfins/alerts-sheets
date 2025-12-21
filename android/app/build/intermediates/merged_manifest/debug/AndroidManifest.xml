@@ -88,6 +88,7 @@
         android:hasCode="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
+        android:resizeableActivity="false"
         android:supportsRtl="true"
         android:theme="@style/Theme.AlertsToSheets" >
 
@@ -97,12 +98,18 @@
         <activity
             android:name="com.example.alertsheets.ui.MainActivity"
             android:exported="true"
-            android:launchMode="singleTask" >
+            android:launchMode="singleTask"
+            android:resizeableActivity="false" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+
+            <!-- Prevent Samsung Dual App / Secure Folder / Work Profile duplication -->
+            <meta-data
+                android:name="com.samsung.android.multidisplay.keep_process_alive"
+                android:value="false" />
         </activity>
 
         <!-- ============================================ -->

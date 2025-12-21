@@ -13,6 +13,7 @@ import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
+import com.example.alertsheets.LogRepository
 import com.example.alertsheets.R
 import com.example.alertsheets.domain.SourceManager
 import com.example.alertsheets.domain.models.SourceType
@@ -32,6 +33,11 @@ class MainActivity : AppCompatActivity() {
     private lateinit var btnMaster: Button
     private lateinit var footerTicker: TextView
     private lateinit var dotPermissions: ImageView
+    private lateinit var dotApps: ImageView
+    private lateinit var dotSms: ImageView
+    private lateinit var dotPayloads: ImageView
+    private lateinit var dotEndpoints: ImageView
+    private lateinit var dotLogs: ImageView
     
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -44,6 +50,11 @@ class MainActivity : AppCompatActivity() {
         btnMaster = findViewById(R.id.btn_master_status)
         footerTicker = findViewById(R.id.footer_ticker)
         dotPermissions = findViewById(R.id.dot_permissions)
+        dotApps = findViewById(R.id.dot_apps)
+        dotSms = findViewById(R.id.dot_sms)
+        dotPayloads = findViewById(R.id.dot_payloads)
+        dotEndpoints = findViewById(R.id.dot_endpoints)
+        dotLogs = findViewById(R.id.dot_logs)
         
         // Setup card clicks
         setupCardClicks()
@@ -103,11 +114,37 @@ class MainActivity : AppCompatActivity() {
             if (allPermissionsGranted) 0xFF00D980.toInt() else 0xFFFF5252.toInt()
         )
         
-        // Footer ticker
+        // ✅ FIX: Other cards should show RED if not configured
         val appSources = sourceManager.getSourcesByType(SourceType.APP).filter { it.enabled }
         val smsSources = sourceManager.getSourcesByType(SourceType.SMS).filter { it.enabled }
         val stats = sourceManager.getTodayStats()
         
+        // Apps card: RED if no apps configured
+        dotApps.setColorFilter(
+            if (appSources.isNotEmpty()) 0xFF00D980.toInt() else 0xFFFF5252.toInt()
+        )
+        
+        // SMS card: RED if no SMS sources configured
+        dotSms.setColorFilter(
+            if (smsSources.isNotEmpty()) 0xFF00D980.toInt() else 0xFFFF5252.toInt()
+        )
+        
+        // Payloads card: Always green (templates always available)
+        dotPayloads.setColorFilter(0xFF00D980.toInt())
+        
+        // Endpoints card: Check if any endpoints are enabled
+        val endpoints = com.example.alertsheets.PrefsManager.getEndpoints(this).filter { it.isEnabled }
+        dotEndpoints.setColorFilter(
+            if (endpoints.isNotEmpty()) 0xFF00D980.toInt() else 0xFFFF5252.toInt()
+        )
+        
+        // Logs card: Check if we have logs
+        val hasLogs = LogRepository.getLogs().isNotEmpty()
+        dotLogs.setColorFilter(
+            if (hasLogs) 0xFF00D980.toInt() else 0xFFFF5252.toInt()
+        )
+        
+        // Footer ticker
         val smsRoleStatus = if (SmsRoleManager.isDefaultSmsApp(this)) "ROLE_SMS ✓" else "ROLE_SMS ✗"
         
         footerTicker.text = "Monitoring: ${appSources.size} Apps, ${smsSources.size} SMS • " +

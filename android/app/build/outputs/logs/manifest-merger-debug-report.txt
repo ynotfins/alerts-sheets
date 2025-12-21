@@ -1,9 +1,9 @@
 -- Merging decision tree log ---
 manifest
-ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:2:1-164:12
-INJECTED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:2:1-164:12
-INJECTED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:2:1-164:12
-INJECTED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:2:1-164:12
+ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:2:1-171:12
+INJECTED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:2:1-171:12
+INJECTED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:2:1-171:12
+INJECTED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:2:1-171:12
 MERGED from [androidx.databinding:viewbinding:8.2.0] C:\Users\ynotf\.gradle\caches\transforms-4\df5b79a2cddae30bc85ac931154ab1b5\transformed\jetified-viewbinding-8.2.0\AndroidManifest.xml:2:1-7:12
 MERGED from [com.google.android.material:material:1.11.0] C:\Users\ynotf\.gradle\caches\transforms-4\2cec4384738680782ff440d8d02d8b5f\transformed\material-1.11.0\AndroidManifest.xml:17:1-24:12
 MERGED from [androidx.constraintlayout:constraintlayout:2.1.4] C:\Users\ynotf\.gradle\caches\transforms-4\900edd8586fb459749135776bf1baabe\transformed\constraintlayout-2.1.4\AndroidManifest.xml:2:1-11:12
@@ -150,8 +150,8 @@ ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:65:5
 	android:name
 		ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:65:22-82
 application
-ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:67:5-162:19
-INJECTED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:67:5-162:19
+ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:67:5-169:19
+INJECTED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:67:5-169:19
 MERGED from [com.google.android.material:material:1.11.0] C:\Users\ynotf\.gradle\caches\transforms-4\2cec4384738680782ff440d8d02d8b5f\transformed\material-1.11.0\AndroidManifest.xml:22:5-20
 MERGED from [com.google.android.material:material:1.11.0] C:\Users\ynotf\.gradle\caches\transforms-4\2cec4384738680782ff440d8d02d8b5f\transformed\material-1.11.0\AndroidManifest.xml:22:5-20
 MERGED from [androidx.constraintlayout:constraintlayout:2.1.4] C:\Users\ynotf\.gradle\caches\transforms-4\900edd8586fb459749135776bf1baabe\transformed\constraintlayout-2.1.4\AndroidManifest.xml:9:5-20
@@ -180,8 +180,10 @@ MERGED from [androidx.startup:startup-runtime:1.1.1] C:\Users\ynotf\.gradle\cach
 		ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:76:9-31
 	android:fullBackupContent
 		ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:71:9-42
+	android:resizeableActivity
+		ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:77:9-43
 	tools:targetApi
-		ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:77:9-29
+		ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:78:9-29
 	android:icon
 		ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:72:9-43
 	android:allowBackup
@@ -193,153 +195,161 @@ MERGED from [androidx.startup:startup-runtime:1.1.1] C:\Users\ynotf\.gradle\cach
 	android:name
 		ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:68:9-42
 activity#com.example.alertsheets.ui.MainActivity
-ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:82:9-90:20
+ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:83:9-97:20
 	android:launchMode
-		ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:85:13-44
+		ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:86:13-44
 	android:exported
-		ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:84:13-36
+		ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:85:13-36
+	android:resizeableActivity
+		ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:87:13-47
 	android:name
-		ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:83:13-44
+		ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:84:13-44
 intent-filter#action:name:android.intent.action.MAIN+category:name:android.intent.category.LAUNCHER
-ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:86:13-89:29
+ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:88:13-91:29
 action#android.intent.action.MAIN
-ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:87:17-69
+ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:89:17-69
 	android:name
-		ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:87:25-66
+		ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:89:25-66
 category#android.intent.category.LAUNCHER
-ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:88:17-77
+ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:90:17-77
 	android:name
-		ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:88:27-74
+		ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:90:27-74
+meta-data#com.samsung.android.multidisplay.keep_process_alive
+ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:94:13-96:41
+	android:value
+		ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:96:17-38
+	android:name
+		ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:95:17-83
 activity#com.example.alertsheets.AppConfigActivity
-ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:95:9-97:61
+ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:102:9-104:61
 	android:parentActivityName
-		ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:97:13-58
+		ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:104:13-58
 	android:label
-		ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:96:13-37
+		ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:103:13-37
 	android:name
-		ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:95:19-52
+		ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:102:19-52
 activity#com.example.alertsheets.LogActivity
-ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:98:9-100:61
+ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:105:9-107:61
 	android:parentActivityName
-		ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:100:13-58
+		ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:107:13-58
 	android:label
-		ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:99:13-42
+		ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:106:13-42
 	android:name
-		ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:98:19-46
+		ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:105:19-46
 activity#com.example.alertsheets.SmsConfigActivity
-ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:101:9-103:61
+ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:108:9-110:61
 	android:parentActivityName
-		ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:103:13-58
+		ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:110:13-58
 	android:label
-		ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:102:13-46
+		ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:109:13-46
 	android:name
-		ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:101:19-52
+		ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:108:19-52
 activity#com.example.alertsheets.EndpointActivity
-ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:104:9-106:61
+ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:111:9-113:61
 	android:parentActivityName
-		ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:106:13-58
+		ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:113:13-58
 	android:label
-		ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:105:13-38
+		ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:112:13-38
 	android:name
-		ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:104:19-51
+		ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:111:19-51
 activity#com.example.alertsheets.AppsListActivity
-ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:107:9-109:61
+ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:114:9-116:61
 	android:parentActivityName
-		ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:109:13-58
+		ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:116:13-58
 	android:label
-		ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:108:13-40
+		ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:115:13-40
 	android:name
-		ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:107:19-51
+		ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:114:19-51
 activity#com.example.alertsheets.PermissionsActivity
-ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:110:9-112:61
+ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:117:9-119:61
 	android:parentActivityName
-		ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:112:13-58
+		ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:119:13-58
 	android:label
-		ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:111:13-40
+		ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:118:13-40
 	android:name
-		ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:110:19-54
+		ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:117:19-54
 service#com.example.alertsheets.services.AlertsNotificationListener
-ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:117:9-125:19
+ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:124:9-132:19
 	android:exported
-		ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:119:13-36
+		ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:126:13-36
 	android:permission
-		ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:120:13-87
+		ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:127:13-87
 	android:foregroundServiceType
-		ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:121:13-53
+		ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:128:13-53
 	android:name
-		ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:118:13-64
+		ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:125:13-64
 intent-filter#action:name:android.service.notification.NotificationListenerService
-ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:122:13-124:29
+ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:129:13-131:29
 	android:priority
-		ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:122:28-50
+		ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:129:28-50
 action#android.service.notification.NotificationListenerService
-ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:123:17-99
+ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:130:17-99
 	android:name
-		ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:123:25-96
+		ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:130:25-96
 receiver#com.example.alertsheets.services.AlertsSmsReceiver
-ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:130:9-146:20
+ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:137:9-153:20
 	android:exported
-		ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:132:13-36
+		ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:139:13-36
 	android:permission
-		ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:133:13-66
+		ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:140:13-66
 	android:name
-		ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:131:13-55
+		ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:138:13-55
 intent-filter#action:name:android.provider.Telephony.SMS_DELIVER+action:name:android.provider.Telephony.SMS_RECEIVED
-ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:134:13-137:29
+ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:141:13-144:29
 	android:priority
-		ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:134:28-57
+		ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:141:28-57
 action#android.provider.Telephony.SMS_RECEIVED
-ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:135:17-82
+ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:142:17-82
 	android:name
-		ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:135:25-79
+		ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:142:25-79
 action#android.provider.Telephony.SMS_DELIVER
-ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:136:17-81
+ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:143:17-81
 	android:name
-		ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:136:25-78
+		ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:143:25-78
 intent-filter#action:name:android.provider.Telephony.WAP_PUSH_RECEIVED+data:mimeType:application/vnd.wap.mms-message
-ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:138:13-141:29
+ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:145:13-148:29
 	android:priority
-		ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:138:28-57
+		ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:145:28-57
 action#android.provider.Telephony.WAP_PUSH_RECEIVED
-ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:139:17-87
+ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:146:17-87
 	android:name
-		ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:139:25-84
+		ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:146:25-84
 data
-ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:140:17-76
+ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:147:17-76
 	android:mimeType
-		ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:140:23-73
+		ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:147:23-73
 intent-filter#action:name:android.provider.Telephony.WAP_PUSH_DELIVER+data:mimeType:application/vnd.wap.mms-message
-ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:142:13-145:29
+ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:149:13-152:29
 	android:priority
-		ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:142:28-57
+		ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:149:28-57
 action#android.provider.Telephony.WAP_PUSH_DELIVER
-ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:143:17-86
+ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:150:17-86
 	android:name
-		ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:143:25-83
+		ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:150:25-83
 receiver#com.example.alertsheets.services.BootReceiver
-ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:151:9-160:20
+ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:158:9-167:20
 	android:enabled
-		ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:154:13-35
+		ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:161:13-35
 	android:exported
-		ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:153:13-36
+		ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:160:13-36
 	android:name
-		ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:152:13-50
+		ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:159:13-50
 intent-filter#action:name:android.intent.action.BOOT_COMPLETED+action:name:android.intent.action.MY_PACKAGE_REPLACED+action:name:android.intent.action.QUICKBOOT_POWERON
-ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:155:13-159:29
+ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:162:13-166:29
 	android:priority
-		ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:155:28-50
+		ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:162:28-50
 action#android.intent.action.BOOT_COMPLETED
-ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:156:17-79
+ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:163:17-79
 	android:name
-		ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:156:25-76
+		ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:163:25-76
 action#android.intent.action.QUICKBOOT_POWERON
-ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:157:17-82
+ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:164:17-82
 	android:name
-		ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:157:25-79
+		ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:164:25-79
 action#android.intent.action.MY_PACKAGE_REPLACED
-ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:158:17-84
+ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:165:17-84
 	android:name
-		ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:158:25-81
+		ADDED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml:165:25-81
 uses-sdk
 INJECTED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml reason: use-sdk injection requested
 INJECTED from D:\github\alerts-sheets\android\app\src\main\AndroidManifest.xml

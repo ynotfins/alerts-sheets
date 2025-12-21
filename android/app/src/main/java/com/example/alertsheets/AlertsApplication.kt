@@ -18,6 +18,10 @@ class AlertsApplication : Application() {
         super.onCreate()
         Log.i(TAG, "🚀 AlertsToSheets V2 starting - GOD MODE")
         
+        // ✅ CRITICAL: Initialize LogRepository FIRST (before anything logs)
+        LogRepository.initialize(this)
+        Log.i(TAG, "✅ LogRepository initialized")
+        
         // Initialize parser registry
         ParserRegistry.init()
         Log.i(TAG, "✅ Parser registry initialized")

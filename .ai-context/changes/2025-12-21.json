@@ -1,23 +1,14 @@
 {
-  "timestamp": "2025-12-21_02-43-04",
-  "commit": "03d79da66f60e15fa54c21ed859da92f311283fc",
-  "message": "fix: CRITICAL - Logs, green dots, and app list all working
+  "timestamp": "2025-12-21_02-49-45",
+  "commit": "53c33c69f98c0c72eb8948bd369118e1062a65fc",
+  "message": "fix: Enhanced app loading with debug logging
 
-✅ LogRepository now initialized in AlertsApplication (was never initialized!)
-✅ Dashboard green dots now accurately reflect configuration status
-  - Apps card: RED if no apps configured
-  - SMS card: RED if no SMS sources configured
-  - Endpoints card: RED if no endpoints enabled
-  - Logs card: RED if no logs yet
-  - Payloads: Always green (templates always available)
-✅ Fixed AppsListActivity to load ALL apps including disabled/hidden
-✅ Added MATCH_DISABLED_COMPONENTS flag to show BNN and other APK-installed apps
+- Added MATCH_DISABLED_COMPONENTS and MATCH_UNINSTALLED_PACKAGES flags
+- Added comprehensive debug logging to see exactly what apps are found
+- Added specific BNN detection logging
+- Added filter results logging to diagnose missing apps issue
 
-User reported:
-- Logs not working (FIXED - LogRepository never init)
-- All cards green when nothing configured (FIXED - proper status logic)
-- BNN not showing in apps list (FIXED - better flags)
-- Draw over apps permission? (ANSWERED - not needed for this app)",
+User reports: BNN and most installed apps still not showing in list",
   "files_changed": [
     ".ai-context/changes/2025-12-21.json",
     "android/.gradle/8.7/executionHistory/executionHistory.bin",
@@ -26,17 +17,18 @@ User reported:
     "android/.gradle/8.7/fileHashes/fileHashes.lock",
     "android/.gradle/8.7/fileHashes/resourceHashesCache.bin",
     "android/.gradle/buildOutputCleanup/buildOutputCleanup.lock",
-    "android/app/build/intermediates/dex/debug/mergeProjectDexDebug/3/classes.dex",
     "android/app/build/intermediates/dex/debug/mergeProjectDexDebug/4/classes.dex",
     "android/app/build/intermediates/incremental/packageDebug/tmp/debug/dex-renamer-state.txt",
-    "android/app/build/intermediates/incremental/packageDebug/tmp/debug/zip-cache/androidResources",
-    "android/app/build/intermediates/manifest_merge_blame_file/debug/manifest-merger-blame-debug-report.txt",
-    "android/app/build/intermediates/merged_manifest/debug/AndroidManifest.xml",
-    "android/app/build/intermediates/merged_manifests/debug/AndroidManifest.xml",
-    "android/app/build/intermediates/packaged_manifests/debug/AndroidManifest.xml",
-    "android/app/build/intermediates/processed_res/debug/out/resources-debug.ap_",
-    "android/app/build/intermediates/project_dex_archive/debug/out/com/example/alertsheets/AlertsApplication.dex",
-    "android/app/build/intermediates/project_dex_archive/debug/out/com/example/alertsheets/ui/MainActivity.dex",
+    "android/app/build/intermediates/project_dex_archive/debug/out/com/example/alertsheets/AppsListActivity$onCreate$1$2$1$1.dex",
+    "android/app/build/intermediates/project_dex_archive/debug/out/com/example/alertsheets/AppsListActivity$onCreate$1$2$1$2.dex",
+    "android/app/build/intermediates/project_dex_archive/debug/out/com/example/alertsheets/AppsListActivity$onCreate$1$2$1.dex",
+    "android/app/build/intermediates/project_dex_archive/debug/out/com/example/alertsheets/AppsListActivity$onCreate$1$2.dex",
+    "android/app/build/intermediates/project_dex_archive/debug/out/com/example/alertsheets/AppsListActivity$onCreate$1$3.dex",
+    "android/app/build/intermediates/project_dex_archive/debug/out/com/example/alertsheets/AppsListActivity$onCreate$1$appSources$1.dex",
+    "android/app/build/intermediates/project_dex_archive/debug/out/com/example/alertsheets/AppsListActivity$onCreate$1$apps$1$invokeSuspend$$inlined$sortedBy$1.dex",
+    "android/app/build/intermediates/project_dex_archive/debug/out/com/example/alertsheets/AppsListActivity$onCreate$1$apps$1.dex",
+    "android/app/build/intermediates/project_dex_archive/debug/out/com/example/alertsheets/AppsListActivity$onCreate$1.dex",
+    "android/app/build/intermediates/project_dex_archive/debug/out/com/example/alertsheets/AppsListActivity.dex",
     "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/inputs/source-to-output.tab",
     "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/inputs/source-to-output.tab.values.at",
     "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/class-attributes.tab",
@@ -73,10 +65,16 @@ User reported:
     "android/app/build/kotlin/compileDebugKotlin/cacheable/last-build.bin",
     "android/app/build/kotlin/compileDebugKotlin/local-state/build-history.bin",
     "android/app/build/outputs/apk/debug/app-debug.apk",
-    "android/app/build/outputs/logs/manifest-merger-debug-report.txt",
-    "android/app/build/tmp/kotlin-classes/debug/com/example/alertsheets/AlertsApplication.class",
-    "android/app/build/tmp/kotlin-classes/debug/com/example/alertsheets/ui/MainActivity.class",
-    "android/app/src/main/java/com/example/alertsheets/AlertsApplication.kt",
-    "android/app/src/main/java/com/example/alertsheets/ui/MainActivity.kt"
+    "android/app/build/tmp/kotlin-classes/debug/com/example/alertsheets/AppsListActivity$onCreate$1$2$1$1.class",
+    "android/app/build/tmp/kotlin-classes/debug/com/example/alertsheets/AppsListActivity$onCreate$1$2$1$2.class",
+    "android/app/build/tmp/kotlin-classes/debug/com/example/alertsheets/AppsListActivity$onCreate$1$2$1.class",
+    "android/app/build/tmp/kotlin-classes/debug/com/example/alertsheets/AppsListActivity$onCreate$1$2.class",
+    "android/app/build/tmp/kotlin-classes/debug/com/example/alertsheets/AppsListActivity$onCreate$1$3.class",
+    "android/app/build/tmp/kotlin-classes/debug/com/example/alertsheets/AppsListActivity$onCreate$1$appSources$1.class",
+    "android/app/build/tmp/kotlin-classes/debug/com/example/alertsheets/AppsListActivity$onCreate$1$apps$1$invokeSuspend$$inlined$sortedBy$1.class",
+    "android/app/build/tmp/kotlin-classes/debug/com/example/alertsheets/AppsListActivity$onCreate$1$apps$1.class",
+    "android/app/build/tmp/kotlin-classes/debug/com/example/alertsheets/AppsListActivity$onCreate$1.class",
+    "android/app/build/tmp/kotlin-classes/debug/com/example/alertsheets/AppsListActivity.class",
+    "android/app/src/main/java/com/example/alertsheets/AppsListActivity.kt"
   ]
 }

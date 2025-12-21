@@ -101,12 +101,23 @@ class AppsListActivity : AppCompatActivity() {
             // Load apps (IO thread) - GET ALL APPS INCLUDING SYSTEM, USER, DISABLED, ETC
             val pm = packageManager
             val apps = withContext(Dispatchers.IO) {
-                // ✅ CRITICAL FIX: Use multiple flags to get EVERY app on the device
-                pm.getInstalledApplications(
-                    android.content.pm.PackageManager.GET_META_DATA or
-                    android.content.pm.PackageManager.MATCH_DISABLED_COMPONENTS or
-                    android.content.pm.PackageManager.MATCH_UNINSTALLED_PACKAGES
-                ).sortedBy { 
+                // ✅ CRITICAL FIX: Use getInstalledPackages to get ALL packages, not just apps with activities
+                // Then convert to ApplicationInfo for UI display
+                val packages = pm.getInstalledPackages(
+                    PackageManager.GET_META_DATA or
+                    PackageManager.MATCH_DISABLED_COMPONENTS or
+                    PackageManager.MATCH_UNINSTALLED_PACKAGES
+                )
+                
+                // Convert PackageInfo to ApplicationInfo
+                packages.mapNotNull { pkg ->
+                    try {
+                        pkg.applicationInfo
+                    } catch (e: Exception) {
+                        Log.w("AppsListActivity", "Failed to get app info for ${pkg.packageName}: ${e.message}")
+                        null
+                    }
+                }.sortedBy { 
                     try {
                         it.loadLabel(pm).toString().lowercase()
                     } catch (e: Exception) {

@@ -19,7 +19,15 @@ color teal_700
 color white
 drawable bg_card
 drawable bg_card_dark
+drawable ic_activity_logs_card
+drawable ic_apps_card
+drawable ic_endpoints_card
 drawable ic_launcher_foreground
+drawable ic_notification
+drawable ic_payloads_card
+drawable ic_permissions_card
+drawable ic_sms_card
+drawable ic_status_dot
 drawable status_indicator
 id btn_add_endpoint
 id btn_add_mapping
@@ -45,6 +53,7 @@ id check_show_system
 id checkbox_app
 id dot_apps
 id dot_endpoints
+id dot_logs
 id dot_payloads
 id dot_permissions
 id dot_sms

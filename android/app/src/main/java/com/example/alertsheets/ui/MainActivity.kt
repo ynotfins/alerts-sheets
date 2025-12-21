@@ -1,9 +1,14 @@
 package com.example.alertsheets.ui
 
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.os.PowerManager
+import android.provider.Settings
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.NotificationManagerCompat
+import androidx.core.content.ContextCompat
 import com.example.alertsheets.R
 import com.example.alertsheets.domain.SourceManager
 import com.example.alertsheets.domain.models.SourceType
@@ -22,6 +27,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var tvServiceStatus: TextView
     private lateinit var btnMaster: Button
     private lateinit var footerTicker: TextView
+    private lateinit var dotPermissions: ImageView
     
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -33,6 +39,7 @@ class MainActivity : AppCompatActivity() {
         tvServiceStatus = findViewById(R.id.tv_service_status)
         btnMaster = findViewById(R.id.btn_master_status)
         footerTicker = findViewById(R.id.footer_ticker)
+        dotPermissions = findViewById(R.id.dot_permissions)
         
         // Setup card clicks
         setupCardClicks()
@@ -81,6 +88,17 @@ class MainActivity : AppCompatActivity() {
         btnMaster.text = "LIVE"
         btnMaster.setBackgroundColor(0xFF00D980.toInt()) // Samsung Green
         
+        // Check permissions for the permissions card dot
+        val hasNotifListener = checkNotificationListener()
+        val hasSmsPermission = checkSmsPermission()
+        val hasBatteryOptimization = checkBatteryOptimization()
+        val allPermissionsGranted = hasNotifListener && hasSmsPermission && hasBatteryOptimization
+        
+        // Update permissions dot color
+        dotPermissions.setColorFilter(
+            if (allPermissionsGranted) 0xFF00D980.toInt() else 0xFFFF5252.toInt()
+        )
+        
         // Footer ticker
         val appSources = sourceManager.getSourcesByType(SourceType.APP).filter { it.enabled }
         val smsSources = sourceManager.getSourcesByType(SourceType.SMS).filter { it.enabled }
@@ -90,6 +108,31 @@ class MainActivity : AppCompatActivity() {
         
         footerTicker.text = "Monitoring: ${appSources.size} Apps, ${smsSources.size} SMS • " +
                 "Today: ${stats["sent"]} sent, ${stats["failed"]} failed • $smsRoleStatus"
+    }
+    
+    private fun checkNotificationListener(): Boolean {
+        val flat = Settings.Secure.getString(contentResolver, "enabled_notification_listeners")
+        val serviceName = "$packageName/com.example.alertsheets.services.AlertsNotificationListener"
+        val isEnabledLegacy = flat != null && (flat.contains(packageName) || flat.contains(serviceName))
+        val isEnabledCompat = NotificationManagerCompat.getEnabledListenerPackages(this).contains(packageName)
+        return isEnabledLegacy || isEnabledCompat
+    }
+    
+    private fun checkSmsPermission(): Boolean {
+        val defaultSmsPackage = try {
+            android.provider.Telephony.Sms.getDefaultSmsPackage(this)
+        } catch (e: Exception) {
+            null
+        }
+        val isDefaultSms = defaultSmsPackage == packageName
+        val hasPermission = ContextCompat.checkSelfPermission(this, android.Manifest.permission.RECEIVE_SMS) ==
+                android.content.pm.PackageManager.PERMISSION_GRANTED
+        return isDefaultSms || hasPermission
+    }
+    
+    private fun checkBatteryOptimization(): Boolean {
+        val pm = getSystemService(Context.POWER_SERVICE) as PowerManager
+        return pm.isIgnoringBatteryOptimizations(packageName)
     }
 }
 

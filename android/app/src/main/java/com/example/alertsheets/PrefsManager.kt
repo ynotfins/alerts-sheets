@@ -69,6 +69,17 @@ object PrefsManager {
         val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         prefs.edit().putBoolean("should_clean_data", shouldClean).apply()
     }
+    
+    // Last Config Mode (APP or SMS)
+    fun getLastConfigMode(context: Context): String {
+        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        return prefs.getString("last_config_mode", "APP") ?: "APP"
+    }
+    
+    fun saveLastConfigMode(context: Context, mode: String) {
+        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        prefs.edit().putString("last_config_mode", mode).apply()
+    }
 
     // JSON Templates
     // Deprecated single template, splitting into App and SMS
@@ -118,6 +129,19 @@ object PrefsManager {
     fun saveSmsJsonTemplate(context: Context, template: String) {
         val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         prefs.edit().putString("json_template_sms", template).apply()
+    }
+
+    /**
+     * Get template by ID (for V2 Source system)
+     * Returns null if not found, caller should fallback to default
+     */
+    fun getTemplateById(context: Context, templateId: String): String? {
+        return when (templateId) {
+            "rock-solid-app-default" -> getAppJsonTemplate(context)
+            "rock-solid-sms-default" -> getSmsJsonTemplate(context)
+            "rock-solid-bnn-format" -> getAppJsonTemplate(context) // BNN uses app template
+            else -> null // Custom template, not yet implemented
+        }
     }
 
     // --- AppConfig Methods ---

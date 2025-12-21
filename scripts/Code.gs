@@ -16,11 +16,17 @@ function doPost(e) {
       ).setMimeType(ContentService.MimeType.JSON);
     }
 
-    // 1. SMS Message Handling (NEW)
+    // 1. SMS Message Handling
     if (data.source === "sms") {
       return handleSmsMessage(data, sheet);
     }
 
+    // 2. Generic App Notification Handling (no BNN structure)
+    if (data.source === "app" && !data.incidentId) {
+      return handleGenericApp(data, sheet);
+    }
+
+    // 3. BNN Incident Handling (structured data with incident ID)
     // Key Fields
     const rawId = data.incidentId ? data.incidentId.toString().trim() : "";
     const incidentId = rawId.startsWith("#") ? rawId.substring(1) : rawId; // Strip # for search
@@ -191,7 +197,10 @@ function doPost(e) {
   }
 }
 
-// NEW: Handle SMS Messages
+/**
+ * Handle SMS Messages
+ * Format: Simple row with sender and message
+ */
 function handleSmsMessage(data, sheet) {
   const now = new Date();
   const formattedTime = Utilities.formatDate(
@@ -205,26 +214,68 @@ function handleSmsMessage(data, sheet) {
   const message = data.message || "";
   const timestamp = data.timestamp || formattedTime;
 
-  // SMS Row Format - Simplified for SMS
-  // Status | Timestamp | ID (SMS-ID) | State (blank) | County (blank) | 
-  // City (blank) | Address (SMS Sender) | Type (SMS) | Details (Message) | Original (Full)
-  
+  // SMS Row Format
+  // Status | Timestamp | ID | State | County | City | Address | Type | Details | Original
   const row = [
-    "SMS", // Status
-    timestamp, // Timestamp
-    `SMS-${Date.now()}`, // Unique SMS ID
-    "", // State (blank for SMS)
-    "", // County (blank for SMS)
-    "", // City (blank for SMS)
-    sender, // Address column shows sender
-    "SMS Message", // Type
-    message, // Details shows the message text
-    `From: ${sender}\n${message}` // Original Body
+    "SMS",                          // Status
+    timestamp,                      // Timestamp
+    `SMS-${Date.now()}`,            // Unique SMS ID
+    "",                             // State (blank for SMS)
+    "",                             // County (blank for SMS)
+    "",                             // City (blank for SMS)
+    sender,                         // Address shows sender number
+    "SMS Message",                  // Type
+    message,                        // Details shows message text
+    `From: ${sender}\n${message}`   // Original Body
   ];
 
   sheet.appendRow(row);
 
   return ContentService.createTextOutput(
     JSON.stringify({ result: "success", type: "sms", sender: sender })
+  ).setMimeType(ContentService.MimeType.JSON);
+}
+
+/**
+ * Handle Generic App Notifications
+ * For apps that don't have BNN-style structured data
+ */
+function handleGenericApp(data, sheet) {
+  const now = new Date();
+  const formattedTime = Utilities.formatDate(
+    now,
+    Session.getScriptTimeZone(),
+    "MM/dd/yyyy hh:mm:ss a"
+  );
+
+  // Extract app notification fields
+  const packageName = data.package || "Unknown App";
+  const title = data.title || "";
+  const text = data.text || "";
+  const bigText = data.bigText || "";
+  const timestamp = data.timestamp || formattedTime;
+  
+  // Combine text fields for details
+  const details = bigText || text || title || "(No content)";
+  
+  // Generic App Row Format
+  // Status | Timestamp | ID | State | County | City | Address | Type | Details | Original
+  const row = [
+    "App Notification",             // Status
+    timestamp,                      // Timestamp
+    `APP-${Date.now()}`,            // Unique App ID
+    "",                             // State (blank for generic apps)
+    "",                             // County (blank for generic apps)
+    "",                             // City (blank for generic apps)
+    packageName,                    // Address shows package name
+    title || "Notification",        // Type shows notification title
+    details,                        // Details shows notification content
+    `App: ${packageName}\nTitle: ${title}\nText: ${text}\nBigText: ${bigText}` // Original
+  ];
+
+  sheet.appendRow(row);
+
+  return ContentService.createTextOutput(
+    JSON.stringify({ result: "success", type: "app", package: packageName })
   ).setMimeType(ContentService.MimeType.JSON);
 }

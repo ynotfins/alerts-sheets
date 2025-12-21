@@ -82,9 +82,18 @@ class AppsListActivity : AppCompatActivity() {
         filteredApps.clear()
         
         for (app in allApps) {
-            // Filter system apps if toggle is off
+            // Filter system apps based on toggle
             val isSystemApp = (app.flags and ApplicationInfo.FLAG_SYSTEM) != 0
-            if (!showSystemApps && isSystemApp) continue
+            
+            // When "System Apps" checkbox is checked: show ONLY system apps
+            // When unchecked: show ONLY non-system (installed) apps
+            if (showSystemApps) {
+                // User wants system apps - skip non-system apps
+                if (!isSystemApp) continue
+            } else {
+                // User wants installed apps - skip system apps
+                if (isSystemApp) continue
+            }
             
             // Filter by search query
             if (searchQuery.isNotEmpty()) {

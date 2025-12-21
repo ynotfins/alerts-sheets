@@ -1,0 +1,16 @@
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <!-- Pure black background -->
+  <rect width="200" height="200" rx="20" fill="#000000"/>
+  
+  <!-- Payloads icon (wrench) - ENLARGED 75% height -->
+  <g transform="translate(100, 80)">
+    <!-- Wrench handle and head -->
+    <path d="M -25 -60 Q -32 -60 -32 -52 L -32 -12 Q -32 -6 -25 -6 L -8 -6 Q -2 -6 -2 -12 L -2 -25 L 12 -10 L 20 -18 L 6 -32 L 20 -46 L 12 -54 L -2 -40 L -2 -52 Q -2 -60 -8 -60 Z" 
+          fill="#30D158" stroke="#30D158" stroke-width="3"/>
+    <!-- Wrench head detail (bolt hole) -->
+    <circle cx="-16" cy="-50" r="5" fill="#000000"/>
+  </g>
+  
+  <!-- Text label -->
+  <text x="100" y="175" font-family="Roboto, Arial, sans-serif" font-size="20" fill="#FFFFFF" text-anchor="middle" font-weight="500">Payloads</text>
+</svg>

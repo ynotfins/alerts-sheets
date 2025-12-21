@@ -251,11 +251,22 @@ class AppConfigActivity : AppCompatActivity() {
 
         // Logic
 
-        // Load initial
-        loadConfig(isAppMode = true)
+        // Load initial - restore last mode
+        val lastMode = PrefsManager.getLastConfigMode(this) // "APP" or "SMS"
+        val isAppMode = (lastMode == "APP")
+        
+        if (isAppMode) {
+            radioGroupMode.check(R.id.radio_app)
+        } else {
+            radioGroupMode.check(R.id.radio_sms)
+        }
+        
+        loadConfig(isAppMode)
 
         radioGroupMode.setOnCheckedChangeListener { _, checkedId ->
             val isApp = (checkedId == R.id.radio_app)
+            // Save mode preference
+            PrefsManager.saveLastConfigMode(this, if (isApp) "APP" else "SMS")
             loadConfig(isApp)
             loadTemplatesForCurrentMode() // Reload templates when mode changes
         }
@@ -279,7 +290,10 @@ class AppConfigActivity : AppCompatActivity() {
                     override fun onNothingSelected(parent: android.widget.AdapterView<*>?) {}
                 }
 
-        setContentView(layout)
+        // Wrap in ScrollView for proper scrolling
+        val scrollView = ScrollView(this)
+        scrollView.addView(layout)
+        setContentView(scrollView)
     }
 
     override fun onSupportNavigateUp(): Boolean {

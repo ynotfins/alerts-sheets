@@ -73,33 +73,21 @@
         <FrameLayout
             android:id="@+id/card_apps"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="140dp"
             android:layout_columnWeight="1"
             android:layout_rowWeight="1"
-            android:layout_margin="6dp"
+            android:layout_margin="8dp"
             android:background="@drawable/bg_card_dark"
             android:padding="16dp"
             android:clickable="true"
             android:focusable="true">
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center"
-                android:orientation="vertical">
-                <ImageView
-                    android:layout_width="48dp"
-                    android:layout_height="48dp"
-                    android:src="@android:drawable/ic_menu_agenda"
-                    android:tint="#A855F7"
-                    android:layout_marginBottom="12dp" />
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Apps"
-                    android:textColor="#FFFFFF"
-                    android:textStyle="bold" />
-            </LinearLayout>
+            <ImageView
+                android:layout_width="64dp"
+                android:layout_height="64dp"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_apps_card"
+                android:scaleType="fitCenter" />
 
             <ImageView
                 android:id="@+id/dot_apps"
@@ -107,40 +95,28 @@
                 android:layout_height="12dp"
                 android:layout_gravity="top|end"
                 android:src="@drawable/ic_launcher_foreground"
-                android:tint="#4CAF50" /> <!-- Placeholder tint -->
+                android:tint="#4CAF50" />
         </FrameLayout>
 
         <!-- Card: SMS -->
         <FrameLayout
             android:id="@+id/card_sms"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="140dp"
             android:layout_columnWeight="1"
             android:layout_rowWeight="1"
-            android:layout_margin="6dp"
+            android:layout_margin="8dp"
             android:background="@drawable/bg_card_dark"
             android:padding="16dp"
             android:clickable="true"
             android:focusable="true">
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center"
-                android:orientation="vertical">
-                <ImageView
-                    android:layout_width="48dp"
-                    android:layout_height="48dp"
-                    android:src="@android:drawable/sym_action_chat"
-                    android:tint="#4A9EFF"
-                    android:layout_marginBottom="12dp" />
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="SMS"
-                    android:textColor="#FFFFFF"
-                    android:textStyle="bold" />
-            </LinearLayout>
+            <ImageView
+                android:layout_width="64dp"
+                android:layout_height="64dp"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_sms_card"
+                android:scaleType="fitCenter" />
 
             <ImageView
                 android:id="@+id/dot_sms"
@@ -155,33 +131,21 @@
         <FrameLayout
             android:id="@+id/card_config"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="140dp"
             android:layout_columnWeight="1"
             android:layout_rowWeight="1"
-            android:layout_margin="6dp"
+            android:layout_margin="8dp"
             android:background="@drawable/bg_card_dark"
             android:padding="16dp"
             android:clickable="true"
             android:focusable="true">
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center"
-                android:orientation="vertical">
-                <ImageView
-                    android:layout_width="48dp"
-                    android:layout_height="48dp"
-                    android:src="@android:drawable/ic_menu_preferences"
-                    android:tint="#00D980"
-                    android:layout_marginBottom="12dp" />
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Payloads"
-                    android:textColor="#FFFFFF"
-                    android:textStyle="bold" />
-            </LinearLayout>
+            <ImageView
+                android:layout_width="64dp"
+                android:layout_height="64dp"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_payloads_card"
+                android:scaleType="fitCenter" />
 
             <ImageView
                 android:id="@+id/dot_payloads"
@@ -196,33 +160,21 @@
         <FrameLayout
             android:id="@+id/card_endpoints"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="140dp"
             android:layout_columnWeight="1"
             android:layout_rowWeight="1"
-            android:layout_margin="6dp"
+            android:layout_margin="8dp"
             android:background="@drawable/bg_card_dark"
             android:padding="16dp"
             android:clickable="true"
             android:focusable="true">
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center"
-                android:orientation="vertical">
-                <ImageView
-                    android:layout_width="48dp"
-                    android:layout_height="48dp"
-                    android:src="@android:drawable/ic_menu_upload"
-                    android:tint="#FF4757"
-                    android:layout_marginBottom="12dp" />
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Endpoints"
-                    android:textColor="#FFFFFF"
-                    android:textStyle="bold" />
-            </LinearLayout>
+            <ImageView
+                android:layout_width="64dp"
+                android:layout_height="64dp"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_endpoints_card"
+                android:scaleType="fitCenter" />
 
             <ImageView
                 android:id="@+id/dot_endpoints"
@@ -237,34 +189,22 @@
         <FrameLayout
             android:id="@+id/card_permissions"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="140dp"
             android:layout_columnSpan="1"
             android:layout_columnWeight="1"
             android:layout_rowWeight="1"
-            android:layout_margin="6dp"
+            android:layout_margin="8dp"
             android:background="@drawable/bg_card_dark"
             android:padding="16dp"
             android:clickable="true"
             android:focusable="true">
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center"
-                android:orientation="vertical">
-                <ImageView
-                    android:layout_width="48dp"
-                    android:layout_height="48dp"
-                    android:src="@android:drawable/ic_secure"
-                    android:tint="#4A9EFF"
-                    android:layout_marginBottom="12dp" />
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Permissions"
-                    android:textColor="#FFFFFF"
-                    android:textStyle="bold" />
-            </LinearLayout>
+            <ImageView
+                android:layout_width="64dp"
+                android:layout_height="64dp"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_permissions_card"
+                android:scaleType="fitCenter" />
 
             <ImageView
                 android:id="@+id/dot_permissions"
@@ -279,34 +219,30 @@
         <FrameLayout
             android:id="@+id/card_logs"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="140dp"
             android:layout_columnSpan="1"
             android:layout_columnWeight="1"
             android:layout_rowWeight="1"
-            android:layout_margin="6dp"
+            android:layout_margin="8dp"
             android:background="@drawable/bg_card_dark"
             android:padding="16dp"
             android:clickable="true"
             android:focusable="true">
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center"
-                android:orientation="vertical">
-                <ImageView
-                    android:layout_width="48dp"
-                    android:layout_height="48dp"
-                    android:src="@android:drawable/ic_menu_info_details"
-                    android:tint="#FF8A3D"
-                    android:layout_marginBottom="12dp" />
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Activity Logs"
-                    android:textColor="#FFFFFF"
-                    android:textStyle="bold" />
-            </LinearLayout>
+            <ImageView
+                android:layout_width="64dp"
+                android:layout_height="64dp"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_activity_logs_card"
+                android:scaleType="fitCenter" />
+
+            <ImageView
+                android:id="@+id/dot_logs"
+                android:layout_width="12dp"
+                android:layout_height="12dp"
+                android:layout_gravity="top|end"
+                android:src="@drawable/ic_launcher_foreground"
+                android:tint="#4CAF50" />
         </FrameLayout>
 
     </GridLayout>

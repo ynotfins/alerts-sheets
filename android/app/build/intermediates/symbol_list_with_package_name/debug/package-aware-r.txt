@@ -3000,6 +3000,8 @@ drawable design_ic_visibility
 drawable design_ic_visibility_off
 drawable design_password_eye
 drawable design_snackbar_background
+drawable ic_activity_logs_card
+drawable ic_apps_card
 drawable ic_arrow_back_black_24
 drawable ic_call_answer
 drawable ic_call_answer_low
@@ -3009,6 +3011,7 @@ drawable ic_call_decline
 drawable ic_call_decline_low
 drawable ic_clear_black_24
 drawable ic_clock_black_24dp
+drawable ic_endpoints_card
 drawable ic_keyboard_black_24dp
 drawable ic_launcher_foreground
 drawable ic_m3_chip_check
@@ -3018,7 +3021,12 @@ drawable ic_mtrl_checked_circle
 drawable ic_mtrl_chip_checked_black
 drawable ic_mtrl_chip_checked_circle
 drawable ic_mtrl_chip_close_circle
+drawable ic_notification
+drawable ic_payloads_card
+drawable ic_permissions_card
 drawable ic_search_black_24
+drawable ic_sms_card
+drawable ic_status_dot
 drawable m3_avd_hide_password
 drawable m3_avd_show_password
 drawable m3_bottom_sheet_drag_handle
@@ -3276,6 +3284,7 @@ id disableScroll
 id disjoint
 id dot_apps
 id dot_endpoints
+id dot_logs
 id dot_payloads
 id dot_permissions
 id dot_sms

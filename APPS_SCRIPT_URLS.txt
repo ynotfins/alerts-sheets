@@ -1,0 +1,14 @@
+# AlertsToSheets Google Apps Script URLs
+
+## Production Deployment
+APPS_SCRIPT_URL=https://script.google.com/macros/s/AKfycbymLXsm9yxh7xQoEBtJLu8KRVs2YPKlPc3BqV6JLNjTpjYhd0SeLqIHv2ms9p82CWGeDw/exec
+
+## Google Sheet
+SHEET_URL=https://docs.google.com/spreadsheets/d/1yKUvWtG7wBdjBhLpmM78vWhUoxiKMIryczIUt_Z2wOE/edit?gid=0#gid=0
+SHEET_ID=1yKUvWtG7wBdjBhLpmM78vWhUoxiKMIryczIUt_Z2wOE
+
+## Instructions
+1. Add APPS_SCRIPT_URL to functions/.env.local
+2. Copy Code.gs from scripts/Code.gs to Google Apps Script editor
+3. Deploy as Web App (Execute as: Me, Access: Anyone)
+

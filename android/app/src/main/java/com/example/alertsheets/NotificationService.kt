@@ -5,16 +5,23 @@ import android.content.Intent
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
 import android.util.Log
+import com.example.alertsheets.domain.SourceManager
+import com.example.alertsheets.domain.models.SourceType
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 
 class NotificationService : NotificationListenerService() {
 
     private val scope = CoroutineScope(Dispatchers.IO)
+    private lateinit var sourceManager: SourceManager
 
     override fun onCreate() {
         super.onCreate()
+        sourceManager = SourceManager(this)
         createNotificationChannel()
+        
+        // V2 Migration: Run once
+        MigrationManager.migrateIfNeeded(this)
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -82,7 +89,7 @@ class NotificationService : NotificationListenerService() {
         super.onNotificationPosted(sbn)
         if (sbn == null) return
 
-        // 0. Master Switch Check
+        // 0. Master Switch Check (V2: Always on, but we'll keep check for now)
         if (!PrefsManager.getMasterEnabled(this)) {
             Log.d("NotificationService", "Master Switch OFF. Ignoring notification.")
             return
@@ -98,36 +105,35 @@ class NotificationService : NotificationListenerService() {
 
         Log.d("NotificationService", "Received: $fullContent")
 
-        // 1. App Filter Check
-        val targetApps = PrefsManager.getTargetApps(this)
-        // If filter is active and pkg not in list, ignore.
-        if (targetApps.isNotEmpty() && !targetApps.contains(sbn.packageName)) {
-            // Log as IGNORED
+        // ✅ V2: Check if source is enabled
+        val source = sourceManager.getSourcesByType(SourceType.APP)
+            .find { it.id == sbn.packageName && it.enabled }
+        
+        if (source == null) {
+            // App not monitored or disabled
             LogRepository.addLog(
                     LogEntry(
                             packageName = sbn.packageName,
                             title = title,
-                            content = "App filtered out",
+                            content = "Source not enabled",
                             status = LogStatus.IGNORED,
-                            rawJson = "Filtered by App Selection"
+                            rawJson = "No active source for ${sbn.packageName}"
                     )
             )
             return
         }
 
-        // 2. Detect BNN vs Generic
-        val isBnnNotification =
-                sbn.packageName == "us.bnn.newsapp" ||
-                        fullContent.contains("<C> BNN", ignoreCase = true) ||
-                        (fullContent.count { it == '|' } >= 4) // Robust pipe check
-
-        var jsonToSend: String? = null
-        var logContent = text
-
-        val shouldClean = PrefsManager.getShouldCleanData(this)
+        // ✅ V2: Per-source auto-clean
+        val shouldClean = source.autoClean
         val finalTitle = if (shouldClean) TemplateEngine.cleanText(title) else title
         val finalText = if (shouldClean) TemplateEngine.cleanText(text) else text
         val finalBigText = if (shouldClean) TemplateEngine.cleanText(bigText) else bigText
+
+        // 2. Detect BNN vs Generic (based on parser)
+        val isBnnNotification = source.parserId == "bnn"
+
+        var jsonToSend: String? = null
+        var logContent = text
 
         if (isBnnNotification) {
             // BNN Parsing Pipeline
@@ -158,11 +164,12 @@ class NotificationService : NotificationListenerService() {
                             "NotificationService",
                             "✗ BNN PARSE FAILED! Using generic template. Content: ${fullContent.take(200)}"
                     )
-                    // Fallback to generic if parse fails but it looked like BNN?
-                    // Or just log error? Better to send *something*
+                    // Fallback to generic template for this source
+                    val template = PrefsManager.getTemplateById(this, source.templateId)
+                            ?: PrefsManager.getAppJsonTemplate(this)
                     jsonToSend =
                             TemplateEngine.applyGeneric(
-                                    PrefsManager.getAppJsonTemplate(this),
+                                    template,
                                     sbn.packageName,
                                     finalTitle,
                                     finalText,
@@ -183,11 +190,13 @@ class NotificationService : NotificationListenerService() {
                 return
             }
         } else {
-            // Generic Pipeline
+            // ✅ V2: Generic Pipeline with Source template
             if (DeDuplicator.shouldProcess(fullContent)) {
+                val template = PrefsManager.getTemplateById(this, source.templateId)
+                        ?: PrefsManager.getAppJsonTemplate(this)
                 jsonToSend =
                         TemplateEngine.applyGeneric(
-                                PrefsManager.getAppJsonTemplate(this),
+                                template,
                                 sbn.packageName,
                                 finalTitle,
                                 finalText,

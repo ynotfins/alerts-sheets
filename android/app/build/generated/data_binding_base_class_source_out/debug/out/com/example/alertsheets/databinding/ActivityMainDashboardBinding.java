@@ -50,6 +50,9 @@ public final class ActivityMainDashboardBinding implements ViewBinding {
   public final ImageView dotEndpoints;
 
   @NonNull
+  public final ImageView dotLogs;
+
+  @NonNull
   public final ImageView dotPayloads;
 
   @NonNull
@@ -75,8 +78,8 @@ public final class ActivityMainDashboardBinding implements ViewBinding {
       @NonNull FrameLayout cardConfig, @NonNull FrameLayout cardEndpoints,
       @NonNull FrameLayout cardLogs, @NonNull FrameLayout cardPermissions,
       @NonNull FrameLayout cardSms, @NonNull ImageView dotApps, @NonNull ImageView dotEndpoints,
-      @NonNull ImageView dotPayloads, @NonNull ImageView dotPermissions, @NonNull ImageView dotSms,
-      @NonNull TextView footerTicker, @NonNull TextView tvQueueStatus,
+      @NonNull ImageView dotLogs, @NonNull ImageView dotPayloads, @NonNull ImageView dotPermissions,
+      @NonNull ImageView dotSms, @NonNull TextView footerTicker, @NonNull TextView tvQueueStatus,
       @NonNull TextView tvServiceStatus, @NonNull TextView tvStatusTitle) {
     this.rootView = rootView;
     this.btnMasterStatus = btnMasterStatus;
@@ -88,6 +91,7 @@ public final class ActivityMainDashboardBinding implements ViewBinding {
     this.cardSms = cardSms;
     this.dotApps = dotApps;
     this.dotEndpoints = dotEndpoints;
+    this.dotLogs = dotLogs;
     this.dotPayloads = dotPayloads;
     this.dotPermissions = dotPermissions;
     this.dotSms = dotSms;
@@ -178,6 +182,12 @@ public final class ActivityMainDashboardBinding implements ViewBinding {
         break missingId;
       }
 
+      id = R.id.dot_logs;
+      ImageView dotLogs = ViewBindings.findChildViewById(rootView, id);
+      if (dotLogs == null) {
+        break missingId;
+      }
+
       id = R.id.dot_payloads;
       ImageView dotPayloads = ViewBindings.findChildViewById(rootView, id);
       if (dotPayloads == null) {
@@ -222,8 +232,8 @@ public final class ActivityMainDashboardBinding implements ViewBinding {
 
       return new ActivityMainDashboardBinding((LinearLayout) rootView, btnMasterStatus, cardApps,
           cardConfig, cardEndpoints, cardLogs, cardPermissions, cardSms, dotApps, dotEndpoints,
-          dotPayloads, dotPermissions, dotSms, footerTicker, tvQueueStatus, tvServiceStatus,
-          tvStatusTitle);
+          dotLogs, dotPayloads, dotPermissions, dotSms, footerTicker, tvQueueStatus,
+          tvServiceStatus, tvStatusTitle);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

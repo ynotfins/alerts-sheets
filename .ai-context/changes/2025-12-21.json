@@ -1,35 +1,8 @@
 {
-  "timestamp": "2025-12-21_03-40-04",
-  "commit": "7fb4c2e2d7e6c1d8a3f8ebe744ec009a469118dc",
-  "message": "fix: Smart SMS parsing for fire alerts
-
-CRITICAL FIX - SMS Field Mapping:
-
-✅ Intelligent SMS Parsing:
-- Detects fire alerts vs generic SMS
-- Extracts address from SMS content
-- Extracts city, county, state from text
-- Extracts incident type (Fire, Medical, etc.)
-- Parses multiple address formats
-
-✅ Fire Alert Patterns Supported:
-- 'Fire reported at 123 Main St'
-- '📍 31 Grand Avenue, Cedar Knolls, NJ'
-- 'Residential Fire - details'
-- County detection from text
-
-✅ Field Mapping Fixed:
-- Address → Actual street address (not phone number)
-- Sender → Shown in Original Body
-- City/County/State → Extracted from SMS
-- Type → Incident type (not just 'SMS Message')
-- Details → Cleaned alert text (not full message)
-
-BEFORE: Phone number in Address field
-AFTER: Real address extracted from SMS content
-
-Ready for real fire alert testing!",
+  "timestamp": "2025-12-21_03-48-06",
+  "commit": "32a54f7e765942e407f9c01bda2080a8033a9c52",
+  "message": "docs: End of day handoff - V2 complete and ready for testing",
   "files_changed": [
-    "scripts/Code.gs"
+    "HANDOFF_DEC_21_NIGHT.md"
   ]
 }

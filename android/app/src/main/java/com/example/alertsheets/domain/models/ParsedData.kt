@@ -1,5 +1,7 @@
 package com.example.alertsheets.domain.models
 
+import com.google.gson.Gson
+
 /**
  * Parsed notification data
  * After parsing but before JSON transformation
@@ -18,8 +20,17 @@ data class ParsedData(
     var timestamp: String = "",            // Human-readable timestamp
     var originalBody: String = ""          // Original notification text (for Column J)
 ) {
+    companion object {
+        // Thread-safe Gson instance for JSON serialization
+        private val gson = Gson()
+    }
+    
     /**
      * Convert to map for template variable replacement
+     * 
+     * NOTE: fdCodes is serialized as a proper JSON array using Gson.
+     * This replaces the previous manual string concatenation which was
+     * unsafe for values containing quotes, backslashes, or unicode.
      */
     fun toVariableMap(): Map<String, String> {
         return mapOf(
@@ -30,7 +41,8 @@ data class ParsedData(
             "address" to address,
             "incidentType" to incidentType,
             "incidentDetails" to incidentDetails,
-            "fdCodes" to fdCodes.joinToString("\", \"", "\"", "\""),
+            // ✅ Safe: Gson properly escapes quotes, backslashes, unicode
+            "fdCodes" to gson.toJson(fdCodes),
             "timestamp" to timestamp,
             "originalBody" to originalBody
         )

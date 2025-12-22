@@ -2,6 +2,7 @@ package com.example.alertsheets
 
 import android.app.AlertDialog
 import android.os.Bundle
+import android.util.Log
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -12,7 +13,9 @@ class LogActivity : AppCompatActivity() {
     private lateinit var adapter: LogAdapter
     private val repoListener = {
         runOnUiThread {
-            adapter.updateData(LogRepository.getLogs())
+            val logs = LogRepository.getLogs()
+            Log.v("Logs", "LogRepository updated, reloading UI: ${logs.size} entries")
+            adapter.updateData(logs)
         }
     }
 
@@ -23,7 +26,9 @@ class LogActivity : AppCompatActivity() {
         val recycler = findViewById<RecyclerView>(R.id.recycler_logs)
         recycler.layoutManager = LinearLayoutManager(this)
         
-        adapter = LogAdapter(LogRepository.getLogs()) { log ->
+        val initialLogs = LogRepository.getLogs()
+        Log.v("Logs", "LogActivity onCreate: ${initialLogs.size} log entries loaded")
+        adapter = LogAdapter(initialLogs) { log ->
             showDetails(log)
         }
         recycler.adapter = adapter
@@ -33,7 +38,9 @@ class LogActivity : AppCompatActivity() {
         super.onResume()
         LogRepository.addListener(repoListener)
         // Refresh immediately in case of changes while paused
-        adapter.updateData(LogRepository.getLogs())
+        val logs = LogRepository.getLogs()
+        Log.v("Logs", "LogActivity onResume: ${logs.size} log entries")
+        adapter.updateData(logs)
     }
 
     override fun onPause() {

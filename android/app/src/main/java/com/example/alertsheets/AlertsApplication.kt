@@ -22,6 +22,16 @@ class AlertsApplication : Application() {
         LogRepository.initialize(this)
         Log.i(TAG, "✅ LogRepository initialized")
         
+        // ✅ SMOKE TEST: Add a BOOT entry to verify Activity Logs UI sees entries
+        LogRepository.addLog(LogEntry(
+            packageName = "com.example.alertsheets",
+            title = "App Started",
+            content = "AlertsToSheets V2 initialized successfully",
+            status = LogStatus.SENT,
+            rawJson = "{\"event\":\"boot\",\"timestamp\":\"${System.currentTimeMillis()}\"}"
+        ))
+        Log.i(TAG, "✅ BOOT entry added to LogRepository")
+        
         // Initialize parser registry
         ParserRegistry.init()
         Log.i(TAG, "✅ Parser registry initialized")

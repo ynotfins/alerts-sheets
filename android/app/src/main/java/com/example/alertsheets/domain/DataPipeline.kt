@@ -11,6 +11,10 @@ import com.example.alertsheets.domain.parsers.ParserRegistry
 import com.example.alertsheets.utils.TemplateEngine
 import com.example.alertsheets.utils.HttpClient
 import com.example.alertsheets.utils.Logger
+import com.example.alertsheets.LogRepository
+import com.example.alertsheets.LogEntry
+import com.example.alertsheets.LogStatus
+import com.example.alertsheets.utils.PayloadSerializer
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -50,6 +54,17 @@ class DataPipeline(private val context: Context) {
      */
     fun process(source: Source, raw: RawNotification) {
         scope.launch {
+            // ✅ CRITICAL: Create LogEntry FIRST so Activity Logs UI can show it
+            val logEntry = LogEntry(
+                packageName = raw.packageName,
+                title = raw.title,
+                content = raw.text.take(200), // Truncate for readability
+                status = LogStatus.PENDING,
+                rawJson = PayloadSerializer.toJson(raw)
+            )
+            LogRepository.addLog(logEntry)
+            Log.v("Pipe", "Log entry created: ${logEntry.id}")
+            
             try {
                 logger.log("📥 Processing: ${raw.packageName} - ${raw.title}")
                 
@@ -65,6 +80,7 @@ class DataPipeline(private val context: Context) {
                 val parsed = parser.parse(raw)
                 if (parsed == null) {
                     logger.error("❌ Parse failed: ${source.name}")
+                    LogRepository.updateStatus(logEntry.id, LogStatus.FAILED)
                     sourceManager.recordNotificationProcessed(source.id, success = false)
                     return@launch
                 }
@@ -72,6 +88,8 @@ class DataPipeline(private val context: Context) {
                 // Step 3: Add timestamp
                 val parsedWithTimestamp = parsed.copy(timestamp = TemplateEngine.getTimestamp())
                 logger.log("✓ Parsed: ${parsedWithTimestamp.incidentId}")
+                LogRepository.updateStatus(logEntry.id, LogStatus.PROCESSING)
+                Log.v("Pipe", "Log entry updated to PROCESSING: ${logEntry.id}")
                 
                 // Step 4: Get template
                 val templateContent = templateRepo.getById(source.templateId)
@@ -106,10 +124,14 @@ class DataPipeline(private val context: Context) {
                 // Step 8: Handle response
                 if (response.isSuccess) {
                     logger.log("✓ Sent: ${response.code} - ${parsedWithTimestamp.incidentId}")
+                    LogRepository.updateStatus(logEntry.id, LogStatus.SENT)
+                    Log.v("Pipe", "Log entry updated to SENT: ${logEntry.id}")
                     sourceManager.recordNotificationProcessed(source.id, success = true)
                     endpointRepo.updateStats(endpoint.id, success = true, responseTime)
                 } else {
                     logger.error("❌ Send failed: ${response.code} - ${response.message}")
+                    LogRepository.updateStatus(logEntry.id, LogStatus.FAILED)
+                    Log.v("Pipe", "Log entry updated to FAILED: ${logEntry.id}")
                     sourceManager.recordNotificationProcessed(source.id, success = false)
                     endpointRepo.updateStats(endpoint.id, success = false, responseTime)
                     
@@ -119,6 +141,8 @@ class DataPipeline(private val context: Context) {
             } catch (e: Exception) {
                 Log.e(TAG, "Pipeline error", e)
                 logger.error("❌ Pipeline error: ${e.message}")
+                LogRepository.updateStatus(logEntry.id, LogStatus.FAILED)
+                Log.v("Pipe", "Log entry updated to FAILED (exception): ${logEntry.id}")
                 sourceManager.recordNotificationProcessed(source.id, success = false)
             }
         }
@@ -131,9 +155,19 @@ class DataPipeline(private val context: Context) {
         val source = sourceManager.findSourceForNotification(packageName)
         if (source != null) {
             logger.log("📱 App: ${source.name}")
+            Log.v("Pipe", "App notification from $packageName -> source ${source.name}")
             process(source, raw)
         } else {
             logger.log("⚠️ No source for: $packageName")
+            Log.v("Pipe", "No source configured for $packageName, ignoring")
+            // Log as IGNORED
+            LogRepository.addLog(LogEntry(
+                packageName = packageName,
+                title = "Notification Ignored",
+                content = "No source configured for this app",
+                status = LogStatus.IGNORED,
+                rawJson = PayloadSerializer.toJson(raw)
+            ))
         }
     }
     
@@ -144,9 +178,19 @@ class DataPipeline(private val context: Context) {
         val source = sourceManager.findSourceForSms(sender)
         if (source != null) {
             logger.log("💬 SMS: ${source.name}")
+            Log.v("Pipe", "SMS from $sender -> source ${source.name}")
             process(source, raw)
         } else {
             logger.log("⚠️ No source for SMS: $sender")
+            Log.v("Pipe", "No source configured for SMS from $sender, ignoring")
+            // Log as IGNORED
+            LogRepository.addLog(LogEntry(
+                packageName = "SMS",
+                title = "SMS Ignored",
+                content = "No source configured for sender: $sender",
+                status = LogStatus.IGNORED,
+                rawJson = PayloadSerializer.toJson(raw)
+            ))
         }
     }
     

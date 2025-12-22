@@ -221,24 +221,18 @@ class AppsListActivity : AppCompatActivity() {
             val isSystemApp = (app.flags and ApplicationInfo.FLAG_SYSTEM) != 0
             val isUpdatedSystemApp = (app.flags and ApplicationInfo.FLAG_UPDATED_SYSTEM_APP) != 0
             
-            // ✅ FIX: Treat updated system apps (like BNN installed via APK) as user apps
+            // ✅ Treat updated system apps (like BNN installed via APK) as user apps
             val treatAsUserApp = isUpdatedSystemApp || !isSystemApp
             
-            // When "System Apps" checkbox is checked: show ONLY system apps
-            // When unchecked: show user apps (including updated system apps)
-            if (showSystemApps) {
-                // User wants system apps - skip user apps
-                if (treatAsUserApp) {
-                    skippedUserApps++
-                    continue
-                }
-            } else {
-                // User wants user/installed apps - skip pure system apps
-                if (!treatAsUserApp) {
-                    skippedSystemApps++
-                    continue
-                }
+            // ✅ CORRECTED LOGIC:
+            // When "Include system apps" is UNCHECKED: show ONLY user apps
+            // When "Include system apps" is CHECKED: show user apps + system apps (all)
+            if (!showSystemApps && !treatAsUserApp) {
+                // Checkbox unchecked: hide pure system apps
+                skippedSystemApps++
+                continue
             }
+            // If checkbox checked: show everything (no filtering needed)
             
             // Filter by search query
             if (searchQuery.isNotEmpty()) {
@@ -259,15 +253,20 @@ class AppsListActivity : AppCompatActivity() {
         }
         
         // Log filtering results
-        Log.v("AppsList", "Filter applied (showSystem=$showSystemApps, search='$searchQuery'): $addedApps apps shown (skipped: $skippedSystemApps system, $skippedUserApps user)")
+        Log.v("AppsList", "Filter applied (includeSystem=$showSystemApps, search='$searchQuery'): $addedApps apps shown (skipped: $skippedSystemApps system)")
         
-        // Check if BNN was filtered out
+        // Check if BNN is visible after filter
         val BNN_PACKAGE = "us.bnn.newsapp"
-        if (allApps.any { it.packageName == BNN_PACKAGE } && !filteredApps.any { it.packageName == BNN_PACKAGE }) {
-            val bnnApp = allApps.first { it.packageName == BNN_PACKAGE }
-            val isSystem = (bnnApp.flags and ApplicationInfo.FLAG_SYSTEM) != 0
-            val isUpdated = (bnnApp.flags and ApplicationInfo.FLAG_UPDATED_SYSTEM_APP) != 0
-            Log.w("AppsList", "⚠️ BNN filtered out! isSystem=$isSystem, isUpdated=$isUpdated, showSystemApps=$showSystemApps")
+        val bnnInFiltered = filteredApps.any { it.packageName == BNN_PACKAGE }
+        if (allApps.any { it.packageName == BNN_PACKAGE }) {
+            if (bnnInFiltered) {
+                Log.v("AppsList", "✓ BNN visible in filtered list")
+            } else {
+                val bnnApp = allApps.first { it.packageName == BNN_PACKAGE }
+                val isSystem = (bnnApp.flags and ApplicationInfo.FLAG_SYSTEM) != 0
+                val isUpdated = (bnnApp.flags and ApplicationInfo.FLAG_UPDATED_SYSTEM_APP) != 0
+                Log.w("AppsList", "⚠️ BNN hidden by filter! flags: system=$isSystem, updated=$isUpdated, includeSystem=$showSystemApps")
+            }
         }
         
         adapter.notifyDataSetChanged()

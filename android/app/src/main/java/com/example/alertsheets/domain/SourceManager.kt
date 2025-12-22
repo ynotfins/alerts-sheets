@@ -164,5 +164,13 @@ class SourceManager(context: Context) {
             "failed" to sources.sumOf { it.stats.totalFailed }
         )
     }
+    
+    /**
+     * Get template JSON for a source
+     * Returns the source's own template JSON directly (no shared templates)
+     */
+    fun getTemplateJsonForSource(source: Source): String {
+        return source.templateJson
+    }
 }
 

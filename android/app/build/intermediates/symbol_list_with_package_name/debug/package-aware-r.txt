@@ -2987,6 +2987,8 @@ drawable avd_hide_password
 drawable avd_show_password
 drawable bg_card
 drawable bg_card_dark
+drawable bg_edit_text_dark
+drawable bg_spinner_dark
 drawable btn_checkbox_checked_mtrl
 drawable btn_checkbox_checked_to_unchecked_mtrl_animation
 drawable btn_checkbox_unchecked_mtrl
@@ -3001,6 +3003,7 @@ drawable design_ic_visibility_off
 drawable design_password_eye
 drawable design_snackbar_background
 drawable ic_activity_logs_card
+drawable ic_alert
 drawable ic_apps_card
 drawable ic_arrow_back_black_24
 drawable ic_call_answer
@@ -3011,12 +3014,18 @@ drawable ic_call_decline
 drawable ic_call_decline_low
 drawable ic_clear_black_24
 drawable ic_clock_black_24dp
+drawable ic_dashboard
+drawable ic_email
 drawable ic_endpoints_card
+drawable ic_fire
 drawable ic_keyboard_black_24dp
 drawable ic_launcher_foreground
+drawable ic_link
+drawable ic_location
 drawable ic_m3_chip_check
 drawable ic_m3_chip_checked_circle
 drawable ic_m3_chip_close
+drawable ic_medical
 drawable ic_mtrl_checked_circle
 drawable ic_mtrl_chip_checked_black
 drawable ic_mtrl_chip_checked_circle
@@ -3025,6 +3034,8 @@ drawable ic_notification
 drawable ic_payloads_card
 drawable ic_permissions_card
 drawable ic_search_black_24
+drawable ic_security
+drawable ic_sms
 drawable ic_sms_card
 drawable ic_status_dot
 drawable m3_avd_hide_password
@@ -3205,11 +3216,12 @@ id btn_add_endpoint
 id btn_add_mapping
 id btn_add_static
 id btn_app_filter
+id btn_configure_source
 id btn_delete
 id btn_edit
-id btn_master_status
 id btn_permissions
 id btn_pick_contact
+id btn_save_source
 id btn_select_apps
 id btn_sms_config
 id btn_verify
@@ -3218,13 +3230,9 @@ id buttonPanel
 id cache_measures
 id callMeasure
 id cancel_button
-id card_apps
-id card_config
-id card_endpoints
+id card_lab
 id card_logs
 id card_permissions
-id card_sms
-id card_sources
 id carryVelocity
 id center
 id centerCrop
@@ -3247,6 +3255,7 @@ id clip_vertical
 id clockwise
 id closest
 id collapseActionView
+id color_grid
 id compress
 id confirm_button
 id constraint
@@ -3283,13 +3292,8 @@ id disableIntraAutoTransition
 id disablePostScroll
 id disableScroll
 id disjoint
-id dot_apps
-id dot_endpoints
 id dot_logs
-id dot_payloads
 id dot_permissions
-id dot_sms
-id dot_sources
 id dragAnticlockwise
 id dragClockwise
 id dragDown
@@ -3317,6 +3321,7 @@ id exitUntilCollapsed
 id expand_activities_button
 id expanded_menu
 id fab_add
+id fab_add_source
 id fade
 id fill
 id fill_horizontal
@@ -3330,7 +3335,6 @@ id fitXY
 id fixed
 id flip
 id floating
-id footer_ticker
 id forever
 id fragment_container_view_tag
 id frost
@@ -3340,6 +3344,7 @@ id ghost_view_holder
 id gone
 id graph
 id graph_wrap
+id grid_cards
 id group_divider
 id grouping
 id groups
@@ -3352,6 +3357,7 @@ id homeAsUp
 id honorRequest
 id horizontal_only
 id icon
+id icon_grid
 id icon_group
 id ifRoom
 id ignore
@@ -3363,8 +3369,12 @@ id included
 id indeterminate
 id info
 id input_filter
+id input_json
 id input_name
+id input_new_source_id
+id input_new_source_name
 id input_number
+id input_source_name
 id input_target_key
 id input_url
 id invisible
@@ -3502,7 +3512,9 @@ id progress_horizontal
 id progress_loading
 id radio
 id radio_app
+id radio_email
 id radio_sms
+id radio_source_type
 id ratio
 id rectangles
 id recycler_all_apps
@@ -3560,6 +3572,9 @@ id south
 id spacer
 id special_effects_controller_view_tag
 id spinner_endpoint
+id spinner_new_endpoint
+id spinner_new_parser
+id spinner_new_source_type
 id spinner_parser
 id spinner_source
 id spinner_template
@@ -3591,6 +3606,7 @@ id supportScrollUp
 id switch_autoclean
 id switch_enable
 id switch_enabled
+id switch_new_auto_clean
 id tabMode
 id tag_accessibility_actions
 id tag_accessibility_clickable_spans
@@ -3632,6 +3648,7 @@ id text_source_count
 id text_source_name
 id text_source_type
 id text_stats
+id text_status
 id text_target
 id text_template
 id text_url
@@ -3657,9 +3674,6 @@ id transition_position
 id transition_scene_layoutid_cache
 id transition_transform
 id triangle
-id tv_queue_status
-id tv_service_status
-id tv_status_title
 id unchecked
 id uniform
 id unlabeled
@@ -3800,6 +3814,7 @@ layout abc_select_dialog_material
 layout abc_tooltip
 layout activity_app_config
 layout activity_apps_list
+layout activity_lab
 layout activity_log
 layout activity_main
 layout activity_main_dashboard
@@ -3824,6 +3839,7 @@ layout design_text_input_start_icon
 layout dialog_add_endpoint
 layout dialog_add_mapping
 layout dialog_add_sms
+layout dialog_create_source
 layout dialog_edit_source
 layout ime_base_split_test_activity
 layout ime_secondary_split_test_activity

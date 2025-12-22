@@ -1,116 +1,332 @@
 {
-  "timestamp": "2025-12-22_02-48-59",
-  "commit": "a73d4fdb6dd8c868a6ea0739e67d380fab103b59",
-  "message": "feat: complete Source configuration system for independent endpoint/template binding
+  "timestamp": "2025-12-22_02-50-49",
+  "commit": "aa5df45ab2eac3ec111beaede6bab326458436e4",
+  "message": "fix: compilation errors in Source config system
 
-CRITICAL WORKFLOW FIX: Implements proper Source→Endpoint→Template configuration
-
-Context:
-- Previous hardcoded endpointId = 'default-endpoint' broke workflow
-- Users could not bind sources to specific endpoints/templates
-- No UI to configure source settings after creation
-- Multiple sources could not have independent configurations
-
-Changes Implemented:
-
-1. Infrastructure Fixes:
-   - Replaced GlobalScope with managed CoroutineScope in LogRepository
-   - Added shutdown() method called from AlertsApplication.onTerminate()
-   - Added id field to PrefsManager.Endpoint (V1 model)
-   - Preserved endpoint IDs in V1→V2 migration
-
-2. Smart Endpoint Assignment:
-   - Added SourceManager.getFirstEndpointId() helper
-   - Updated AppsListActivity to use first available endpoint
-   - Updated SmsConfigActivity to use first available endpoint
-   - Fallback to 'default-endpoint' if no endpoints exist
-
-3. New SourceConfigActivity (Complete Source Management UI):
-   - List all configured sources (apps + SMS)
-   - Click source to edit:
-     * Select endpoint (dropdown of available endpoints)
-     * Select template (dropdown of available templates)
-     * Select parser (generic, bnn, sms)
-     * Toggle autoClean (emoji stripping)
-   - Toggle source enabled/disabled via switch
-   - Long-press to delete source
-   - Real-time stats display (sent/total/failed counts)
-   - Empty state guidance
-
-4. UI Components Created:
-   - SourceConfigActivity.kt - main activity
-   - SourceConfigAdapter.kt - RecyclerView adapter
-   - activity_source_config.xml - main layout
-   - item_source.xml - source card layout
-   - dialog_edit_source.xml - edit dialog with spinners
-   - Added 'Configure Sources' card to MainActivity dashboard
-   - Smart status indicator (RED/ORANGE/GREEN based on configuration state)
-
-5. Files Modified:
-   - LogRepository.kt - removed GlobalScope
-   - AlertsApplication.kt - added shutdown hook
-   - PrefsManager.kt - added id to Endpoint
-   - MigrationManager.kt - preserve endpoint IDs
-   - AppsListActivity.kt - smart endpoint selection
-   - SmsConfigActivity.kt - smart endpoint selection
-   - SourceManager.kt - added getFirstEndpointId()
-   - MainActivity.kt - added Sources card + click handler
-   - activity_main_dashboard.xml - added Sources card
-   - AndroidManifest.xml - registered SourceConfigActivity
-
-Features:
-- ✅ Multiple sources with completely different endpoints
-- ✅ Independent JSON templates per source
-- ✅ Customizable parser per source
-- ✅ Per-source emoji cleaning toggle
-- ✅ Visual indicators for configuration status
-- ✅ One-tap enable/disable sources
-- ✅ Swipe/long-press to delete
-
-Safety:
-- Backward compatible: existing sources get first endpoint
-- No behavior change for configured sources
-- Managed coroutine scopes prevent memory leaks
-- All changes reversible
-
-Testing Required:
-1. Add BNN app → verify assigned to first endpoint
-2. Create second endpoint → open Sources → reassign BNN
-3. Send test notification → verify uses correct endpoint
-4. Create multiple sources with different endpoints → verify independence
-
-Rollback plan:
-- git revert HEAD
-- Restore hardcoded endpoint IDs
-- Remove SourceConfigActivity",
+- Fixed PayloadSerializer reference in PrefsManager (SchemaVersion.ENDPOINTS)
+- Fixed TemplateRepository method call (getAllTemplates not getAll)
+- Fixed JsonTemplate reference (use name not id as templateId)
+- Fixed missing drawable references in layouts
+- Build successful",
   "files_changed": [
     ".ai-context/changes/2025-12-22.json",
-    "CODEBASE_VALIDATION_REPORT.md",
-    "android/.gradle/8.7/checksums/checksums.lock",
-    "android/.gradle/8.7/checksums/md5-checksums.bin",
-    "android/.gradle/8.7/checksums/sha1-checksums.bin",
     "android/.gradle/8.7/executionHistory/executionHistory.bin",
     "android/.gradle/8.7/executionHistory/executionHistory.lock",
     "android/.gradle/8.7/fileHashes/fileHashes.bin",
     "android/.gradle/8.7/fileHashes/fileHashes.lock",
     "android/.gradle/8.7/fileHashes/resourceHashesCache.bin",
     "android/.gradle/buildOutputCleanup/buildOutputCleanup.lock",
-    "android/.gradle/buildOutputCleanup/outputFiles.bin",
-    "android/app/src/main/AndroidManifest.xml",
-    "android/app/src/main/java/com/example/alertsheets/AlertsApplication.kt",
-    "android/app/src/main/java/com/example/alertsheets/AppsListActivity.kt",
-    "android/app/src/main/java/com/example/alertsheets/LogRepository.kt",
-    "android/app/src/main/java/com/example/alertsheets/MigrationManager.kt",
+    "android/app/build/generated/data_binding_base_class_source_out/debug/out/com/example/alertsheets/databinding/ActivityMainDashboardBinding.java",
+    "android/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar",
+    "android/app/build/intermediates/data_binding_base_class_log_artifact/debug/out/com.example.alertsheets-binding_classes.json",
+    "android/app/build/intermediates/data_binding_layout_info_type_merge/debug/out/activity_main_dashboard-layout.xml",
+    "android/app/build/intermediates/data_binding_layout_info_type_package/debug/out/activity_main_dashboard-layout.xml",
+    "android/app/build/intermediates/dex/debug/mergeProjectDexDebug/0/classes.dex",
+    "android/app/build/intermediates/dex/debug/mergeProjectDexDebug/3/classes.dex",
+    "android/app/build/intermediates/dex/debug/mergeProjectDexDebug/4/classes.dex",
+    "android/app/build/intermediates/dex/debug/mergeProjectDexDebug/5/classes.dex",
+    "android/app/build/intermediates/dex/debug/mergeProjectDexDebug/7/classes.dex",
+    "android/app/build/intermediates/dex_archive_input_jar_hashes/debug/out",
+    "android/app/build/intermediates/incremental/dataBindingGenBaseClassesDebug/base_builder_log.json",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/compile-file-map.properties",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/merged.dir/values-af/values-af.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/merged.dir/values-am/values-am.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/merged.dir/values-ar/values-ar.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/merged.dir/values-as/values-as.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/merged.dir/values-az/values-az.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/merged.dir/values-b+es+419/values-b+es+419.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/merged.dir/values-b+sr+Latn/values-b+sr+Latn.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/merged.dir/values-be/values-be.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/merged.dir/values-bg/values-bg.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/merged.dir/values-bn/values-bn.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/merged.dir/values-bs/values-bs.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/merged.dir/values-ca/values-ca.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/merged.dir/values-cs/values-cs.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/merged.dir/values-da/values-da.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/merged.dir/values-de/values-de.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/merged.dir/values-el/values-el.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/merged.dir/values-en-rAU/values-en-rAU.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/merged.dir/values-en-rCA/values-en-rCA.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/merged.dir/values-en-rGB/values-en-rGB.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/merged.dir/values-en-rIN/values-en-rIN.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/merged.dir/values-en-rXC/values-en-rXC.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/merged.dir/values-es-rUS/values-es-rUS.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/merged.dir/values-es/values-es.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/merged.dir/values-et/values-et.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/merged.dir/values-eu/values-eu.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/merged.dir/values-fa/values-fa.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/merged.dir/values-fi/values-fi.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/merged.dir/values-fr-rCA/values-fr-rCA.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/merged.dir/values-fr/values-fr.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/merged.dir/values-gl/values-gl.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/merged.dir/values-gu/values-gu.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/merged.dir/values-h320dp-port-v13/values-h320dp-port-v13.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/merged.dir/values-h360dp-land-v13/values-h360dp-land-v13.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/merged.dir/values-h480dp-land-v13/values-h480dp-land-v13.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/merged.dir/values-h550dp-port-v13/values-h550dp-port-v13.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/merged.dir/values-h720dp-v13/values-h720dp-v13.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/merged.dir/values-hdpi-v4/values-hdpi-v4.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/merged.dir/values-hi/values-hi.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/merged.dir/values-hr/values-hr.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/merged.dir/values-hu/values-hu.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/merged.dir/values-hy/values-hy.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/merged.dir/values-in/values-in.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/merged.dir/values-is/values-is.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/merged.dir/values-it/values-it.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/merged.dir/values-iw/values-iw.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/merged.dir/values-ja/values-ja.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/merged.dir/values-ka/values-ka.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/merged.dir/values-kk/values-kk.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/merged.dir/values-km/values-km.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/merged.dir/values-kn/values-kn.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/merged.dir/values-ko/values-ko.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/merged.dir/values-ky/values-ky.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/merged.dir/values-land/values-land.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/merged.dir/values-large-v4/values-large-v4.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/merged.dir/values-ldltr-v21/values-ldltr-v21.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/merged.dir/values-ldrtl-v17/values-ldrtl-v17.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/merged.dir/values-lo/values-lo.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/merged.dir/values-lt/values-lt.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/merged.dir/values-lv/values-lv.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/merged.dir/values-mk/values-mk.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/merged.dir/values-ml/values-ml.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/merged.dir/values-mn/values-mn.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/merged.dir/values-mr/values-mr.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/merged.dir/values-ms/values-ms.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/merged.dir/values-my/values-my.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/merged.dir/values-nb/values-nb.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/merged.dir/values-ne/values-ne.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/merged.dir/values-night-v8/values-night-v8.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/merged.dir/values-nl/values-nl.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/merged.dir/values-or/values-or.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/merged.dir/values-pa/values-pa.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/merged.dir/values-pl/values-pl.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/merged.dir/values-port/values-port.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/merged.dir/values-pt-rBR/values-pt-rBR.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/merged.dir/values-pt-rPT/values-pt-rPT.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/merged.dir/values-pt/values-pt.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/merged.dir/values-ro/values-ro.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/merged.dir/values-ru/values-ru.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/merged.dir/values-si/values-si.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/merged.dir/values-sk/values-sk.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/merged.dir/values-sl/values-sl.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/merged.dir/values-small-v4/values-small-v4.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/merged.dir/values-sq/values-sq.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/merged.dir/values-sr/values-sr.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/merged.dir/values-sv/values-sv.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/merged.dir/values-sw/values-sw.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/merged.dir/values-sw600dp-v13/values-sw600dp-v13.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/merged.dir/values-ta/values-ta.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/merged.dir/values-te/values-te.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/merged.dir/values-th/values-th.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/merged.dir/values-tl/values-tl.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/merged.dir/values-tr/values-tr.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/merged.dir/values-uk/values-uk.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/merged.dir/values-ur/values-ur.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/merged.dir/values-uz/values-uz.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/merged.dir/values-v16/values-v16.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/merged.dir/values-v17/values-v17.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/merged.dir/values-v18/values-v18.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/merged.dir/values-v21/values-v21.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/merged.dir/values-v22/values-v22.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/merged.dir/values-v23/values-v23.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/merged.dir/values-v24/values-v24.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/merged.dir/values-v25/values-v25.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/merged.dir/values-v26/values-v26.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/merged.dir/values-v28/values-v28.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/merged.dir/values-v31/values-v31.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/merged.dir/values-v34/values-v34.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/merged.dir/values-vi/values-vi.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/merged.dir/values-w320dp-land-v13/values-w320dp-land-v13.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/merged.dir/values-w360dp-port-v13/values-w360dp-port-v13.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/merged.dir/values-w400dp-port-v13/values-w400dp-port-v13.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/merged.dir/values-w600dp-land-v13/values-w600dp-land-v13.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/merged.dir/values-watch-v20/values-watch-v20.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/merged.dir/values-watch-v21/values-watch-v21.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/merged.dir/values-xlarge-v4/values-xlarge-v4.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/merged.dir/values-zh-rCN/values-zh-rCN.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/merged.dir/values-zh-rHK/values-zh-rHK.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/merged.dir/values-zh-rTW/values-zh-rTW.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/merged.dir/values-zu/values-zu.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/merged.dir/values/values.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/merger.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/stripped.dir/layout/activity_app_config.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/stripped.dir/layout/activity_apps_list.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/stripped.dir/layout/activity_log.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/stripped.dir/layout/activity_main.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/stripped.dir/layout/activity_main_dashboard.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/stripped.dir/layout/activity_sms_config.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/stripped.dir/layout/dialog_add_endpoint.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/stripped.dir/layout/dialog_add_mapping.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/stripped.dir/layout/dialog_add_sms.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/stripped.dir/layout/item_configured_app.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/stripped.dir/layout/item_endpoint.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/stripped.dir/layout/item_log.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/stripped.dir/layout/item_mapping.xml",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/stripped.dir/layout/item_sms_target.xml",
+    "android/app/build/intermediates/incremental/debug/packageDebugResources/compile-file-map.properties",
+    "android/app/build/intermediates/incremental/debug/packageDebugResources/merged.dir/values/values.xml",
+    "android/app/build/intermediates/incremental/debug/packageDebugResources/merger.xml",
+    "android/app/build/intermediates/incremental/debug/packageDebugResources/stripped.dir/layout/activity_app_config.xml",
+    "android/app/build/intermediates/incremental/debug/packageDebugResources/stripped.dir/layout/activity_apps_list.xml",
+    "android/app/build/intermediates/incremental/debug/packageDebugResources/stripped.dir/layout/activity_log.xml",
+    "android/app/build/intermediates/incremental/debug/packageDebugResources/stripped.dir/layout/activity_main.xml",
+    "android/app/build/intermediates/incremental/debug/packageDebugResources/stripped.dir/layout/activity_main_dashboard.xml",
+    "android/app/build/intermediates/incremental/debug/packageDebugResources/stripped.dir/layout/activity_sms_config.xml",
+    "android/app/build/intermediates/incremental/debug/packageDebugResources/stripped.dir/layout/dialog_add_endpoint.xml",
+    "android/app/build/intermediates/incremental/debug/packageDebugResources/stripped.dir/layout/dialog_add_mapping.xml",
+    "android/app/build/intermediates/incremental/debug/packageDebugResources/stripped.dir/layout/dialog_add_sms.xml",
+    "android/app/build/intermediates/incremental/debug/packageDebugResources/stripped.dir/layout/item_configured_app.xml",
+    "android/app/build/intermediates/incremental/debug/packageDebugResources/stripped.dir/layout/item_endpoint.xml",
+    "android/app/build/intermediates/incremental/debug/packageDebugResources/stripped.dir/layout/item_log.xml",
+    "android/app/build/intermediates/incremental/debug/packageDebugResources/stripped.dir/layout/item_mapping.xml",
+    "android/app/build/intermediates/incremental/debug/packageDebugResources/stripped.dir/layout/item_sms_target.xml",
+    "android/app/build/intermediates/incremental/packageDebug/tmp/debug/dex-renamer-state.txt",
+    "android/app/build/intermediates/incremental/packageDebug/tmp/debug/zip-cache/androidResources",
+    "android/app/build/intermediates/javac/debug/classes/com/example/alertsheets/databinding/ActivityMainDashboardBinding.class",
+    "android/app/build/intermediates/local_only_symbol_list/debug/R-def.txt",
+    "android/app/build/intermediates/manifest_merge_blame_file/debug/manifest-merger-blame-debug-report.txt",
+    "android/app/build/intermediates/merged_manifest/debug/AndroidManifest.xml",
+    "android/app/build/intermediates/merged_manifests/debug/AndroidManifest.xml",
+    "android/app/build/intermediates/merged_res/debug/layout_activity_main_dashboard.xml.flat",
+    "android/app/build/intermediates/merged_res_blame_folder/debug/out/single/debug.json",
+    "android/app/build/intermediates/merged_res_blame_folder/debug/out/single/layout.json",
+    "android/app/build/intermediates/packaged_manifests/debug/AndroidManifest.xml",
+    "android/app/build/intermediates/packaged_res/debug/layout/activity_main_dashboard.xml",
+    "android/app/build/intermediates/processed_res/debug/out/resources-debug.ap_",
+    "android/app/build/intermediates/project_dex_archive/debug/out/6d0f5e8b253e0c41e030a83414c73410b66f40a572376d63445d1f9d2ea04609_0.jar",
+    "android/app/build/intermediates/project_dex_archive/debug/out/6d0f5e8b253e0c41e030a83414c73410b66f40a572376d63445d1f9d2ea04609_1.jar",
+    "android/app/build/intermediates/project_dex_archive/debug/out/6d0f5e8b253e0c41e030a83414c73410b66f40a572376d63445d1f9d2ea04609_10.jar",
+    "android/app/build/intermediates/project_dex_archive/debug/out/6d0f5e8b253e0c41e030a83414c73410b66f40a572376d63445d1f9d2ea04609_11.jar",
+    "android/app/build/intermediates/project_dex_archive/debug/out/6d0f5e8b253e0c41e030a83414c73410b66f40a572376d63445d1f9d2ea04609_12.jar",
+    "android/app/build/intermediates/project_dex_archive/debug/out/6d0f5e8b253e0c41e030a83414c73410b66f40a572376d63445d1f9d2ea04609_13.jar",
+    "android/app/build/intermediates/project_dex_archive/debug/out/6d0f5e8b253e0c41e030a83414c73410b66f40a572376d63445d1f9d2ea04609_14.jar",
+    "android/app/build/intermediates/project_dex_archive/debug/out/6d0f5e8b253e0c41e030a83414c73410b66f40a572376d63445d1f9d2ea04609_15.jar",
+    "android/app/build/intermediates/project_dex_archive/debug/out/6d0f5e8b253e0c41e030a83414c73410b66f40a572376d63445d1f9d2ea04609_2.jar",
+    "android/app/build/intermediates/project_dex_archive/debug/out/6d0f5e8b253e0c41e030a83414c73410b66f40a572376d63445d1f9d2ea04609_3.jar",
+    "android/app/build/intermediates/project_dex_archive/debug/out/6d0f5e8b253e0c41e030a83414c73410b66f40a572376d63445d1f9d2ea04609_4.jar",
+    "android/app/build/intermediates/project_dex_archive/debug/out/6d0f5e8b253e0c41e030a83414c73410b66f40a572376d63445d1f9d2ea04609_5.jar",
+    "android/app/build/intermediates/project_dex_archive/debug/out/6d0f5e8b253e0c41e030a83414c73410b66f40a572376d63445d1f9d2ea04609_6.jar",
+    "android/app/build/intermediates/project_dex_archive/debug/out/6d0f5e8b253e0c41e030a83414c73410b66f40a572376d63445d1f9d2ea04609_7.jar",
+    "android/app/build/intermediates/project_dex_archive/debug/out/6d0f5e8b253e0c41e030a83414c73410b66f40a572376d63445d1f9d2ea04609_8.jar",
+    "android/app/build/intermediates/project_dex_archive/debug/out/6d0f5e8b253e0c41e030a83414c73410b66f40a572376d63445d1f9d2ea04609_9.jar",
+    "android/app/build/intermediates/project_dex_archive/debug/out/com/example/alertsheets/AlertsApplication.dex",
+    "android/app/build/intermediates/project_dex_archive/debug/out/com/example/alertsheets/AppsListActivity$onCreate$1$apps$1.dex",
+    "android/app/build/intermediates/project_dex_archive/debug/out/com/example/alertsheets/AppsListActivity$onCreate$1.dex",
+    "android/app/build/intermediates/project_dex_archive/debug/out/com/example/alertsheets/AppsListActivity.dex",
+    "android/app/build/intermediates/project_dex_archive/debug/out/com/example/alertsheets/Endpoint.dex",
+    "android/app/build/intermediates/project_dex_archive/debug/out/com/example/alertsheets/LogRepository$loadLogs$type$1.dex",
+    "android/app/build/intermediates/project_dex_archive/debug/out/com/example/alertsheets/LogRepository$saveLogs$1.dex",
+    "android/app/build/intermediates/project_dex_archive/debug/out/com/example/alertsheets/LogRepository.dex",
+    "android/app/build/intermediates/project_dex_archive/debug/out/com/example/alertsheets/MigrationManager.dex",
+    "android/app/build/intermediates/project_dex_archive/debug/out/com/example/alertsheets/PrefsManager$deleteCustomTemplate$1.dex",
+    "android/app/build/intermediates/project_dex_archive/debug/out/com/example/alertsheets/PrefsManager$getCustomTemplates$type$1.dex",
+    "android/app/build/intermediates/project_dex_archive/debug/out/com/example/alertsheets/PrefsManager$getEndpoints$type$1.dex",
+    "android/app/build/intermediates/project_dex_archive/debug/out/com/example/alertsheets/PrefsManager$getSmsConfigList$type$1.dex",
+    "android/app/build/intermediates/project_dex_archive/debug/out/com/example/alertsheets/PrefsManager.dex",
+    "android/app/build/intermediates/project_dex_archive/debug/out/com/example/alertsheets/SmsConfigActivity.dex",
+    "android/app/build/intermediates/project_dex_archive/debug/out/com/example/alertsheets/databinding/ActivityMainDashboardBinding.dex",
+    "android/app/build/intermediates/project_dex_archive/debug/out/com/example/alertsheets/domain/SourceManager.dex",
+    "android/app/build/intermediates/project_dex_archive/debug/out/com/example/alertsheets/ui/MainActivity.dex",
+    "android/app/build/intermediates/runtime_symbol_list/debug/R.txt",
+    "android/app/build/intermediates/stable_resource_ids_file/debug/stableIds.txt",
+    "android/app/build/intermediates/symbol_list_with_package_name/debug/package-aware-r.txt",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/inputs/source-to-output.tab",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/inputs/source-to-output.tab.keystream",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/inputs/source-to-output.tab.keystream.len",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/inputs/source-to-output.tab.len",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/inputs/source-to-output.tab.values.at",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/inputs/source-to-output.tab_i",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/class-attributes.tab",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/class-attributes.tab.keystream",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/class-attributes.tab.keystream.len",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/class-attributes.tab.len",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/class-attributes.tab.values.at",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/class-attributes.tab_i",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/class-fq-name-to-source.tab",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/class-fq-name-to-source.tab.keystream",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/class-fq-name-to-source.tab.keystream.len",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/class-fq-name-to-source.tab.len",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/class-fq-name-to-source.tab.values.at",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/class-fq-name-to-source.tab_i",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/constants.tab",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/internal-name-to-source.tab",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/internal-name-to-source.tab.keystream",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/internal-name-to-source.tab.keystream.len",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/internal-name-to-source.tab.len",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/internal-name-to-source.tab.values.at",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/internal-name-to-source.tab_i",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/proto.tab",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/proto.tab.keystream",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/proto.tab.keystream.len",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/proto.tab.len",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/proto.tab.values",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/proto.tab.values.at",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/proto.tab.values.s",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/proto.tab_i",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/source-to-classes.tab",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/source-to-classes.tab.keystream",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/source-to-classes.tab.keystream.len",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/source-to-classes.tab.len",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/source-to-classes.tab.values.at",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/source-to-classes.tab_i",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/subtypes.tab",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/subtypes.tab.keystream",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/subtypes.tab.values.at",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/subtypes.tab_i",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/supertypes.tab",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/supertypes.tab.keystream",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/supertypes.tab.keystream.len",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/supertypes.tab.len",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/supertypes.tab.values.at",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/supertypes.tab_i",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/lookups/counters.tab",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/lookups/file-to-id.tab",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/lookups/file-to-id.tab.keystream",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/lookups/file-to-id.tab.keystream.len",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/lookups/file-to-id.tab.len",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/lookups/file-to-id.tab.values.at",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/lookups/file-to-id.tab_i",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/lookups/id-to-file.tab",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/lookups/id-to-file.tab.keystream",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/lookups/id-to-file.tab.keystream.len",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/lookups/id-to-file.tab.len",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/lookups/id-to-file.tab.values.at",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/lookups/id-to-file.tab_i",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/lookups/lookups.tab",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/lookups/lookups.tab.keystream",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/lookups/lookups.tab.keystream.len",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/lookups/lookups.tab.len",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/lookups/lookups.tab.values",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/lookups/lookups.tab.values.at",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/lookups/lookups.tab.values.s",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/lookups/lookups.tab_i",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/last-build.bin",
+    "android/app/build/kotlin/compileDebugKotlin/classpath-snapshot/shrunk-classpath-snapshot.bin",
+    "android/app/build/kotlin/compileDebugKotlin/local-state/build-history.bin",
+    "android/app/build/outputs/apk/debug/app-debug.apk",
+    "android/app/build/outputs/logs/manifest-merger-debug-report.txt",
+    "android/app/build/tmp/compileDebugJavaWithJavac/previous-compilation-data.bin",
+    "android/app/build/tmp/kotlin-classes/debug/com/example/alertsheets/AlertsApplication.class",
+    "android/app/build/tmp/kotlin-classes/debug/com/example/alertsheets/AppsListActivity$onCreate$1$apps$1.class",
+    "android/app/build/tmp/kotlin-classes/debug/com/example/alertsheets/AppsListActivity$onCreate$1.class",
+    "android/app/build/tmp/kotlin-classes/debug/com/example/alertsheets/AppsListActivity.class",
+    "android/app/build/tmp/kotlin-classes/debug/com/example/alertsheets/Endpoint.class",
+    "android/app/build/tmp/kotlin-classes/debug/com/example/alertsheets/LogRepository$loadLogs$type$1.class",
+    "android/app/build/tmp/kotlin-classes/debug/com/example/alertsheets/LogRepository$saveLogs$1.class",
+    "android/app/build/tmp/kotlin-classes/debug/com/example/alertsheets/LogRepository.class",
+    "android/app/build/tmp/kotlin-classes/debug/com/example/alertsheets/MigrationManager.class",
+    "android/app/build/tmp/kotlin-classes/debug/com/example/alertsheets/PrefsManager$deleteCustomTemplate$1.class",
+    "android/app/build/tmp/kotlin-classes/debug/com/example/alertsheets/PrefsManager$getCustomTemplates$type$1.class",
+    "android/app/build/tmp/kotlin-classes/debug/com/example/alertsheets/PrefsManager$getEndpoints$type$1.class",
+    "android/app/build/tmp/kotlin-classes/debug/com/example/alertsheets/PrefsManager$getSmsConfigList$type$1.class",
+    "android/app/build/tmp/kotlin-classes/debug/com/example/alertsheets/PrefsManager.class",
+    "android/app/build/tmp/kotlin-classes/debug/com/example/alertsheets/SmsConfigActivity.class",
+    "android/app/build/tmp/kotlin-classes/debug/com/example/alertsheets/domain/SourceManager.class",
+    "android/app/build/tmp/kotlin-classes/debug/com/example/alertsheets/ui/MainActivity.class",
     "android/app/src/main/java/com/example/alertsheets/PrefsManager.kt",
-    "android/app/src/main/java/com/example/alertsheets/SmsConfigActivity.kt",
     "android/app/src/main/java/com/example/alertsheets/SourceConfigActivity.kt",
-    "android/app/src/main/java/com/example/alertsheets/SourceConfigAdapter.kt",
-    "android/app/src/main/java/com/example/alertsheets/domain/SourceManager.kt",
-    "android/app/src/main/java/com/example/alertsheets/ui/MainActivity.kt",
     "android/app/src/main/res/layout/activity_main_dashboard.xml",
-    "android/app/src/main/res/layout/activity_source_config.xml",
-    "android/app/src/main/res/layout/dialog_edit_source.xml",
-    "android/app/src/main/res/layout/item_source.xml",
-    "android/app/src/test/java/com/example/alertsheets/data/repositories/SourceRepositoryTest.kt.disabled"
+    "android/app/src/main/res/layout/item_source.xml"
   ]
 }

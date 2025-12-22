@@ -296,6 +296,10 @@ class AppsListActivity : AppCompatActivity() {
         // ✅ Get first available endpoint (or create default)
         val endpointId = sourceManager.getFirstEndpointId() ?: "default-endpoint"
         
+        // ✅ Get default template JSON from TemplateRepository
+        val templateRepo = com.example.alertsheets.data.repositories.TemplateRepository(this)
+        val defaultTemplateJson = templateRepo.getAppTemplate()
+        
         // Create Source with smart defaults
         val source = Source(
             id = packageName,
@@ -305,7 +309,8 @@ class AppsListActivity : AppCompatActivity() {
             
             // BNN gets special treatment
             autoClean = !isBnn,  // BNN doesn't need emoji cleaning
-            templateId = if (isBnn) "rock-solid-bnn-format" else "rock-solid-app-default",
+            templateJson = defaultTemplateJson,  // ✅ NEW: Store template JSON directly
+            templateId = if (isBnn) "rock-solid-bnn-format" else "rock-solid-app-default",  // DEPRECATED
             parserId = if (isBnn) "bnn" else "generic",
             endpointId = endpointId,  // ✅ Use first available endpoint
             

@@ -131,6 +131,10 @@
         <!-- V1 ACTIVITIES (TEMPORARY - DURING MIGRATION) -->
         <!-- ============================================ -->
         <activity
+            android:name="com.example.alertsheets.LabActivity"
+            android:label="Lab"
+            android:parentActivityName="com.example.alertsheets.ui.MainActivity" />
+        <activity
             android:name="com.example.alertsheets.SourceConfigActivity"
             android:label="Configure Sources"
             android:parentActivityName="com.example.alertsheets.ui.MainActivity" />

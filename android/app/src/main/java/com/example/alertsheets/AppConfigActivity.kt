@@ -24,10 +24,14 @@ import okhttp3.RequestBody.Companion.toRequestBody
 class AppConfigActivity : AppCompatActivity() {
 
     private lateinit var editJson: EditText
+    private lateinit var spinnerSource: Spinner  // ✅ NEW: Source selector
     private lateinit var spinnerTemplate: Spinner
     private lateinit var btnSave: Button
     private lateinit var radioGroupMode: RadioGroup
     private lateinit var templateRepository: TemplateRepository
+    private lateinit var sourceManager: com.example.alertsheets.domain.SourceManager  // ✅ NEW
+    
+    private var currentSource: com.example.alertsheets.domain.models.Source? = null  // ✅ NEW: Currently selected source
 
     // Available Variables for User Reference
     private val appVariables =
@@ -44,8 +48,9 @@ class AppConfigActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         
-        // ✅ V2: Initialize repository
+        // ✅ V2: Initialize repositories
         templateRepository = TemplateRepository(this)
+        sourceManager = com.example.alertsheets.domain.SourceManager(this)
         
         // Enable back button in action bar
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
@@ -59,49 +64,34 @@ class AppConfigActivity : AppCompatActivity() {
         // Header
         val title =
                 TextView(this).apply {
-                    text = "JSON Payload Config (v2 DEBUG)"
+                    text = "JSON Payload Editor"
                     textSize = 20f
                     setPadding(0, 0, 0, 24)
                 }
         layout.addView(title)
 
-        // MODE SELECTION
-        val labelMode =
+        // ✅ NEW: Source selector (PRIMARY workflow)
+        val labelSource =
                 TextView(this).apply {
-                    text = "Select Configuration Mode:"
+                    text = "Select Source to Edit:"
                     setPadding(0, 0, 0, 8)
+                    textSize = 16f
+                    setTypeface(null, android.graphics.Typeface.BOLD)
+                    setTextColor(android.graphics.Color.parseColor("#FF6200EE"))
                 }
-        layout.addView(labelMode)
-
-        radioGroupMode = RadioGroup(this).apply { orientation = RadioGroup.HORIZONTAL }
-
-        val radioApp =
-                RadioButton(this).apply {
-                    text = "App Notifications"
-                    id = R.id.radio_app
-                    isChecked = true
-                }
-        val radioSms =
-                RadioButton(this).apply {
-                    text = "SMS Messages"
-                    id = R.id.radio_sms
-                }
-
-        radioGroupMode.addView(radioApp)
-        radioGroupMode.addView(radioSms)
-        layout.addView(radioGroupMode)
-
-        // Template Selector
-        val labelTemplate =
-                TextView(this).apply {
-                    text = "Select Template:"
-                    setPadding(0, 16, 0, 8)
-                }
-        layout.addView(labelTemplate)
-
-        spinnerTemplate = Spinner(this)
-        loadTemplatesForCurrentMode() // Load templates dynamically
-        layout.addView(spinnerTemplate)
+        layout.addView(labelSource)
+        
+        spinnerSource = Spinner(this)
+        loadSources() // ✅ Load all sources into spinner
+        layout.addView(spinnerSource)
+        
+        val divider1 = TextView(this).apply {
+            text = "━━━━━━━━━━━━━━━━━━━━━━━━━"
+            textSize = 12f
+            setPadding(0, 16, 0, 16)
+            setTextColor(android.graphics.Color.GRAY)
+        }
+        layout.addView(divider1)
 
         // Template Management Buttons
         val templateButtonLayout =
@@ -370,20 +360,29 @@ class AppConfigActivity : AppCompatActivity() {
 
     private fun save() {
         val newJson = editJson.text.toString()
-        val isAppMode = (radioGroupMode.checkedRadioButtonId == R.id.radio_app)
+        
+        // ✅ NEW: Save to the currently selected source's templateJson
+        val source = currentSource
+        if (source == null) {
+            Toast.makeText(this, "No source selected", Toast.LENGTH_SHORT).show()
+            return
+        }
 
         // Validate JSON
         try {
             // Simple check
             if (!newJson.trim().startsWith("{")) throw Exception("Must start with {")
 
-            if (isAppMode) {
-                PrefsManager.saveAppJsonTemplate(this, newJson)
-                Toast.makeText(this, "Saved App Config!", Toast.LENGTH_SHORT).show()
-            } else {
-                PrefsManager.saveSmsJsonTemplate(this, newJson)
-                Toast.makeText(this, "Saved SMS Config!", Toast.LENGTH_SHORT).show()
-            }
+            // ✅ Update source's templateJson
+            val updatedSource = source.copy(
+                templateJson = newJson,
+                updatedAt = System.currentTimeMillis()
+            )
+            sourceManager.saveSource(updatedSource)
+            currentSource = updatedSource  // Update local reference
+            
+            Toast.makeText(this, "✅ Saved template for ${source.name}!", Toast.LENGTH_SHORT).show()
+            
         } catch (e: Exception) {
             Toast.makeText(this, "Invalid JSON: ${e.message}", Toast.LENGTH_LONG).show()
         }
@@ -853,6 +852,52 @@ class AppConfigActivity : AppCompatActivity() {
                 }
                 .setNegativeButton("Cancel", null)
                 .show()
+        }
+    }
+    
+    /**
+     * ✅ NEW: Load all sources into the spinner
+     */
+    private fun loadSources() {
+        CoroutineScope(Dispatchers.Main).launch {
+            val sources = sourceManager.getAllSources()
+            
+            if (sources.isEmpty()) {
+                Toast.makeText(this@AppConfigActivity, 
+                    "No sources configured. Add apps or SMS from main menu first.", 
+                    Toast.LENGTH_LONG).show()
+                finish()
+                return@launch
+            }
+            
+            val sourceNames = sources.map { "${it.name} (${it.type.name})" }
+            val adapter = ArrayAdapter(this@AppConfigActivity, android.R.layout.simple_spinner_item, sourceNames)
+            adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+            spinnerSource.adapter = adapter
+            
+            // When source selection changes, load its template JSON
+            spinnerSource.onItemSelectedListener = object : android.widget.AdapterView.OnItemSelectedListener {
+                override fun onItemSelected(parent: android.widget.AdapterView<*>?, view: android.view.View?, position: Int, id: Long) {
+                    currentSource = sources[position]
+                    loadSourceTemplate()
+                }
+                override fun onNothingSelected(parent: android.widget.AdapterView<*>?) {}
+            }
+            
+            // Auto-select first source
+            if (sources.isNotEmpty()) {
+                currentSource = sources[0]
+                loadSourceTemplate()
+            }
+        }
+    }
+    
+    /**
+     * ✅ NEW: Load the selected source's template JSON into the editor
+     */
+    private fun loadSourceTemplate() {
+        currentSource?.let { source ->
+            editJson.setText(source.templateJson)
         }
     }
 }

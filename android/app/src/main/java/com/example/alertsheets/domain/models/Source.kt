@@ -13,11 +13,14 @@ data class Source(
     val type: SourceType,                     // APP or SMS
     val name: String,                         // Display name
     val enabled: Boolean = true,              // Master on/off switch
-    val templateId: String,                   // Reference to Template.id
+    val templateJson: String,                 // THIS source's template JSON (独立配置)
+    val templateId: String = "",              // DEPRECATED: kept for migration only
     val autoClean: Boolean = false,           // Remove emojis/symbols for THIS source
     val parserId: String = "generic",         // "bnn", "generic", or "sms"
     val endpointId: String,                   // Reference to Endpoint.id
     val iconColor: Int = 0xFF4A9EFF.toInt(), // For UI display
+    val iconName: String = "notification",    // ✅ Icon for card (fire, sms, email, etc)
+    val cardColor: Int = 0xFF4A9EFF.toInt(), // ✅ Card background color
     val stats: SourceStats = SourceStats(),   // Usage statistics
     val createdAt: Long = System.currentTimeMillis(),
     val updatedAt: Long = System.currentTimeMillis()

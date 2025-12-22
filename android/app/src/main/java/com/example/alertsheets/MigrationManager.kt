@@ -32,7 +32,9 @@ object MigrationManager {
         val alreadyMigrated = prefs.getBoolean(AppConstants.MIGRATION_KEY, false)
         
         if (alreadyMigrated) {
-            Log.i(TAG, "Migration already complete, skipping")
+            Log.i(TAG, "V1→V2 migration already complete")
+            // Check for V2.1 migration (templateJson)
+            migrateToTemplateJson(context)
             return
         }
         
@@ -45,9 +47,84 @@ object MigrationManager {
             prefs.edit().putBoolean(AppConstants.MIGRATION_KEY, true).apply()
             Log.i(TAG, "✓ ${AppConstants.Success.MIGRATION_COMPLETE}")
             
+            // Also run V2.1 migration
+            migrateToTemplateJson(context)
+            
         } catch (e: Exception) {
             Log.e(TAG, "Migration failed: ${e.message}", e)
             // Don't mark as complete so it retries next time
+        }
+    }
+    
+    /**
+     * V2.1 Migration: Populate templateJson for all sources
+     * (Converts templateId → templateJson)
+     */
+    private fun migrateToTemplateJson(context: Context) {
+        val prefs = context.getSharedPreferences(AppConstants.PREFS_NAME, Context.MODE_PRIVATE)
+        val v21Migrated = prefs.getBoolean("migration_v2_1_template_json", false)
+        
+        if (v21Migrated) {
+            Log.i(TAG, "V2.1 templateJson migration already complete")
+            return
+        }
+        
+        Log.i(TAG, "Starting V2.1 migration: templateId → templateJson...")
+        
+        try {
+            val sourceManager = SourceManager(context)
+            val templateRepo = com.example.alertsheets.data.repositories.TemplateRepository(context)
+            val sources = sourceManager.getAllSources()
+            
+            Log.i(TAG, "Migrating ${sources.size} sources to use templateJson...")
+            
+            sources.forEach { source ->
+                // Skip if already has templateJson
+                if (source.templateJson.isNotEmpty()) {
+                    Log.d(TAG, "  • ${source.name} already has templateJson, skipping")
+                    return@forEach
+                }
+                
+                // Get template JSON from templateId
+                val templateJson = when {
+                    source.templateId.isNotEmpty() -> {
+                        // Try to get from template repo
+                        templateRepo.getById(source.templateId) ?: getDefaultTemplateForSource(source, templateRepo)
+                    }
+                    else -> {
+                        // No templateId, use default
+                        getDefaultTemplateForSource(source, templateRepo)
+                    }
+                }
+                
+                // Update source with templateJson
+                val updated = source.copy(
+                    templateJson = templateJson,
+                    updatedAt = System.currentTimeMillis()
+                )
+                sourceManager.saveSource(updated)
+                Log.i(TAG, "  ✓ Migrated: ${source.name} (${templateJson.take(50)}...)")
+            }
+            
+            // Mark V2.1 migration complete
+            prefs.edit().putBoolean("migration_v2_1_template_json", true).apply()
+            Log.i(TAG, "✓ V2.1 migration complete")
+            
+        } catch (e: Exception) {
+            Log.e(TAG, "V2.1 migration failed: ${e.message}", e)
+        }
+    }
+    
+    /**
+     * Get default template JSON for a source based on its type and parser
+     */
+    private fun getDefaultTemplateForSource(
+        source: Source,
+        templateRepo: com.example.alertsheets.data.repositories.TemplateRepository
+    ): String {
+        return when (source.type) {
+            SourceType.APP -> templateRepo.getAppTemplate()
+            SourceType.SMS -> templateRepo.getSmsTemplate()
         }
     }
     
@@ -128,6 +205,9 @@ object MigrationManager {
         
         Log.i(TAG, "Migrating ${smsTargets.size} SMS targets...")
         
+        val templateRepo = com.example.alertsheets.data.repositories.TemplateRepository(context)
+        val defaultSmsTemplate = templateRepo.getSmsTemplate()
+        
         smsTargets.forEach { target ->
             val source = Source(
                 id = "sms:${target.phoneNumber}",
@@ -137,16 +217,14 @@ object MigrationManager {
                 
                 // Configuration
                 autoClean = true,  // SMS default: clean emojis
-                templateId = "rock-solid-sms-default",
+                templateJson = defaultSmsTemplate,  // ✅ NEW: Store template JSON directly
+                templateId = "rock-solid-sms-default",  // DEPRECATED: kept for reference
                 parserId = "sms",
-                endpointId = "default-endpoint",
+                endpointId = sourceManager.getFirstEndpointId() ?: "default-endpoint",
                 
                 // Metadata
                 iconColor = 0xFF00D980.toInt(), // Green
-                stats = SourceStats(
-                    // Store SMS-specific config in stats metadata for now
-                    // TODO: Add dedicated SMS config fields to Source model
-                ),
+                stats = SourceStats(),
                 createdAt = System.currentTimeMillis(),
                 updatedAt = System.currentTimeMillis()
             )
@@ -174,6 +252,8 @@ object MigrationManager {
         Log.i(TAG, "Migrating ${targetApps.size} app targets...")
         
         val pm = context.packageManager
+        val templateRepo = com.example.alertsheets.data.repositories.TemplateRepository(context)
+        val defaultAppTemplate = templateRepo.getAppTemplate()
         
         targetApps.forEach { packageName ->
             // Get app name from package manager
@@ -198,9 +278,10 @@ object MigrationManager {
                 
                 // Configuration (BNN gets special treatment)
                 autoClean = !isBnn,  // BNN doesn't need cleaning
-                templateId = if (isBnn) "rock-solid-bnn-format" else "rock-solid-app-default",
+                templateJson = defaultAppTemplate,  // ✅ NEW: Store template JSON directly
+                templateId = if (isBnn) "rock-solid-bnn-format" else "rock-solid-app-default",  // DEPRECATED
                 parserId = if (isBnn) "bnn" else "generic",
-                endpointId = "default-endpoint",
+                endpointId = sourceManager.getFirstEndpointId() ?: "default-endpoint",
                 
                 // Metadata
                 iconColor = if (isBnn) 0xFFA855F7.toInt() else 0xFF4A9EFF.toInt(), // Purple or Blue
@@ -214,4 +295,3 @@ object MigrationManager {
         }
     }
 }
-

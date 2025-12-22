@@ -63,6 +63,11 @@ class SourceConfigActivity : AppCompatActivity() {
         
         recycler.layoutManager = LinearLayoutManager(this)
         
+        // ✅ FAB for creating new sources
+        findViewById<com.google.android.material.floatingactionbutton.FloatingActionButton>(R.id.fab_add_source).setOnClickListener {
+            showCreateSourceDialog()
+        }
+        
         loadSources()
     }
     
@@ -190,6 +195,88 @@ class SourceConfigActivity : AppCompatActivity() {
             }
             .setNegativeButton("Cancel", null)
             .show()
+    }
+    
+    /**
+     * Show dialog to create a new source from scratch
+     * This allows creating generic sources without going through App List or SMS List
+     */
+    private fun showCreateSourceDialog() {
+        val dialogView = layoutInflater.inflate(R.layout.dialog_create_source, null)
+        
+        val inputName = dialogView.findViewById<EditText>(R.id.input_new_source_name)
+        val inputId = dialogView.findViewById<EditText>(R.id.input_new_source_id)
+        val spinnerType = dialogView.findViewById<Spinner>(R.id.spinner_new_source_type)
+        val spinnerEndpoint = dialogView.findViewById<Spinner>(R.id.spinner_new_endpoint)
+        val spinnerParser = dialogView.findViewById<Spinner>(R.id.spinner_new_parser)
+        val switchAutoClean = dialogView.findViewById<Switch>(R.id.switch_new_auto_clean)
+        
+        // Type spinner
+        val types = listOf("APP", "SMS")
+        spinnerType.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, types).apply {
+            setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        }
+        
+        // Parsers spinner
+        val parsers = listOf("generic", "bnn", "sms")
+        spinnerParser.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, parsers).apply {
+            setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        }
+        
+        // Load endpoints async
+        scope.launch(Dispatchers.IO) {
+            val endpoints = sourceManager.getEndpoints()
+            withContext(Dispatchers.Main) {
+                val endpointNames = endpoints.map { it.name }
+                spinnerEndpoint.adapter = ArrayAdapter(this@SourceConfigActivity, android.R.layout.simple_spinner_item, endpointNames).apply {
+                    setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+                }
+                
+                AlertDialog.Builder(this@SourceConfigActivity)
+                    .setTitle("Create New Source")
+                    .setView(dialogView)
+                    .setPositiveButton("Create") { _, _ ->
+                        val name = inputName.text.toString().trim()
+                        val id = inputId.text.toString().trim()
+                        val type = if (spinnerType.selectedItemPosition == 0) com.example.alertsheets.domain.models.SourceType.APP else com.example.alertsheets.domain.models.SourceType.SMS
+                        val selectedEndpoint = endpoints[spinnerEndpoint.selectedItemPosition]
+                        val parserId = parsers[spinnerParser.selectedItemPosition]
+                        val autoClean = switchAutoClean.isChecked
+                        
+                        if (name.isEmpty() || id.isEmpty()) {
+                            Toast.makeText(this@SourceConfigActivity, "Name and ID are required", Toast.LENGTH_SHORT).show()
+                            return@setPositiveButton
+                        }
+                        
+                        // Create new source with default template JSON
+                        val templateJson = templateRepo.getDefaultJsonForNewSource(type)
+                        val newSource = Source(
+                            id = id,
+                            type = type,
+                            name = name,
+                            enabled = true,
+                            templateJson = templateJson,
+                            templateId = "", // No longer used
+                            autoClean = autoClean,
+                            parserId = parserId,
+                            endpointId = selectedEndpoint.id,
+                            iconColor = if (type == com.example.alertsheets.domain.models.SourceType.APP) 0xFF4A9EFF.toInt() else 0xFF00D980.toInt(),
+                            createdAt = System.currentTimeMillis(),
+                            updatedAt = System.currentTimeMillis()
+                        )
+                        
+                        scope.launch(Dispatchers.IO) {
+                            sourceManager.saveSource(newSource)
+                            withContext(Dispatchers.Main) {
+                                Toast.makeText(this@SourceConfigActivity, "Source created: $name", Toast.LENGTH_SHORT).show()
+                                loadSources()
+                            }
+                        }
+                    }
+                    .setNegativeButton("Cancel", null)
+                    .show()
+            }
+        }
     }
     
     override fun onDestroy() {

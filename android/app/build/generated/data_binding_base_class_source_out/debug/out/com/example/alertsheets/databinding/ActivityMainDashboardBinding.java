@@ -4,8 +4,8 @@ package com.example.alertsheets.databinding;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.FrameLayout;
+import android.widget.GridLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -23,16 +23,7 @@ public final class ActivityMainDashboardBinding implements ViewBinding {
   private final LinearLayout rootView;
 
   @NonNull
-  public final Button btnMasterStatus;
-
-  @NonNull
-  public final FrameLayout cardApps;
-
-  @NonNull
-  public final FrameLayout cardConfig;
-
-  @NonNull
-  public final FrameLayout cardEndpoints;
+  public final FrameLayout cardLab;
 
   @NonNull
   public final FrameLayout cardLogs;
@@ -41,73 +32,33 @@ public final class ActivityMainDashboardBinding implements ViewBinding {
   public final FrameLayout cardPermissions;
 
   @NonNull
-  public final FrameLayout cardSms;
-
-  @NonNull
-  public final FrameLayout cardSources;
-
-  @NonNull
-  public final ImageView dotApps;
-
-  @NonNull
-  public final ImageView dotEndpoints;
-
-  @NonNull
   public final ImageView dotLogs;
-
-  @NonNull
-  public final ImageView dotPayloads;
 
   @NonNull
   public final ImageView dotPermissions;
 
   @NonNull
-  public final ImageView dotSms;
+  public final GridLayout gridCards;
 
   @NonNull
-  public final ImageView dotSources;
+  public final TextView textStats;
 
   @NonNull
-  public final TextView footerTicker;
+  public final TextView textStatus;
 
-  @NonNull
-  public final TextView tvQueueStatus;
-
-  @NonNull
-  public final TextView tvServiceStatus;
-
-  @NonNull
-  public final TextView tvStatusTitle;
-
-  private ActivityMainDashboardBinding(@NonNull LinearLayout rootView,
-      @NonNull Button btnMasterStatus, @NonNull FrameLayout cardApps,
-      @NonNull FrameLayout cardConfig, @NonNull FrameLayout cardEndpoints,
+  private ActivityMainDashboardBinding(@NonNull LinearLayout rootView, @NonNull FrameLayout cardLab,
       @NonNull FrameLayout cardLogs, @NonNull FrameLayout cardPermissions,
-      @NonNull FrameLayout cardSms, @NonNull FrameLayout cardSources, @NonNull ImageView dotApps,
-      @NonNull ImageView dotEndpoints, @NonNull ImageView dotLogs, @NonNull ImageView dotPayloads,
-      @NonNull ImageView dotPermissions, @NonNull ImageView dotSms, @NonNull ImageView dotSources,
-      @NonNull TextView footerTicker, @NonNull TextView tvQueueStatus,
-      @NonNull TextView tvServiceStatus, @NonNull TextView tvStatusTitle) {
+      @NonNull ImageView dotLogs, @NonNull ImageView dotPermissions, @NonNull GridLayout gridCards,
+      @NonNull TextView textStats, @NonNull TextView textStatus) {
     this.rootView = rootView;
-    this.btnMasterStatus = btnMasterStatus;
-    this.cardApps = cardApps;
-    this.cardConfig = cardConfig;
-    this.cardEndpoints = cardEndpoints;
+    this.cardLab = cardLab;
     this.cardLogs = cardLogs;
     this.cardPermissions = cardPermissions;
-    this.cardSms = cardSms;
-    this.cardSources = cardSources;
-    this.dotApps = dotApps;
-    this.dotEndpoints = dotEndpoints;
     this.dotLogs = dotLogs;
-    this.dotPayloads = dotPayloads;
     this.dotPermissions = dotPermissions;
-    this.dotSms = dotSms;
-    this.dotSources = dotSources;
-    this.footerTicker = footerTicker;
-    this.tvQueueStatus = tvQueueStatus;
-    this.tvServiceStatus = tvServiceStatus;
-    this.tvStatusTitle = tvStatusTitle;
+    this.gridCards = gridCards;
+    this.textStats = textStats;
+    this.textStatus = textStatus;
   }
 
   @Override
@@ -137,27 +88,9 @@ public final class ActivityMainDashboardBinding implements ViewBinding {
     // This is done to optimize the compiled bytecode for size and performance.
     int id;
     missingId: {
-      id = R.id.btn_master_status;
-      Button btnMasterStatus = ViewBindings.findChildViewById(rootView, id);
-      if (btnMasterStatus == null) {
-        break missingId;
-      }
-
-      id = R.id.card_apps;
-      FrameLayout cardApps = ViewBindings.findChildViewById(rootView, id);
-      if (cardApps == null) {
-        break missingId;
-      }
-
-      id = R.id.card_config;
-      FrameLayout cardConfig = ViewBindings.findChildViewById(rootView, id);
-      if (cardConfig == null) {
-        break missingId;
-      }
-
-      id = R.id.card_endpoints;
-      FrameLayout cardEndpoints = ViewBindings.findChildViewById(rootView, id);
-      if (cardEndpoints == null) {
+      id = R.id.card_lab;
+      FrameLayout cardLab = ViewBindings.findChildViewById(rootView, id);
+      if (cardLab == null) {
         break missingId;
       }
 
@@ -173,39 +106,9 @@ public final class ActivityMainDashboardBinding implements ViewBinding {
         break missingId;
       }
 
-      id = R.id.card_sms;
-      FrameLayout cardSms = ViewBindings.findChildViewById(rootView, id);
-      if (cardSms == null) {
-        break missingId;
-      }
-
-      id = R.id.card_sources;
-      FrameLayout cardSources = ViewBindings.findChildViewById(rootView, id);
-      if (cardSources == null) {
-        break missingId;
-      }
-
-      id = R.id.dot_apps;
-      ImageView dotApps = ViewBindings.findChildViewById(rootView, id);
-      if (dotApps == null) {
-        break missingId;
-      }
-
-      id = R.id.dot_endpoints;
-      ImageView dotEndpoints = ViewBindings.findChildViewById(rootView, id);
-      if (dotEndpoints == null) {
-        break missingId;
-      }
-
       id = R.id.dot_logs;
       ImageView dotLogs = ViewBindings.findChildViewById(rootView, id);
       if (dotLogs == null) {
-        break missingId;
-      }
-
-      id = R.id.dot_payloads;
-      ImageView dotPayloads = ViewBindings.findChildViewById(rootView, id);
-      if (dotPayloads == null) {
         break missingId;
       }
 
@@ -215,46 +118,26 @@ public final class ActivityMainDashboardBinding implements ViewBinding {
         break missingId;
       }
 
-      id = R.id.dot_sms;
-      ImageView dotSms = ViewBindings.findChildViewById(rootView, id);
-      if (dotSms == null) {
+      id = R.id.grid_cards;
+      GridLayout gridCards = ViewBindings.findChildViewById(rootView, id);
+      if (gridCards == null) {
         break missingId;
       }
 
-      id = R.id.dot_sources;
-      ImageView dotSources = ViewBindings.findChildViewById(rootView, id);
-      if (dotSources == null) {
+      id = R.id.text_stats;
+      TextView textStats = ViewBindings.findChildViewById(rootView, id);
+      if (textStats == null) {
         break missingId;
       }
 
-      id = R.id.footer_ticker;
-      TextView footerTicker = ViewBindings.findChildViewById(rootView, id);
-      if (footerTicker == null) {
+      id = R.id.text_status;
+      TextView textStatus = ViewBindings.findChildViewById(rootView, id);
+      if (textStatus == null) {
         break missingId;
       }
 
-      id = R.id.tv_queue_status;
-      TextView tvQueueStatus = ViewBindings.findChildViewById(rootView, id);
-      if (tvQueueStatus == null) {
-        break missingId;
-      }
-
-      id = R.id.tv_service_status;
-      TextView tvServiceStatus = ViewBindings.findChildViewById(rootView, id);
-      if (tvServiceStatus == null) {
-        break missingId;
-      }
-
-      id = R.id.tv_status_title;
-      TextView tvStatusTitle = ViewBindings.findChildViewById(rootView, id);
-      if (tvStatusTitle == null) {
-        break missingId;
-      }
-
-      return new ActivityMainDashboardBinding((LinearLayout) rootView, btnMasterStatus, cardApps,
-          cardConfig, cardEndpoints, cardLogs, cardPermissions, cardSms, cardSources, dotApps,
-          dotEndpoints, dotLogs, dotPayloads, dotPermissions, dotSms, dotSources, footerTicker,
-          tvQueueStatus, tvServiceStatus, tvStatusTitle);
+      return new ActivityMainDashboardBinding((LinearLayout) rootView, cardLab, cardLogs,
+          cardPermissions, dotLogs, dotPermissions, gridCards, textStats, textStatus);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

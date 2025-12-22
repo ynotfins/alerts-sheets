@@ -137,6 +137,10 @@ class SmsConfigActivity : AppCompatActivity() {
                 val endpointId = sourceManager.getFirstEndpointId() ?: "default-endpoint"
                 
                 // ✅ V2: Create or update Source
+                // ✅ Get default template JSON for SMS
+                val templateRepo = com.example.alertsheets.data.repositories.TemplateRepository(this@SmsConfigActivity)
+                val defaultSmsTemplate = templateRepo.getSmsTemplate()
+                
                 val newSource = if (source == null) {
                     // New SMS source
                     Source(
@@ -145,7 +149,8 @@ class SmsConfigActivity : AppCompatActivity() {
                         name = name,
                         enabled = true,
                         autoClean = true,  // SMS default: clean emojis
-                        templateId = "rock-solid-sms-default",
+                        templateJson = defaultSmsTemplate,  // ✅ NEW: Store template JSON directly
+                        templateId = "rock-solid-sms-default",  // DEPRECATED
                         parserId = "sms",
                         endpointId = endpointId,  // ✅ Use first available endpoint
                         iconColor = 0xFF00D980.toInt(), // Green

@@ -217,4 +217,15 @@ class TemplateRepository(private val context: Context) {
 }
         """.trimIndent()
     }
+    
+    /**
+     * Get a default template JSON for creating a new source.
+     * Returns a clean starting point based on the source type.
+     */
+    fun getDefaultJsonForNewSource(sourceType: com.example.alertsheets.domain.models.SourceType): String {
+        return when (sourceType) {
+            com.example.alertsheets.domain.models.SourceType.APP -> getFallbackAppTemplate()
+            com.example.alertsheets.domain.models.SourceType.SMS -> getFallbackSmsTemplate()
+        }
+    }
 }

@@ -91,10 +91,11 @@ class DataPipeline(private val context: Context) {
                 LogRepository.updateStatus(logEntry.id, LogStatus.PROCESSING)
                 Log.v("Pipe", "Log entry updated to PROCESSING: ${logEntry.id}")
                 
-                // Step 4: Get template
-                val templateContent = templateRepo.getById(source.templateId)
-                if (templateContent == null) {
-                    logger.error("❌ No template found: ${source.templateId}")
+                // Step 4: Get template JSON from source (NOT from shared template repo!)
+                val templateContent = sourceManager.getTemplateJsonForSource(source)
+                if (templateContent.isEmpty()) {
+                    logger.error("❌ Source has no template JSON: ${source.name}")
+                    LogRepository.updateStatus(logEntry.id, LogStatus.FAILED)
                     sourceManager.recordNotificationProcessed(source.id, success = false)
                     return@launch
                 }

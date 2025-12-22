@@ -133,6 +133,9 @@ class SmsConfigActivity : AppCompatActivity() {
                 val filter = inputFilter.text.toString()
                 val caseSensitive = checkCase.isChecked
                 
+                // ✅ Get first available endpoint
+                val endpointId = sourceManager.getFirstEndpointId() ?: "default-endpoint"
+                
                 // ✅ V2: Create or update Source
                 val newSource = if (source == null) {
                     // New SMS source
@@ -144,7 +147,7 @@ class SmsConfigActivity : AppCompatActivity() {
                         autoClean = true,  // SMS default: clean emojis
                         templateId = "rock-solid-sms-default",
                         parserId = "sms",
-                        endpointId = "default-endpoint",
+                        endpointId = endpointId,  // ✅ Use first available endpoint
                         iconColor = 0xFF00D980.toInt(), // Green
                         createdAt = System.currentTimeMillis(),
                         updatedAt = System.currentTimeMillis()

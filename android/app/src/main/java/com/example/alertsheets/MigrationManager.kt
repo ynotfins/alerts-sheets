@@ -86,7 +86,7 @@ object MigrationManager {
             Log.i(TAG, "Migrating ${v1Endpoints.size} V1 endpoints to V2...")
             v1Endpoints.forEach { v1Endpoint ->
                 val v2Endpoint = Endpoint(
-                    id = "endpoint-${System.currentTimeMillis()}",
+                    id = v1Endpoint.id,  // ✅ Preserve ID from V1 (now has id field)
                     name = v1Endpoint.name,
                     url = v1Endpoint.url,
                     enabled = v1Endpoint.isEnabled,

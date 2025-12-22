@@ -31,10 +31,11 @@ import com.google.gson.reflect.TypeToken
  * @property schemaVersion For migration support - default ensures backward compat
  */
 data class Endpoint(
+    val id: String = java.util.UUID.randomUUID().toString(),  // ✅ Stable ID
     val name: String,
     val url: String,
     var isEnabled: Boolean = true,
-    val schemaVersion: Int = PayloadSerializer.SchemaVersion.ENDPOINTS
+    val schemaVersion: Int = PayloadSerializer.CURRENT_SCHEMA_VERSION
 )
 
 object PrefsManager {

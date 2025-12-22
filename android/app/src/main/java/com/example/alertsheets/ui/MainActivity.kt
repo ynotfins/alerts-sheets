@@ -36,6 +36,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var dotPermissions: ImageView
     private lateinit var dotApps: ImageView
     private lateinit var dotSms: ImageView
+    private lateinit var dotSources: ImageView
     private lateinit var dotPayloads: ImageView
     private lateinit var dotEndpoints: ImageView
     private lateinit var dotLogs: ImageView
@@ -53,6 +54,7 @@ class MainActivity : AppCompatActivity() {
         dotPermissions = findViewById(R.id.dot_permissions)
         dotApps = findViewById(R.id.dot_apps)
         dotSms = findViewById(R.id.dot_sms)
+        dotSources = findViewById(R.id.dot_sources)
         dotPayloads = findViewById(R.id.dot_payloads)
         dotEndpoints = findViewById(R.id.dot_endpoints)
         dotLogs = findViewById(R.id.dot_logs)
@@ -76,6 +78,10 @@ class MainActivity : AppCompatActivity() {
         
         findViewById<FrameLayout>(R.id.card_sms).setOnClickListener {
             startActivity(Intent(this, com.example.alertsheets.SmsConfigActivity::class.java))
+        }
+        
+        findViewById<FrameLayout>(R.id.card_sources).setOnClickListener {
+            startActivity(Intent(this, com.example.alertsheets.SourceConfigActivity::class.java))
         }
         
         findViewById<FrameLayout>(R.id.card_config).setOnClickListener {
@@ -128,6 +134,21 @@ class MainActivity : AppCompatActivity() {
         // SMS card: RED if no SMS sources configured
         dotSms.setColorFilter(
             if (smsSources.isNotEmpty()) 0xFF00D980.toInt() else 0xFFFF5252.toInt()
+        )
+        
+        // Sources card: GREEN if any sources configured, YELLOW if endpoints/templates not assigned
+        val allSources = sourceManager.getAllSources()
+        val sourcesConfigured = allSources.isNotEmpty()
+        val sourcesFullyConfigured = allSources.all { source ->
+            val endpoint = sourceManager.getEndpointById(source.endpointId)
+            endpoint != null && endpoint.enabled
+        }
+        dotSources.setColorFilter(
+            when {
+                !sourcesConfigured -> 0xFFFF5252.toInt() // RED - no sources
+                !sourcesFullyConfigured -> 0xFFFF9800.toInt() // ORANGE - some sources need config
+                else -> 0xFF00D980.toInt() // GREEN - all good
+            }
         )
         
         // Payloads card: Always green (templates always available)

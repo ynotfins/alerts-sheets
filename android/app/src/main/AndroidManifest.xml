@@ -115,6 +115,9 @@
         <!-- ============================================ -->
         <!-- V1 ACTIVITIES (TEMPORARY - DURING MIGRATION) -->
         <!-- ============================================ -->
+        <activity android:name=".SourceConfigActivity"
+            android:label="Configure Sources"
+            android:parentActivityName=".ui.MainActivity" />
         <activity android:name=".AppConfigActivity" 
             android:label="Payloads"
             android:parentActivityName=".ui.MainActivity" />

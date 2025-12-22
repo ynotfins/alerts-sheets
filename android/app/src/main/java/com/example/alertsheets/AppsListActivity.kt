@@ -293,6 +293,9 @@ class AppsListActivity : AppCompatActivity() {
         // Detect if BNN
         val isBnn = packageName.contains("bnn", ignoreCase = true)
         
+        // ✅ Get first available endpoint (or create default)
+        val endpointId = sourceManager.getFirstEndpointId() ?: "default-endpoint"
+        
         // Create Source with smart defaults
         val source = Source(
             id = packageName,
@@ -304,7 +307,7 @@ class AppsListActivity : AppCompatActivity() {
             autoClean = !isBnn,  // BNN doesn't need emoji cleaning
             templateId = if (isBnn) "rock-solid-bnn-format" else "rock-solid-app-default",
             parserId = if (isBnn) "bnn" else "generic",
-            endpointId = "default-endpoint",
+            endpointId = endpointId,  // ✅ Use first available endpoint
             
             iconColor = if (isBnn) 0xFFA855F7.toInt() else 0xFF4A9EFF.toInt(), // Purple or Blue
             createdAt = System.currentTimeMillis(),

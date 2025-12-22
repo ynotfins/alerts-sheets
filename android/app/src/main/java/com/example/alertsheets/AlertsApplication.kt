@@ -43,5 +43,11 @@ class AlertsApplication : Application() {
         
         Log.i(TAG, "✅ Application ready")
     }
+    
+    override fun onTerminate() {
+        Log.i(TAG, "🛑 Application terminating")
+        LogRepository.shutdown()
+        super.onTerminate()
+    }
 }
 

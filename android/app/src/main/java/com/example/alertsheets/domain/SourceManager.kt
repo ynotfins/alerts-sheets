@@ -77,6 +77,14 @@ class SourceManager(context: Context) {
     }
     
     /**
+     * Get first available endpoint ID (for auto-assignment)
+     */
+    fun getFirstEndpointId(): String? {
+        return endpointRepo.getEnabled().firstOrNull()?.id
+            ?: endpointRepo.getAll().firstOrNull()?.id
+    }
+    
+    /**
      * Get all sources (for UI)
      */
     fun getAllSources(): List<Source> {

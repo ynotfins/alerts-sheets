@@ -50,6 +50,9 @@ class LogAdapter(
                 LogStatus.SENT -> {
                     statusIcon.setColorFilter(Color.parseColor("#4CAF50")) // Green
                 }
+                LogStatus.PARTIAL -> {
+                    statusIcon.setColorFilter(Color.parseColor("#FFC107")) // Amber - some succeeded
+                }
                 LogStatus.FAILED -> {
                     statusIcon.setColorFilter(Color.parseColor("#F44336")) // Red
                 }

@@ -214,10 +214,11 @@ class EndpointRepository(private val context: Context) {
     
     /**
      * Create default endpoint for first launch
+     * ✅ Uses UUID for proper identity
      */
     private fun createDefaultEndpoint(): Endpoint {
         return Endpoint(
-            id = AppConstants.ENDPOINT_DEFAULT,
+            id = java.util.UUID.randomUUID().toString(),  // ✅ ALWAYS use UUID
             name = "Google Apps Script",
             url = "https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec",
             enabled = true,

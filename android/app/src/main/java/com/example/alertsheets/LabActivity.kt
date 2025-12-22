@@ -301,7 +301,7 @@ class LabActivity : AppCompatActivity() {
                 templateId = "",
                 autoClean = type == SourceType.SMS,
                 parserId = if (type == SourceType.SMS) "sms" else "generic",
-                endpointId = selectedEndpoint.id,
+                endpointIds = listOf(selectedEndpoint.id),  // ✅ FAN-OUT: Use list
                 iconColor = selectedColor,
                 iconName = selectedIcon,
                 cardColor = selectedColor,

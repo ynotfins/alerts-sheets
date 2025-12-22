@@ -17,7 +17,8 @@ data class Source(
     val templateId: String = "",              // DEPRECATED: kept for migration only
     val autoClean: Boolean = false,           // Remove emojis/symbols for THIS source
     val parserId: String = "generic",         // "bnn", "generic", or "sms"
-    val endpointId: String,                   // Reference to Endpoint.id
+    val endpointIds: List<String>,            // ✅ FAN-OUT: List of Endpoint IDs for delivery
+    @Deprecated("Use endpointIds instead") val endpointId: String = "", // MIGRATION COMPAT
     val iconColor: Int = 0xFF4A9EFF.toInt(), // For UI display
     val iconName: String = "notification",    // ✅ Icon for card (fire, sms, email, etc)
     val cardColor: Int = 0xFF4A9EFF.toInt(), // ✅ Card background color
@@ -25,6 +26,16 @@ data class Source(
     val createdAt: Long = System.currentTimeMillis(),
     val updatedAt: Long = System.currentTimeMillis()
 ) {
+    /**
+     * ✅ Validation: Source must have at least one endpoint
+     */
+    fun isValid(): Boolean = endpointIds.isNotEmpty()
+    
+    /**
+     * ✅ Migration helper: Get primary endpoint ID
+     */
+    fun getPrimaryEndpointId(): String? = endpointIds.firstOrNull()
+    
     /**
      * Check if this source matches a notification package name
      */

@@ -7,6 +7,7 @@ enum class LogStatus {
     PENDING,
     PROCESSING,
     SENT,
+    PARTIAL,    // ✅ Some endpoints succeeded, some failed
     FAILED,
     IGNORED
 }

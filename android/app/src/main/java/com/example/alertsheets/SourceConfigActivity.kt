@@ -120,7 +120,7 @@ class SourceConfigActivity : AppCompatActivity() {
             val endpointAdapter = ArrayAdapter(this@SourceConfigActivity, android.R.layout.simple_spinner_item, endpointNames)
             endpointAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
             endpointSpinner.adapter = endpointAdapter
-            endpointSpinner.setSelection(endpoints.indexOfFirst { it.id == source.endpointId }.coerceAtLeast(0))
+            endpointSpinner.setSelection(endpoints.indexOfFirst { it.id == source.getPrimaryEndpointId() }.coerceAtLeast(0))
             
             // Template dropdown
             val templateNames = templates.map { it.name }
@@ -259,7 +259,7 @@ class SourceConfigActivity : AppCompatActivity() {
                             templateId = "", // No longer used
                             autoClean = autoClean,
                             parserId = parserId,
-                            endpointId = selectedEndpoint.id,
+                            endpointIds = listOf(selectedEndpoint.id),  // ✅ FAN-OUT: Use list
                             iconColor = if (type == com.example.alertsheets.domain.models.SourceType.APP) 0xFF4A9EFF.toInt() else 0xFF00D980.toInt(),
                             createdAt = System.currentTimeMillis(),
                             updatedAt = System.currentTimeMillis()

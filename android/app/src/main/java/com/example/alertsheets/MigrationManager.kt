@@ -35,6 +35,8 @@ object MigrationManager {
             Log.i(TAG, "V1→V2 migration already complete")
             // Check for V2.1 migration (templateJson)
             migrateToTemplateJson(context)
+            // ✅ V2.2 migration (endpointId → endpointIds)
+            migrateToEndpointIds(context)
             return
         }
         
@@ -47,8 +49,9 @@ object MigrationManager {
             prefs.edit().putBoolean(AppConstants.MIGRATION_KEY, true).apply()
             Log.i(TAG, "✓ ${AppConstants.Success.MIGRATION_COMPLETE}")
             
-            // Also run V2.1 migration
+            // Also run V2.1 and V2.2 migrations
             migrateToTemplateJson(context)
+            migrateToEndpointIds(context)
             
         } catch (e: Exception) {
             Log.e(TAG, "Migration failed: ${e.message}", e)
@@ -177,10 +180,10 @@ object MigrationManager {
                 endpointRepo.save(v2Endpoint)
             }
         } else {
-            // Create default endpoint
-            Log.i(TAG, "No V1 endpoints found, creating default endpoint")
+            // Create default endpoint with UUID
+            Log.i(TAG, "No V1 endpoints found, creating default endpoint with UUID")
             val defaultEndpoint = Endpoint(
-                id = AppConstants.ENDPOINT_DEFAULT,
+                id = java.util.UUID.randomUUID().toString(),  // ✅ ALWAYS use UUID
                 name = "Google Apps Script",
                 url = "https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec",
                 enabled = true,
@@ -209,6 +212,13 @@ object MigrationManager {
         val defaultSmsTemplate = templateRepo.getSmsTemplate()
         
         smsTargets.forEach { target ->
+            // ✅ CRITICAL: Get endpoint or skip migration
+            val firstEndpointId = sourceManager.getFirstEndpointId()
+            if (firstEndpointId == null) {
+                Log.w(TAG, "  ⚠️ Skipping SMS ${target.name}: no endpoints available")
+                return@forEach
+            }
+            
             val source = Source(
                 id = "sms:${target.phoneNumber}",
                 type = SourceType.SMS,
@@ -217,10 +227,10 @@ object MigrationManager {
                 
                 // Configuration
                 autoClean = true,  // SMS default: clean emojis
-                templateJson = defaultSmsTemplate,  // ✅ NEW: Store template JSON directly
+                templateJson = defaultSmsTemplate,  // ✅ Store template JSON directly
                 templateId = "rock-solid-sms-default",  // DEPRECATED: kept for reference
                 parserId = "sms",
-                endpointId = sourceManager.getFirstEndpointId() ?: "default-endpoint",
+                endpointIds = listOf(firstEndpointId),  // ✅ FAN-OUT: Migrate to list
                 
                 // Metadata
                 iconColor = 0xFF00D980.toInt(), // Green
@@ -256,6 +266,13 @@ object MigrationManager {
         val defaultAppTemplate = templateRepo.getAppTemplate()
         
         targetApps.forEach { packageName ->
+            // ✅ CRITICAL: Get endpoint or skip migration
+            val firstEndpointId = sourceManager.getFirstEndpointId()
+            if (firstEndpointId == null) {
+                Log.w(TAG, "  ⚠️ Skipping App $packageName: no endpoints available")
+                return@forEach
+            }
+            
             // Get app name from package manager
             val appInfo = try {
                 pm.getApplicationInfo(packageName, 0)
@@ -278,10 +295,10 @@ object MigrationManager {
                 
                 // Configuration (BNN gets special treatment)
                 autoClean = !isBnn,  // BNN doesn't need cleaning
-                templateJson = defaultAppTemplate,  // ✅ NEW: Store template JSON directly
+                templateJson = defaultAppTemplate,  // ✅ Store template JSON directly
                 templateId = if (isBnn) "rock-solid-bnn-format" else "rock-solid-app-default",  // DEPRECATED
                 parserId = if (isBnn) "bnn" else "generic",
-                endpointId = sourceManager.getFirstEndpointId() ?: "default-endpoint",
+                endpointIds = listOf(firstEndpointId),  // ✅ FAN-OUT: Migrate to list
                 
                 // Metadata
                 iconColor = if (isBnn) 0xFFA855F7.toInt() else 0xFF4A9EFF.toInt(), // Purple or Blue
@@ -293,5 +310,70 @@ object MigrationManager {
             sourceManager.saveSource(source)
             Log.i(TAG, "  ✓ Migrated App: $appName ($packageName)")
         }
+    }
+    
+    /**
+     * V2.2 Migration: Convert endpointId → endpointIds (List)
+     * For sources that still use single endpointId, migrate to list
+     * Also ensure all endpoints have proper UUIDs
+     */
+    private fun migrateToEndpointIds(context: Context) {
+        val prefs = context.getSharedPreferences(AppConstants.PREFS_NAME, Context.MODE_PRIVATE)
+        val v22Migrated = prefs.getBoolean("v2.2_endpoint_ids_migrated", false)
+        
+        if (v22Migrated) {
+            return
+        }
+        
+        Log.i(TAG, "Starting V2.2 migration (endpointId → endpointIds + UUID enforcement)...")
+        
+        // Step 1: Ensure all endpoints have UUIDs (not "default-endpoint")
+        val endpointRepo = EndpointRepository(context)
+        val allEndpoints = endpointRepo.getAll().toMutableList()
+        val endpointIdMap = mutableMapOf<String, String>()  // old ID -> new UUID
+        
+        allEndpoints.forEach { endpoint ->
+            if (endpoint.id == AppConstants.ENDPOINT_DEFAULT || endpoint.id == "default-endpoint") {
+                val newUuid = java.util.UUID.randomUUID().toString()
+                endpointIdMap[endpoint.id] = newUuid
+                val updated = endpoint.copy(id = newUuid)
+                endpointRepo.save(updated)
+                Log.i(TAG, "  ✓ Migrated endpoint '${endpoint.name}': ${endpoint.id} → $newUuid")
+            }
+        }
+        
+        // Step 2: Migrate sources from endpointId → endpointIds and update references
+        val sourceManager = SourceManager(context)
+        val allSources = sourceManager.getAllSources()
+        
+        var migratedCount = 0
+        
+        allSources.forEach { source ->
+            // Check if using deprecated endpointId
+            @Suppress("DEPRECATION")
+            if (source.endpointId.isNotEmpty() && source.endpointIds.isEmpty()) {
+                val oldEndpointId = source.endpointId
+                // If the old endpoint ID was "default-endpoint", use the new UUID
+                val newEndpointId = endpointIdMap[oldEndpointId] ?: oldEndpointId
+                
+                val updated = source.copy(
+                    endpointIds = listOf(newEndpointId),
+                    endpointId = "" // Clear deprecated field
+                )
+                sourceManager.saveSource(updated)
+                Log.i(TAG, "  ✓ Migrated ${source.name}: endpointId($oldEndpointId) → endpointIds([$newEndpointId])")
+                migratedCount++
+            }
+        }
+        
+        // Step 3: Delete old "default-endpoint" if it still exists
+        if (endpointIdMap.containsKey(AppConstants.ENDPOINT_DEFAULT) || endpointIdMap.containsKey("default-endpoint")) {
+            endpointRepo.deleteById(AppConstants.ENDPOINT_DEFAULT)
+            endpointRepo.deleteById("default-endpoint")
+            Log.i(TAG, "  ✓ Removed legacy default-endpoint entries")
+        }
+        
+        prefs.edit().putBoolean("v2.2_endpoint_ids_migrated", true).apply()
+        Log.i(TAG, "✓ V2.2 migration complete: $migratedCount sources migrated, ${endpointIdMap.size} endpoints re-UUIDed")
     }
 }

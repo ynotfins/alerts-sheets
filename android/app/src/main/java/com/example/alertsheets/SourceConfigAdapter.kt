@@ -50,9 +50,15 @@ class SourceConfigAdapter(
                 SourceType.SMS -> "SMS · ${source.id.removePrefix("sms:")}"
             }
             
-            // Get endpoint name
-            val endpoint = sourceManager.getEndpointById(source.endpointId)
-            endpointText.text = endpoint?.name ?: "Unknown (${source.endpointId})"
+            // Get endpoint names (fan-out: show all endpoints)
+            val endpointNames = source.endpointIds.mapNotNull { endpointId ->
+                sourceManager.getEndpointById(endpointId)?.name
+            }.joinToString(", ")
+            endpointText.text = if (endpointNames.isNotEmpty()) {
+                "$endpointNames (${source.endpointIds.size})"
+            } else {
+                "⚠️ No endpoints configured"
+            }
             
             // Template (just show ID for now - could be improved)
             templateText.text = source.templateId

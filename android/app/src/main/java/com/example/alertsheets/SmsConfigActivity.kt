@@ -133,8 +133,16 @@ class SmsConfigActivity : AppCompatActivity() {
                 val filter = inputFilter.text.toString()
                 val caseSensitive = checkCase.isChecked
                 
-                // ✅ Get first available endpoint
-                val endpointId = sourceManager.getFirstEndpointId() ?: "default-endpoint"
+                // ✅ CRITICAL: Get first available endpoint OR FAIL
+                val firstEndpointId = sourceManager.getFirstEndpointId()
+                if (firstEndpointId == null) {
+                    Toast.makeText(
+                        this,
+                        "⚠️ No endpoints configured! Create an endpoint first on the Endpoints page.",
+                        Toast.LENGTH_LONG
+                    ).show()
+                    return@setPositiveButton
+                }
                 
                 // ✅ V2: Create or update Source
                 // ✅ Get default template JSON for SMS
@@ -149,21 +157,30 @@ class SmsConfigActivity : AppCompatActivity() {
                         name = name,
                         enabled = true,
                         autoClean = true,  // SMS default: clean emojis
-                        templateJson = defaultSmsTemplate,  // ✅ NEW: Store template JSON directly
+                        templateJson = defaultSmsTemplate,  // ✅ Store template JSON directly
                         templateId = "rock-solid-sms-default",  // DEPRECATED
                         parserId = "sms",
-                        endpointId = endpointId,  // ✅ Use first available endpoint
+                        endpointIds = listOf(firstEndpointId),  // ✅ FAN-OUT: Start with 1 endpoint
                         iconColor = 0xFF00D980.toInt(), // Green
                         createdAt = System.currentTimeMillis(),
                         updatedAt = System.currentTimeMillis()
                     )
                 } else {
-                    // Update existing
+                    // Update existing - preserve endpointIds
                     source.copy(
                         id = "sms:$number",  // Allow changing number
                         name = name,
                         updatedAt = System.currentTimeMillis()
                     )
+                }
+                
+                if (!newSource.isValid()) {
+                    Toast.makeText(
+                        this,
+                        "⚠️ Source validation failed: must have at least one endpoint",
+                        Toast.LENGTH_LONG
+                    ).show()
+                    return@setPositiveButton
                 }
                 
                 // Save filter settings to extras (since Source model doesn't have them yet)

@@ -275,6 +275,7 @@ class AppsListActivity : AppCompatActivity() {
     
     /**
      * ✅ V2: Add app as Source with intelligent defaults
+     * ✅ FIX: NO SILENT DEFAULTS - require valid endpoint
      */
     private fun addAppSource(packageName: String) {
         val pm = packageManager
@@ -293,8 +294,17 @@ class AppsListActivity : AppCompatActivity() {
         // Detect if BNN
         val isBnn = packageName.contains("bnn", ignoreCase = true)
         
-        // ✅ Get first available endpoint (or create default)
-        val endpointId = sourceManager.getFirstEndpointId() ?: "default-endpoint"
+        // ✅ CRITICAL: Get first available endpoint OR FAIL
+        val firstEndpointId = sourceManager.getFirstEndpointId()
+        if (firstEndpointId == null) {
+            android.widget.Toast.makeText(
+                this,
+                "⚠️ No endpoints configured! Create an endpoint first on the Endpoints page.",
+                android.widget.Toast.LENGTH_LONG
+            ).show()
+            Log.e("AppsList", "Cannot create source: no endpoints exist")
+            return
+        }
         
         // ✅ Get default template JSON from TemplateRepository
         val templateRepo = com.example.alertsheets.data.repositories.TemplateRepository(this)
@@ -312,13 +322,24 @@ class AppsListActivity : AppCompatActivity() {
             templateJson = defaultTemplateJson,  // ✅ NEW: Store template JSON directly
             templateId = if (isBnn) "rock-solid-bnn-format" else "rock-solid-app-default",  // DEPRECATED
             parserId = if (isBnn) "bnn" else "generic",
-            endpointId = endpointId,  // ✅ Use first available endpoint
+            endpointIds = listOf(firstEndpointId),  // ✅ FAN-OUT: Start with 1 endpoint
             
             iconColor = if (isBnn) 0xFFA855F7.toInt() else 0xFF4A9EFF.toInt(), // Purple or Blue
             createdAt = System.currentTimeMillis(),
             updatedAt = System.currentTimeMillis()
         )
         
+        if (!source.isValid()) {
+            android.widget.Toast.makeText(
+                this,
+                "⚠️ Source validation failed: must have at least one endpoint",
+                android.widget.Toast.LENGTH_LONG
+            ).show()
+            Log.e("AppsList", "Source validation failed for $packageName")
+            return
+        }
+        
         sourceManager.saveSource(source)
+        android.widget.Toast.makeText(this, "✓ $appName added", android.widget.Toast.LENGTH_SHORT).show()
     }
 }

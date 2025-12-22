@@ -104,40 +104,61 @@ class DataPipeline(private val context: Context) {
                 val json = TemplateEngine.apply(templateContent, parsedWithTimestamp, source)
                 logger.log("✓ Template applied (autoClean=${source.autoClean})")
                 
-                // Step 6: Get endpoint
-                val endpoint = sourceManager.getEndpointById(source.endpointId)
-                if (endpoint == null || !endpoint.enabled) {
-                    logger.error("❌ No endpoint found or disabled: ${source.endpointId}")
+                // Step 6: Get ALL endpoints for this source (fan-out delivery)
+                val endpoints = source.endpointIds
+                    .mapNotNull { endpointRepo.getById(it) }
+                    .filter { it.enabled }
+                
+                if (endpoints.isEmpty()) {
+                    logger.error("❌ No valid endpoints configured for: ${source.name}")
+                    LogRepository.updateStatus(logEntry.id, LogStatus.FAILED)
                     sourceManager.recordNotificationProcessed(source.id, success = false)
                     return@launch
                 }
                 
-                // Step 7: Send
-                val startTime = System.currentTimeMillis()
-                val response = httpClient.post(
-                    url = endpoint.url,
-                    body = json,
-                    headers = endpoint.headers,
-                    timeout = endpoint.timeout
-                )
-                val responseTime = System.currentTimeMillis() - startTime
+                logger.log("📤 Delivering to ${endpoints.size} endpoint(s)")
                 
-                // Step 8: Handle response
-                if (response.isSuccess) {
-                    logger.log("✓ Sent: ${response.code} - ${parsedWithTimestamp.incidentId}")
-                    LogRepository.updateStatus(logEntry.id, LogStatus.SENT)
-                    Log.v("Pipe", "Log entry updated to SENT: ${logEntry.id}")
-                    sourceManager.recordNotificationProcessed(source.id, success = true)
-                    endpointRepo.updateStats(endpoint.id, success = true, responseTime)
-                } else {
-                    logger.error("❌ Send failed: ${response.code} - ${response.message}")
-                    LogRepository.updateStatus(logEntry.id, LogStatus.FAILED)
-                    Log.v("Pipe", "Log entry updated to FAILED: ${logEntry.id}")
-                    sourceManager.recordNotificationProcessed(source.id, success = false)
-                    endpointRepo.updateStats(endpoint.id, success = false, responseTime)
-                    
-                    // TODO: Add to retry queue if configured
+                // Step 7: Fan-out delivery to ALL endpoints
+                var anySuccess = false
+                var allSuccess = true
+                
+                for (endpoint in endpoints) {
+                    try {
+                        val startTime = System.currentTimeMillis()
+                        val response = httpClient.post(
+                            url = endpoint.url,
+                            body = json,
+                            headers = endpoint.headers,
+                            timeout = endpoint.timeout
+                        )
+                        val responseTime = System.currentTimeMillis() - startTime
+                        
+                        if (response.isSuccess) {
+                            logger.log("✓ Sent to ${endpoint.name}: ${response.code}")
+                            endpointRepo.updateStats(endpoint.id, success = true, responseTime)
+                            anySuccess = true
+                        } else {
+                            logger.error("❌ Failed ${endpoint.name}: ${response.code} - ${response.message}")
+                            endpointRepo.updateStats(endpoint.id, success = false, responseTime)
+                            allSuccess = false
+                        }
+                    } catch (e: Exception) {
+                        logger.error("❌ Exception ${endpoint.name}: ${e.message}")
+                        endpointRepo.updateStats(endpoint.id, success = false, 0L)
+                        allSuccess = false
+                    }
                 }
+                
+                // Step 8: Update overall status
+                val finalStatus = when {
+                    allSuccess -> LogStatus.SENT
+                    anySuccess -> LogStatus.PARTIAL // Some succeeded
+                    else -> LogStatus.FAILED
+                }
+                
+                LogRepository.updateStatus(logEntry.id, finalStatus)
+                Log.v("Pipe", "Log entry final status: $finalStatus for ${logEntry.id}")
+                sourceManager.recordNotificationProcessed(source.id, success = anySuccess)
                 
             } catch (e: Exception) {
                 Log.e(TAG, "Pipeline error", e)

@@ -56,6 +56,9 @@ class LogAdapter(
                 LogStatus.IGNORED -> {
                     statusIcon.setColorFilter(Color.parseColor("#9E9E9E")) // Gray
                 }
+                LogStatus.PROCESSING -> {
+                    statusIcon.setColorFilter(Color.parseColor("#FF9800")) // Orange
+                }
                 LogStatus.PENDING -> {
                     statusIcon.setColorFilter(Color.parseColor("#2196F3")) // Blue
                 }

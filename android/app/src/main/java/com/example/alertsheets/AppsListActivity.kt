@@ -1,5 +1,6 @@
 package com.example.alertsheets
 
+import android.content.Intent
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
 import android.os.Bundle
@@ -119,11 +120,11 @@ class AppsListActivity : AppCompatActivity() {
                 }
                 
                 // Method 2: Query launchable activities (backup for restricted visibility)
-                val launcherIntent = Intent(Intent.ACTION_MAIN).apply {
-                    addCategory(Intent.CATEGORY_LAUNCHER)
-                }
                 val launchableApps = try {
-                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+                    val launcherIntent = Intent(Intent.ACTION_MAIN).apply {
+                        addCategory(Intent.CATEGORY_LAUNCHER)
+                    }
+                    val resolveInfos = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
                         pm.queryIntentActivities(
                             launcherIntent,
                             android.content.pm.PackageManager.ResolveInfoFlags.of(
@@ -134,11 +135,12 @@ class AppsListActivity : AppCompatActivity() {
                         @Suppress("DEPRECATION")
                         pm.queryIntentActivities(launcherIntent, PackageManager.MATCH_ALL)
                     }
-                }.mapNotNull { resolveInfo ->
-                    try {
-                        resolveInfo.activityInfo?.applicationInfo
-                    } catch (e: Exception) {
-                        null
+                    resolveInfos.mapNotNull { resolveInfo ->
+                        try {
+                            resolveInfo.activityInfo?.applicationInfo
+                        } catch (e: Exception) {
+                            null
+                        }
                     }
                 } catch (e: Exception) {
                     Log.e("AppsList", "Failed to query launcher activities: ${e.message}")

@@ -71,6 +71,11 @@
     <!-- ACCESSIBILITY (BACKUP NOTIFICATION CAPTURE) -->
     <uses-permission android:name="android.permission.BIND_ACCESSIBILITY_SERVICE" />
 
+    <!-- ANDROID 11+ PACKAGE VISIBILITY (CRITICAL FOR APP DISCOVERY) -->
+    <!-- Required to enumerate installed apps on Android 11+ (API 30+) -->
+    <!-- This is a sideload/dev permission; for Play Store use <queries> instead -->
+    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" />
+
     <permission
         android:name="com.example.alertsheets.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
         android:protectionLevel="signature" />
@@ -93,23 +98,33 @@
         android:theme="@style/Theme.AlertsToSheets" >
 
         <!-- ============================================ -->
+        <!-- SAMSUNG DEVICE PROTECTION (CRITICAL) -->
+        <!-- ============================================ -->
+        <!-- Prevent Samsung Dual Messenger / Secure Folder / Work Profile from creating duplicate launcher icons -->
+        <meta-data
+            android:name="com.samsung.android.dual_messenger.nondualapplicable"
+            android:value="true" />
+        <meta-data
+            android:name="com.samsung.android.app.disablesecurefolder"
+            android:value="true" />
+        <meta-data
+            android:name="com.samsung.android.multidisplay.keep_process_alive"
+            android:value="false" />
+
+        <!-- ============================================ -->
         <!-- MAIN ACTIVITY -->
         <!-- ============================================ -->
         <activity
             android:name="com.example.alertsheets.ui.MainActivity"
             android:exported="true"
-            android:launchMode="singleTask"
-            android:resizeableActivity="false" >
+            android:launchMode="singleInstance"
+            android:resizeableActivity="false"
+            android:taskAffinity="" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-
-            <!-- Prevent Samsung Dual App / Secure Folder / Work Profile duplication -->
-            <meta-data
-                android:name="com.samsung.android.multidisplay.keep_process_alive"
-                android:value="false" />
         </activity>
 
         <!-- ============================================ -->

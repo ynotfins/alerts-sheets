@@ -5,6 +5,7 @@ import java.util.UUID
 
 enum class LogStatus {
     PENDING,
+    PROCESSING,
     SENT,
     FAILED,
     IGNORED

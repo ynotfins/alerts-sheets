@@ -64,6 +64,12 @@
     <!-- ACCESSIBILITY (BACKUP NOTIFICATION CAPTURE) -->
     <uses-permission android:name="android.permission.BIND_ACCESSIBILITY_SERVICE" />
 
+    <!-- ANDROID 11+ PACKAGE VISIBILITY (CRITICAL FOR APP DISCOVERY) -->
+    <!-- Required to enumerate installed apps on Android 11+ (API 30+) -->
+    <!-- This is a sideload/dev permission; for Play Store use <queries> instead -->
+    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES"
+        tools:ignore="QueryAllPackagesPermission" />
+
     <application
         android:name=".AlertsApplication"
         android:allowBackup="false"

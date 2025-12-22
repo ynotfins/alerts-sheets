@@ -98,58 +98,102 @@ class AppsListActivity : AppCompatActivity() {
                 filterApps()
             }
 
-            // Load apps (IO thread) - GET ALL APPS INCLUDING SYSTEM, USER, DISABLED, ETC
+            // Load apps (IO thread) - Android 11+ compatible enumeration
             val pm = packageManager
             val apps = withContext(Dispatchers.IO) {
-                // ✅ CRITICAL FIX: Use getInstalledPackages to get ALL packages, not just apps with activities
-                // Then convert to ApplicationInfo for UI display
-                val packages = pm.getInstalledPackages(
-                    PackageManager.GET_META_DATA or
-                    PackageManager.MATCH_DISABLED_COMPONENTS or
-                    PackageManager.MATCH_UNINSTALLED_PACKAGES
-                )
+                // Method 1: getInstalledApplications (direct ApplicationInfo)
+                val allApplications = try {
+                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+                        pm.getInstalledApplications(
+                            android.content.pm.PackageManager.ApplicationInfoFlags.of(
+                                (PackageManager.GET_META_DATA.toLong())
+                            )
+                        )
+                    } else {
+                        @Suppress("DEPRECATION")
+                        pm.getInstalledApplications(PackageManager.GET_META_DATA)
+                    }
+                } catch (e: Exception) {
+                    Log.e("AppsList", "Failed to getInstalledApplications: ${e.message}")
+                    emptyList()
+                }
                 
-                // Convert PackageInfo to ApplicationInfo
-                packages.mapNotNull { pkg ->
+                // Method 2: Query launchable activities (backup for restricted visibility)
+                val launcherIntent = Intent(Intent.ACTION_MAIN).apply {
+                    addCategory(Intent.CATEGORY_LAUNCHER)
+                }
+                val launchableApps = try {
+                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+                        pm.queryIntentActivities(
+                            launcherIntent,
+                            android.content.pm.PackageManager.ResolveInfoFlags.of(
+                                PackageManager.MATCH_ALL.toLong()
+                            )
+                        )
+                    } else {
+                        @Suppress("DEPRECATION")
+                        pm.queryIntentActivities(launcherIntent, PackageManager.MATCH_ALL)
+                    }
+                }.mapNotNull { resolveInfo ->
                     try {
-                        pkg.applicationInfo
+                        resolveInfo.activityInfo?.applicationInfo
                     } catch (e: Exception) {
-                        Log.w("AppsListActivity", "Failed to get app info for ${pkg.packageName}: ${e.message}")
                         null
                     }
-                }.sortedBy { 
-                    try {
-                        it.loadLabel(pm).toString().lowercase()
-                    } catch (e: Exception) {
-                        it.packageName.lowercase()
+                } catch (e: Exception) {
+                    Log.e("AppsList", "Failed to query launcher activities: ${e.message}")
+                    emptyList()
+                }
+                
+                // Merge both lists, deduplicate by packageName
+                val merged = (allApplications + launchableApps)
+                    .distinctBy { it.packageName }
+                    .sortedBy { 
+                        try {
+                            it.loadLabel(pm).toString().lowercase()
+                        } catch (e: Exception) {
+                            it.packageName.lowercase()
+                        }
+                    }
+                
+                // Log comprehensive diagnostics
+                Log.v("AppsList", "=== Android 11+ App Discovery ===")
+                Log.v("AppsList", "getInstalledApplications: ${allApplications.size} apps")
+                Log.v("AppsList", "queryLauncherActivities: ${launchableApps.size} apps")
+                Log.v("AppsList", "Merged unique: ${merged.size} apps")
+                
+                // Check for BNN specifically
+                val BNN_PACKAGE = "us.bnn.newsapp"
+                val bnnDirect = allApplications.any { it.packageName == BNN_PACKAGE }
+                val bnnLauncher = launchableApps.any { it.packageName == BNN_PACKAGE }
+                val bnnMerged = merged.any { it.packageName == BNN_PACKAGE }
+                Log.v("AppsList", "BNN ($BNN_PACKAGE):")
+                Log.v("AppsList", "  - In getInstalledApplications: $bnnDirect")
+                Log.v("AppsList", "  - In launcherActivities: $bnnLauncher")
+                Log.v("AppsList", "  - In merged list: $bnnMerged")
+                
+                if (!bnnMerged) {
+                    // Fallback: search for any app containing "bnn" or "news"
+                    val bnnFuzzy = merged.filter { 
+                        it.packageName.contains("bnn", ignoreCase = true) ||
+                        it.packageName.contains("news", ignoreCase = true)
+                    }
+                    Log.v("AppsList", "  - Fuzzy search (bnn/news): ${bnnFuzzy.size} matches")
+                    bnnFuzzy.forEach {
+                        Log.v("AppsList", "    -> ${it.packageName}")
                     }
                 }
+                
+                merged
             }
             
             allApps.clear()
             allApps.addAll(apps)
             
-            // ✅ DEBUG: Log what we found
-            Log.d("AppsListActivity", "📱 Loaded ${apps.size} total apps")
+            // Log final counts
             val systemCount = apps.count { (it.flags and ApplicationInfo.FLAG_SYSTEM) != 0 }
-            val userCount = apps.size - systemCount
-            val updatedSystemCount = apps.count { (it.flags and ApplicationInfo.FLAG_UPDATED_SYSTEM_APP) != 0 }
-            Log.d("AppsListActivity", "  - System apps: $systemCount")
-            Log.d("AppsListActivity", "  - User apps: $userCount")
-            Log.d("AppsListActivity", "  - Updated system apps: $updatedSystemCount")
-            
-            // ✅ DEBUG: Check for BNN specifically
-            val bnnApps = apps.filter { it.packageName.contains("bnn", ignoreCase = true) }
-            if (bnnApps.isNotEmpty()) {
-                bnnApps.forEach { 
-                    val name = try { pm.getApplicationLabel(it).toString() } catch (e: Exception) { it.packageName }
-                    val isSystem = (it.flags and ApplicationInfo.FLAG_SYSTEM) != 0
-                    val isUpdated = (it.flags and ApplicationInfo.FLAG_UPDATED_SYSTEM_APP) != 0
-                    Log.d("AppsListActivity", "  🔥 BNN FOUND: $name (${it.packageName}) - System=$isSystem, Updated=$isUpdated")
-                }
-            } else {
-                Log.w("AppsListActivity", "  ⚠️ BNN NOT FOUND in installed apps!")
-            }
+            val userCount = apps.count { (it.flags and ApplicationInfo.FLAG_SYSTEM) == 0 }
+            Log.v("AppsList", "Final list: ${apps.size} apps (System: $systemCount, User: $userCount)")
             
             filterApps()
             progressBar.visibility = View.GONE
@@ -212,11 +256,17 @@ class AppsListActivity : AppCompatActivity() {
             addedApps++
         }
         
-        // ✅ DEBUG: Log filtering results
-        Log.d("AppsListActivity", "🔍 Filter results (showSystemApps=$showSystemApps, search='$searchQuery'):")
-        Log.d("AppsListActivity", "  - Added to list: $addedApps")
-        Log.d("AppsListActivity", "  - Skipped system apps: $skippedSystemApps")
-        Log.d("AppsListActivity", "  - Skipped user apps: $skippedUserApps")
+        // Log filtering results
+        Log.v("AppsList", "Filter applied (showSystem=$showSystemApps, search='$searchQuery'): $addedApps apps shown (skipped: $skippedSystemApps system, $skippedUserApps user)")
+        
+        // Check if BNN was filtered out
+        val BNN_PACKAGE = "us.bnn.newsapp"
+        if (allApps.any { it.packageName == BNN_PACKAGE } && !filteredApps.any { it.packageName == BNN_PACKAGE }) {
+            val bnnApp = allApps.first { it.packageName == BNN_PACKAGE }
+            val isSystem = (bnnApp.flags and ApplicationInfo.FLAG_SYSTEM) != 0
+            val isUpdated = (bnnApp.flags and ApplicationInfo.FLAG_UPDATED_SYSTEM_APP) != 0
+            Log.w("AppsList", "⚠️ BNN filtered out! isSystem=$isSystem, isUpdated=$isUpdated, showSystemApps=$showSystemApps")
+        }
         
         adapter.notifyDataSetChanged()
     }

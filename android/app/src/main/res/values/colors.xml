@@ -1,18 +1,51 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="apple_bg_gray">#F2F2F7</color>
-    <color name="apple_card_white">#FFFFFF</color>
-    <color name="apple_blue">#007AFF</color>
-    <color name="apple_text_primary">#000000</color>
+    <!-- OneUI Dark Theme Colors -->
+    <color name="oneui_black">#000000</color>
+    <color name="oneui_surface">#0A0A0A</color>
+    <color name="oneui_card">#1C1C1E</color>
+    <color name="oneui_card_elevated">#2C2C2E</color>
+    
+    <!-- Text Colors -->
+    <color name="text_primary">#FFFFFF</color>
+    <color name="text_secondary">#8E8E93</color>
+    <color name="text_tertiary">#636366</color>
+    
+    <!-- Vibrant Accent Colors -->
+    <color name="vibrant_blue">#0A84FF</color>
+    <color name="vibrant_purple">#BF5AF2</color>
+    <color name="vibrant_pink">#FF375F</color>
+    <color name="vibrant_orange">#FF9F0A</color>
+    <color name="vibrant_yellow">#FFD60A</color>
+    <color name="vibrant_green">#32D74B</color>
+    <color name="vibrant_teal">#64D2FF</color>
+    <color name="vibrant_red">#FF453A</color>
+    
+    <!-- System Colors -->
+    <color name="success_green">#30D158</color>
+    <color name="warning_amber">#FF9F0A</color>
+    <color name="error_red">#FF453A</color>
+    
+    <!-- Transparent Overlays -->
+    <color name="overlay_light_10">#1AFFFFFF</color>
+    <color name="overlay_light_20">#33FFFFFF</color>
+    
+    <!-- Compatibility aliases for old layouts -->
+    <color name="apple_bg_gray">#0A0A0A</color>
+    <color name="apple_card_white">#1C1C1E</color>
+    <color name="apple_blue">#0A84FF</color>
+    <color name="apple_text_primary">#FFFFFF</color>
     <color name="apple_text_secondary">#8E8E93</color>
-    <color name="apple_separator">#C6C6C8</color>
-    <color name="apple_red">#FF3B30</color>
-    <color name="apple_green">#34C759</color>
-    <color name="apple_orange">#FF9500</color>
-    <color name="purple_500">#FF6200EE</color> <!-- Keeping for legacy theme compat if needed -->
-    <color name="purple_700">#FF3700B3</color>
-    <color name="teal_200">#FF03DAC5</color>
-    <color name="teal_700">#FF018786</color>
-    <color name="black">#FF000000</color>
-    <color name="white">#FFFFFFFF</color>
+    <color name="apple_separator">#636366</color>
+    <color name="apple_red">#FF453A</color>
+    <color name="apple_green">#32D74B</color>
+    <color name="apple_orange">#FF9F0A</color>
+    
+    <!-- Legacy (keep for compatibility) -->
+    <color name="purple_500">#BF5AF2</color>
+    <color name="purple_700">#9F4FD9</color>
+    <color name="teal_200">#64D2FF</color>
+    <color name="teal_700">#5AC8FA</color>
+    <color name="black">#000000</color>
+    <color name="white">#FFFFFF</color>
 </resources>

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Subtle glow effect -->
+    <item android:bottom="2dp" android:right="2dp">
+        <shape>
+            <solid android:color="#0AFFFFFF"/>
+            <corners android:radius="20dp"/>
+        </shape>
+    </item>
+    <!-- Main card -->
+    <item>
+        <shape>
+            <solid android:color="@color/oneui_card_elevated"/>
+            <corners android:radius="20dp"/>
+        </shape>
+    </item>
+</layer-list>
+

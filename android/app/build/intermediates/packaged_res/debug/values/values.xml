@@ -1,20 +1,61 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="apple_bg_gray">#F2F2F7</color>
-    <color name="apple_blue">#007AFF</color>
-    <color name="apple_card_white">#FFFFFF</color>
-    <color name="apple_green">#34C759</color>
-    <color name="apple_orange">#FF9500</color>
-    <color name="apple_red">#FF3B30</color>
-    <color name="apple_separator">#C6C6C8</color>
-    <color name="apple_text_primary">#000000</color>
+    <color name="apple_bg_gray">#0A0A0A</color>
+    <color name="apple_blue">#0A84FF</color>
+    <color name="apple_card_white">#1C1C1E</color>
+    <color name="apple_green">#32D74B</color>
+    <color name="apple_orange">#FF9F0A</color>
+    <color name="apple_red">#FF453A</color>
+    <color name="apple_separator">#636366</color>
+    <color name="apple_text_primary">#FFFFFF</color>
     <color name="apple_text_secondary">#8E8E93</color>
-    <color name="black">#FF000000</color>
-    <color name="purple_500">#FF6200EE</color>
-    <color name="purple_700">#FF3700B3</color>
-    <color name="teal_200">#FF03DAC5</color>
-    <color name="teal_700">#FF018786</color>
-    <color name="white">#FFFFFFFF</color>
+    <color name="black">#000000</color>
+    <color name="error_red">#FF453A</color>
+    <color name="oneui_black">#000000</color>
+    <color name="oneui_card">#1C1C1E</color>
+    <color name="oneui_card_elevated">#2C2C2E</color>
+    <color name="oneui_surface">#0A0A0A</color>
+    <color name="overlay_light_10">#1AFFFFFF</color>
+    <color name="overlay_light_20">#33FFFFFF</color>
+    <color name="purple_500">#BF5AF2</color>
+    <color name="purple_700">#9F4FD9</color>
+    <color name="success_green">#30D158</color>
+    <color name="teal_200">#64D2FF</color>
+    <color name="teal_700">#5AC8FA</color>
+    <color name="text_primary">#FFFFFF</color>
+    <color name="text_secondary">#8E8E93</color>
+    <color name="text_tertiary">#636366</color>
+    <color name="vibrant_blue">#0A84FF</color>
+    <color name="vibrant_green">#32D74B</color>
+    <color name="vibrant_orange">#FF9F0A</color>
+    <color name="vibrant_pink">#FF375F</color>
+    <color name="vibrant_purple">#BF5AF2</color>
+    <color name="vibrant_red">#FF453A</color>
+    <color name="vibrant_teal">#64D2FF</color>
+    <color name="vibrant_yellow">#FFD60A</color>
+    <color name="warning_amber">#FF9F0A</color>
+    <color name="white">#FFFFFF</color>
+    <dimen name="card_corner_radius">20dp</dimen>
+    <dimen name="card_height">160dp</dimen>
+    <dimen name="card_margin">8dp</dimen>
+    <dimen name="card_padding">20dp</dimen>
+    <dimen name="icon_large">56dp</dimen>
+    <dimen name="icon_medium">48dp</dimen>
+    <dimen name="icon_small">24dp</dimen>
+    <dimen name="spacing_huge">32dp</dimen>
+    <dimen name="spacing_large">16dp</dimen>
+    <dimen name="spacing_medium">12dp</dimen>
+    <dimen name="spacing_small">8dp</dimen>
+    <dimen name="spacing_tiny">4dp</dimen>
+    <dimen name="spacing_xlarge">20dp</dimen>
+    <dimen name="spacing_xxlarge">24dp</dimen>
+    <dimen name="text_body">15sp</dimen>
+    <dimen name="text_caption">13sp</dimen>
+    <dimen name="text_display">32sp</dimen>
+    <dimen name="text_headline">16sp</dimen>
+    <dimen name="text_small">12sp</dimen>
+    <dimen name="text_tiny">11sp</dimen>
+    <dimen name="text_title">20sp</dimen>
     <item name="radio_app" type="id"/>
     <item name="radio_sms" type="id"/>
     <string name="accessibility_button">Enable Accessibility</string>
@@ -26,17 +67,38 @@
     <string name="service_name">Alerts Listener Service</string>
     <string name="status_label">Status:</string>
     <string name="url_hint">Google Apps Script Web App URL</string>
-    <style name="Theme.AlertsToSheets" parent="Theme.MaterialComponents.DayNight.DarkActionBar">
+    <style name="Theme.AlertsToSheets" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         
-        <item name="colorPrimary">@color/purple_500</item>
-        <item name="colorPrimaryVariant">@color/purple_700</item>
-        <item name="colorOnPrimary">@color/white</item>
+        <item name="colorPrimary">@color/vibrant_blue</item>
+        <item name="colorPrimaryVariant">@color/vibrant_purple</item>
+        <item name="colorOnPrimary">@color/text_primary</item>
+        <item name="colorSecondary">@color/vibrant_teal</item>
+        <item name="colorSecondaryVariant">@color/vibrant_green</item>
+        <item name="colorOnSecondary">@color/oneui_black</item>
         
-        <item name="colorSecondary">@color/teal_200</item>
-        <item name="colorSecondaryVariant">@color/teal_700</item>
-        <item name="colorOnSecondary">@color/black</item>
         
-        <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
+        <item name="android:windowBackground">@color/oneui_black</item>
+        <item name="android:colorBackground">@color/oneui_black</item>
+        <item name="colorSurface">@color/oneui_card</item>
+        <item name="colorOnSurface">@color/text_primary</item>
         
+        
+        <item name="android:statusBarColor">@color/oneui_black</item>
+        <item name="android:navigationBarColor">@color/oneui_black</item>
+        <item name="android:windowLightStatusBar">false</item>
+        
+        
+        <item name="android:textColorPrimary">@color/text_primary</item>
+        <item name="android:textColorSecondary">@color/text_secondary</item>
+        <item name="android:textColorTertiary">@color/text_tertiary</item>
+        
+        
+        <item name="materialCardViewStyle">@style/Widget.App.Card</item>
+    </style>
+    <style name="Widget.App.Card" parent="Widget.MaterialComponents.CardView">
+        <item name="cardBackgroundColor">@color/oneui_card</item>
+        <item name="cardCornerRadius">20dp</item>
+        <item name="cardElevation">0dp</item>
+        <item name="strokeWidth">0dp</item>
     </style>
 </resources>

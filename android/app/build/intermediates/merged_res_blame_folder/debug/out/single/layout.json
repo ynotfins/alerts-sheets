@@ -1,5 +1,9 @@
 [
     {
+        "merged": "com.example.alertsheets.app-mergeDebugResources-31:/layout/item_dashboard_source_card.xml",
+        "source": "com.example.alertsheets.app-main-34:/layout/item_dashboard_source_card.xml"
+    },
+    {
         "merged": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-mergeDebugResources-31:\\layout\\item_log.xml",
         "source": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-main-34:\\layout\\item_log.xml"
     },
@@ -36,10 +40,6 @@
         "source": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-main-34:\\layout\\activity_app_config.xml"
     },
     {
-        "merged": "com.example.alertsheets.app-mergeDebugResources-31:/layout/activity_lab.xml",
-        "source": "com.example.alertsheets.app-main-34:/layout/activity_lab.xml"
-    },
-    {
         "merged": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-mergeDebugResources-31:\\layout\\dialog_edit_source.xml",
         "source": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-main-34:\\layout\\dialog_edit_source.xml"
     },
@@ -54,6 +54,10 @@
     {
         "merged": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-mergeDebugResources-31:\\layout\\item_source.xml",
         "source": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-main-34:\\layout\\item_source.xml"
+    },
+    {
+        "merged": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-mergeDebugResources-31:\\layout\\activity_lab.xml",
+        "source": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-main-34:\\layout\\activity_lab.xml"
     },
     {
         "merged": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-mergeDebugResources-31:\\layout\\dialog_add_mapping.xml",

@@ -27,10 +27,13 @@ class MainActivity : AppCompatActivity() {
 
     private val scope = CoroutineScope(Dispatchers.Main + SupervisorJob())
     private lateinit var sourceManager: SourceManager
-    private lateinit var gridCards: GridLayout
-    private lateinit var dotPermissions: ImageView
-    private lateinit var dotLogs: ImageView
-    private lateinit var textStats: TextView
+    private lateinit var gridSourceCards: GridLayout
+    private lateinit var dotPermissions: View
+    private lateinit var dotLogs: View
+    private lateinit var textSourcesHeader: TextView
+    private lateinit var textSourcesCount: TextView
+    private lateinit var textSentToday: TextView
+    private lateinit var textFailedToday: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -38,10 +41,13 @@ class MainActivity : AppCompatActivity() {
         
         sourceManager = SourceManager(this)
         
-        gridCards = findViewById(R.id.grid_cards)
+        gridSourceCards = findViewById(R.id.grid_source_cards)
         dotPermissions = findViewById(R.id.dot_permissions)
         dotLogs = findViewById(R.id.dot_logs)
-        textStats = findViewById(R.id.text_stats)
+        textSourcesHeader = findViewById(R.id.text_sources_header)
+        textSourcesCount = findViewById(R.id.text_sources_count)
+        textSentToday = findViewById(R.id.text_sent_today)
+        textFailedToday = findViewById(R.id.text_failed_today)
         
         setupPermanentCards()
     }
@@ -54,17 +60,17 @@ class MainActivity : AppCompatActivity() {
     
     private fun setupPermanentCards() {
         // Lab card
-        findViewById<FrameLayout>(R.id.card_lab).setOnClickListener {
+        findViewById<View>(R.id.card_lab).setOnClickListener {
             startActivity(Intent(this, LabActivity::class.java))
         }
         
         // Permissions card
-        findViewById<FrameLayout>(R.id.card_permissions).setOnClickListener {
+        findViewById<View>(R.id.card_permissions).setOnClickListener {
             startActivity(Intent(this, PermissionsActivity::class.java))
         }
         
         // Logs card
-        findViewById<FrameLayout>(R.id.card_logs).setOnClickListener {
+        findViewById<View>(R.id.card_logs).setOnClickListener {
             startActivity(Intent(this, LogActivity::class.java))
         }
     }
@@ -74,10 +80,14 @@ class MainActivity : AppCompatActivity() {
             val sources = sourceManager.getAllSources()
             
             withContext(Dispatchers.Main) {
-                // Remove all cards after the 3 permanent ones
-                val permanentCards = 3
-                while (gridCards.childCount > permanentCards) {
-                    gridCards.removeViewAt(permanentCards)
+                // Clear existing dynamic cards
+                gridSourceCards.removeAllViews()
+                
+                // Show/hide section header
+                if (sources.isNotEmpty()) {
+                    textSourcesHeader.visibility = View.VISIBLE
+                } else {
+                    textSourcesHeader.visibility = View.GONE
                 }
                 
                 // Add dynamic source cards
@@ -89,64 +99,52 @@ class MainActivity : AppCompatActivity() {
     }
     
     private fun addSourceCard(source: Source) {
-        val card = FrameLayout(this).apply {
-            layoutParams = GridLayout.LayoutParams().apply {
-                width = 0
-                height = 420  // 3x height for 140dp
-                columnSpec = GridLayout.spec(GridLayout.UNDEFINED, 1f)
-                setMargins(24, 24, 24, 24)
-            }
-            setBackgroundColor(source.cardColor)
-            background = ContextCompat.getDrawable(this@MainActivity, R.drawable.bg_card_dark)
-            isClickable = true
-            isFocusable = true
-            
-            setOnClickListener {
-                // Edit source in Lab
-                val intent = Intent(this@MainActivity, LabActivity::class.java)
-                intent.putExtra("source_id", source.id)
-                startActivity(intent)
-            }
+        val cardView = layoutInflater.inflate(R.layout.item_dashboard_source_card, null)
+        
+        cardView.layoutParams = GridLayout.LayoutParams().apply {
+            width = 0
+            height = resources.getDimensionPixelSize(R.dimen.card_height)  // 160dp
+            columnSpec = GridLayout.spec(GridLayout.UNDEFINED, 1f)
+            setMargins(
+                resources.getDimensionPixelSize(R.dimen.card_margin),
+                resources.getDimensionPixelSize(R.dimen.card_margin),
+                resources.getDimensionPixelSize(R.dimen.card_margin),
+                resources.getDimensionPixelSize(R.dimen.card_margin)
+            )
         }
         
-        // Icon
-        val icon = ImageView(this).apply {
-            layoutParams = FrameLayout.LayoutParams(192, 192).apply {
-                gravity = android.view.Gravity.CENTER
-            }
-            val iconRes = getIconResource(source.iconName)
-            setImageResource(iconRes)
-            setColorFilter(Color.WHITE)
-        }
-        card.addView(icon)
+        // Set colors
+        cardView.findViewById<androidx.cardview.widget.CardView>(R.id.source_card)
+            ?.setCardBackgroundColor(source.cardColor)
         
-        // Name
-        val nameText = TextView(this).apply {
-            layoutParams = FrameLayout.LayoutParams(
-                FrameLayout.LayoutParams.WRAP_CONTENT,
-                FrameLayout.LayoutParams.WRAP_CONTENT
-            ).apply {
-                gravity = android.view.Gravity.BOTTOM or android.view.Gravity.CENTER_HORIZONTAL
-                bottomMargin = 48
-            }
-            text = source.name
-            setTextColor(Color.WHITE)
-            textSize = 14f
+        // Set icon
+        val iconView = cardView.findViewById<ImageView>(R.id.source_icon)
+        val iconRes = getIconResource(source.iconName)
+        iconView?.setImageResource(iconRes)
+        iconView?.setColorFilter(Color.WHITE)
+        
+        // Set name
+        cardView.findViewById<TextView>(R.id.source_name)?.text = source.name
+        
+        // Set subtitle (type)
+        val subtitle = when (source.type) {
+            com.example.alertsheets.domain.models.SourceType.APP -> "App Notifications"
+            com.example.alertsheets.domain.models.SourceType.SMS -> "SMS Messages"
         }
-        card.addView(nameText)
+        cardView.findViewById<TextView>(R.id.source_subtitle)?.text = subtitle
         
         // Status dot
-        val dot = ImageView(this).apply {
-            layoutParams = FrameLayout.LayoutParams(36, 36).apply {
-                gravity = android.view.Gravity.TOP or android.view.Gravity.END
-                setMargins(24, 24, 24, 24)
-            }
-            setImageResource(R.drawable.ic_launcher_foreground)
-            setColorFilter(if (source.enabled) Color.parseColor("#4CAF50") else Color.parseColor("#FF5252"))
-        }
-        card.addView(dot)
+        val statusDot = cardView.findViewById<View>(R.id.source_status_dot)
+        statusDot?.visibility = if (source.enabled) View.VISIBLE else View.GONE
         
-        gridCards.addView(card)
+        // Click handler
+        cardView.setOnClickListener {
+            val intent = Intent(this@MainActivity, LabActivity::class.java)
+            intent.putExtra("source_id", source.id)
+            startActivity(intent)
+        }
+        
+        gridSourceCards.addView(cardView)
     }
     
     private fun getIconResource(iconName: String): Int {
@@ -178,23 +176,24 @@ class MainActivity : AppCompatActivity() {
                 false
             }
             
+            // Calculate today's stats
+            val today = System.currentTimeMillis() - 24 * 60 * 60 * 1000
+            val todayLogs = LogRepository.getLogs().filter { it.timestamp > today }
+            val sentToday = todayLogs.count { it.status == LogStatus.SENT }
+            val failedToday = todayLogs.count { it.status == LogStatus.FAILED }
+            
             withContext(Dispatchers.Main) {
-                // Update permission dot
-                dotPermissions.setColorFilter(
-                    if (hasNotificationAccess) Color.parseColor("#00D980") 
-                    else Color.parseColor("#FF0000")
-                )
-                
-                // Update log dot based on recent activity
-                val recentLogs = LogRepository.getLogs().take(5)
-                val hasFailures = recentLogs.any { it.status == LogStatus.FAILED }
-                dotLogs.setColorFilter(
-                    if (hasFailures) Color.parseColor("#FF9800")
-                    else Color.parseColor("#4CAF50")
-                )
-                
                 // Update stats
-                textStats.text = "Monitoring: ${sources.size} sources • Today: ${stats["sent"]} sent, ${stats["failed"]} failed"
+                textSourcesCount.text = sources.size.toString()
+                textSentToday.text = sentToday.toString()
+                textFailedToday.text = failedToday.toString()
+                
+                // Update permission dot
+                dotPermissions.visibility = if (!hasNotificationAccess) View.VISIBLE else View.GONE
+                
+                // Update log dot (show if recent activity)
+                val recentLogs = LogRepository.getLogs().take(5)
+                dotLogs.visibility = if (recentLogs.isNotEmpty()) View.VISIBLE else View.GONE
             }
         }
     }

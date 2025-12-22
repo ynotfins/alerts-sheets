@@ -102,7 +102,7 @@ class SourceConfigActivity : AppCompatActivity() {
             
             // Load data
             val endpoints = withContext(Dispatchers.IO) { sourceManager.getEndpoints() }
-            val templates = withContext(Dispatchers.IO) { templateRepo.getAll() }
+            val templates = withContext(Dispatchers.IO) { templateRepo.getAllTemplates() }
             
             // Setup spinners
             val endpointSpinner = dialogView.findViewById<Spinner>(R.id.spinner_endpoint)
@@ -122,7 +122,7 @@ class SourceConfigActivity : AppCompatActivity() {
             val templateAdapter = ArrayAdapter(this@SourceConfigActivity, android.R.layout.simple_spinner_item, templateNames)
             templateAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
             templateSpinner.adapter = templateAdapter
-            templateSpinner.setSelection(templates.indexOfFirst { it.id == source.templateId }.coerceAtLeast(0))
+            templateSpinner.setSelection(templates.indexOfFirst { it.name == source.templateId }.coerceAtLeast(0))
             
             // Parser dropdown
             val parsers = listOf("generic", "bnn", "sms")
@@ -145,7 +145,7 @@ class SourceConfigActivity : AppCompatActivity() {
                     
                     val updatedSource = source.copy(
                         endpointId = selectedEndpoint.id,
-                        templateId = selectedTemplate.id,
+                        templateId = selectedTemplate.name,  // ✅ Use template name as ID
                         parserId = selectedParser,
                         autoClean = autoClean,
                         updatedAt = System.currentTimeMillis()

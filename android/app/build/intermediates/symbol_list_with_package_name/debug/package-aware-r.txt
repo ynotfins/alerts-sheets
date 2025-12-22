@@ -3224,6 +3224,7 @@ id card_endpoints
 id card_logs
 id card_permissions
 id card_sms
+id card_sources
 id carryVelocity
 id center
 id centerCrop
@@ -3288,6 +3289,7 @@ id dot_logs
 id dot_payloads
 id dot_permissions
 id dot_sms
+id dot_sources
 id dragAnticlockwise
 id dragClockwise
 id dragDown
@@ -3508,6 +3510,7 @@ id recycler_apps
 id recycler_endpoints
 id recycler_logs
 id recycler_sms
+id recycler_sources
 id report_drawn
 id reverseSawtooth
 id right
@@ -3556,7 +3559,10 @@ id snapMargins
 id south
 id spacer
 id special_effects_controller_view_tag
+id spinner_endpoint
+id spinner_parser
 id spinner_source
+id spinner_template
 id spline
 id split_action_bar
 id spread
@@ -3582,7 +3588,9 @@ id stretch
 id submenuarrow
 id submit_area
 id supportScrollUp
+id switch_autoclean
 id switch_enable
+id switch_enabled
 id tabMode
 id tag_accessibility_actions
 id tag_accessibility_clickable_spans
@@ -3605,6 +3613,8 @@ id textSpacerNoTitle
 id textStart
 id textTop
 id text_app_name
+id text_empty
+id text_endpoint
 id text_filter
 id text_input_end_icon
 id text_input_error_icon
@@ -3616,8 +3626,14 @@ id text_monitoring_ticker
 id text_name
 id text_number
 id text_package_name
+id text_parser
 id text_source
+id text_source_count
+id text_source_name
+id text_source_type
+id text_stats
 id text_target
+id text_template
 id text_url
 id textinput_counter
 id textinput_error
@@ -3651,6 +3667,7 @@ id up
 id useLogo
 id vertical_only
 id view_offset_helper
+id view_source_icon
 id view_transition
 id view_tree_lifecycle_owner
 id view_tree_on_back_pressed_dispatcher_owner
@@ -3787,6 +3804,7 @@ layout activity_log
 layout activity_main
 layout activity_main_dashboard
 layout activity_sms_config
+layout activity_source_config
 layout custom_dialog
 layout design_bottom_navigation_item
 layout design_bottom_sheet_dialog
@@ -3806,6 +3824,7 @@ layout design_text_input_start_icon
 layout dialog_add_endpoint
 layout dialog_add_mapping
 layout dialog_add_sms
+layout dialog_edit_source
 layout ime_base_split_test_activity
 layout ime_secondary_split_test_activity
 layout item_configured_app
@@ -3813,6 +3832,7 @@ layout item_endpoint
 layout item_log
 layout item_mapping
 layout item_sms_target
+layout item_source
 layout m3_alert_dialog
 layout m3_alert_dialog_actions
 layout m3_alert_dialog_title

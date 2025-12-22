@@ -144,7 +144,7 @@
                 android:layout_width="64dp"
                 android:layout_height="64dp"
                 android:layout_gravity="center"
-                android:src="@drawable/ic_settings_card"
+                android:src="@drawable/ic_payloads_card"
                 android:scaleType="fitCenter" />
 
             <ImageView

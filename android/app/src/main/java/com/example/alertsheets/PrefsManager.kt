@@ -35,7 +35,7 @@ data class Endpoint(
     val name: String,
     val url: String,
     var isEnabled: Boolean = true,
-    val schemaVersion: Int = PayloadSerializer.CURRENT_SCHEMA_VERSION
+    val schemaVersion: Int = PayloadSerializer.SchemaVersion.ENDPOINTS
 )
 
 object PrefsManager {

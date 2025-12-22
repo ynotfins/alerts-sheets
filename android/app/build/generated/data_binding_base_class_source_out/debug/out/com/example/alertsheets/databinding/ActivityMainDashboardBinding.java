@@ -44,6 +44,9 @@ public final class ActivityMainDashboardBinding implements ViewBinding {
   public final FrameLayout cardSms;
 
   @NonNull
+  public final FrameLayout cardSources;
+
+  @NonNull
   public final ImageView dotApps;
 
   @NonNull
@@ -62,6 +65,9 @@ public final class ActivityMainDashboardBinding implements ViewBinding {
   public final ImageView dotSms;
 
   @NonNull
+  public final ImageView dotSources;
+
+  @NonNull
   public final TextView footerTicker;
 
   @NonNull
@@ -77,9 +83,10 @@ public final class ActivityMainDashboardBinding implements ViewBinding {
       @NonNull Button btnMasterStatus, @NonNull FrameLayout cardApps,
       @NonNull FrameLayout cardConfig, @NonNull FrameLayout cardEndpoints,
       @NonNull FrameLayout cardLogs, @NonNull FrameLayout cardPermissions,
-      @NonNull FrameLayout cardSms, @NonNull ImageView dotApps, @NonNull ImageView dotEndpoints,
-      @NonNull ImageView dotLogs, @NonNull ImageView dotPayloads, @NonNull ImageView dotPermissions,
-      @NonNull ImageView dotSms, @NonNull TextView footerTicker, @NonNull TextView tvQueueStatus,
+      @NonNull FrameLayout cardSms, @NonNull FrameLayout cardSources, @NonNull ImageView dotApps,
+      @NonNull ImageView dotEndpoints, @NonNull ImageView dotLogs, @NonNull ImageView dotPayloads,
+      @NonNull ImageView dotPermissions, @NonNull ImageView dotSms, @NonNull ImageView dotSources,
+      @NonNull TextView footerTicker, @NonNull TextView tvQueueStatus,
       @NonNull TextView tvServiceStatus, @NonNull TextView tvStatusTitle) {
     this.rootView = rootView;
     this.btnMasterStatus = btnMasterStatus;
@@ -89,12 +96,14 @@ public final class ActivityMainDashboardBinding implements ViewBinding {
     this.cardLogs = cardLogs;
     this.cardPermissions = cardPermissions;
     this.cardSms = cardSms;
+    this.cardSources = cardSources;
     this.dotApps = dotApps;
     this.dotEndpoints = dotEndpoints;
     this.dotLogs = dotLogs;
     this.dotPayloads = dotPayloads;
     this.dotPermissions = dotPermissions;
     this.dotSms = dotSms;
+    this.dotSources = dotSources;
     this.footerTicker = footerTicker;
     this.tvQueueStatus = tvQueueStatus;
     this.tvServiceStatus = tvServiceStatus;
@@ -170,6 +179,12 @@ public final class ActivityMainDashboardBinding implements ViewBinding {
         break missingId;
       }
 
+      id = R.id.card_sources;
+      FrameLayout cardSources = ViewBindings.findChildViewById(rootView, id);
+      if (cardSources == null) {
+        break missingId;
+      }
+
       id = R.id.dot_apps;
       ImageView dotApps = ViewBindings.findChildViewById(rootView, id);
       if (dotApps == null) {
@@ -206,6 +221,12 @@ public final class ActivityMainDashboardBinding implements ViewBinding {
         break missingId;
       }
 
+      id = R.id.dot_sources;
+      ImageView dotSources = ViewBindings.findChildViewById(rootView, id);
+      if (dotSources == null) {
+        break missingId;
+      }
+
       id = R.id.footer_ticker;
       TextView footerTicker = ViewBindings.findChildViewById(rootView, id);
       if (footerTicker == null) {
@@ -231,9 +252,9 @@ public final class ActivityMainDashboardBinding implements ViewBinding {
       }
 
       return new ActivityMainDashboardBinding((LinearLayout) rootView, btnMasterStatus, cardApps,
-          cardConfig, cardEndpoints, cardLogs, cardPermissions, cardSms, dotApps, dotEndpoints,
-          dotLogs, dotPayloads, dotPermissions, dotSms, footerTicker, tvQueueStatus,
-          tvServiceStatus, tvStatusTitle);
+          cardConfig, cardEndpoints, cardLogs, cardPermissions, cardSms, cardSources, dotApps,
+          dotEndpoints, dotLogs, dotPayloads, dotPermissions, dotSms, dotSources, footerTicker,
+          tvQueueStatus, tvServiceStatus, tvStatusTitle);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

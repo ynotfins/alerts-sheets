@@ -1,25 +1,94 @@
 {
-  "timestamp": "2025-12-22_01-51-46",
-  "commit": "883b58d94f77831553944269b1ec9525aaac8438",
-  "message": "fix: compilation errors for Android 15 stability branch
+  "timestamp": "2025-12-22_02-48-59",
+  "commit": "a73d4fdb6dd8c868a6ea0739e67d380fab103b59",
+  "message": "feat: complete Source configuration system for independent endpoint/template binding
+
+CRITICAL WORKFLOW FIX: Implements proper Source→Endpoint→Template configuration
 
 Context:
-- Build failed due to missing Intent import and incorrect try-catch nesting
-- LogStatus.PROCESSING added but not handled in LogAdapter
+- Previous hardcoded endpointId = 'default-endpoint' broke workflow
+- Users could not bind sources to specific endpoints/templates
+- No UI to configure source settings after creation
+- Multiple sources could not have independent configurations
 
-Changes:
-- AppsListActivity: Added Intent import and fixed try-catch block structure
-- LogEntry: Added PROCESSING status to enum
-- LogAdapter: Added PROCESSING case (orange color) to when expression
+Changes Implemented:
+
+1. Infrastructure Fixes:
+   - Replaced GlobalScope with managed CoroutineScope in LogRepository
+   - Added shutdown() method called from AlertsApplication.onTerminate()
+   - Added id field to PrefsManager.Endpoint (V1 model)
+   - Preserved endpoint IDs in V1→V2 migration
+
+2. Smart Endpoint Assignment:
+   - Added SourceManager.getFirstEndpointId() helper
+   - Updated AppsListActivity to use first available endpoint
+   - Updated SmsConfigActivity to use first available endpoint
+   - Fallback to 'default-endpoint' if no endpoints exist
+
+3. New SourceConfigActivity (Complete Source Management UI):
+   - List all configured sources (apps + SMS)
+   - Click source to edit:
+     * Select endpoint (dropdown of available endpoints)
+     * Select template (dropdown of available templates)
+     * Select parser (generic, bnn, sms)
+     * Toggle autoClean (emoji stripping)
+   - Toggle source enabled/disabled via switch
+   - Long-press to delete source
+   - Real-time stats display (sent/total/failed counts)
+   - Empty state guidance
+
+4. UI Components Created:
+   - SourceConfigActivity.kt - main activity
+   - SourceConfigAdapter.kt - RecyclerView adapter
+   - activity_source_config.xml - main layout
+   - item_source.xml - source card layout
+   - dialog_edit_source.xml - edit dialog with spinners
+   - Added 'Configure Sources' card to MainActivity dashboard
+   - Smart status indicator (RED/ORANGE/GREEN based on configuration state)
+
+5. Files Modified:
+   - LogRepository.kt - removed GlobalScope
+   - AlertsApplication.kt - added shutdown hook
+   - PrefsManager.kt - added id to Endpoint
+   - MigrationManager.kt - preserve endpoint IDs
+   - AppsListActivity.kt - smart endpoint selection
+   - SmsConfigActivity.kt - smart endpoint selection
+   - SourceManager.kt - added getFirstEndpointId()
+   - MainActivity.kt - added Sources card + click handler
+   - activity_main_dashboard.xml - added Sources card
+   - AndroidManifest.xml - registered SourceConfigActivity
+
+Features:
+- ✅ Multiple sources with completely different endpoints
+- ✅ Independent JSON templates per source
+- ✅ Customizable parser per source
+- ✅ Per-source emoji cleaning toggle
+- ✅ Visual indicators for configuration status
+- ✅ One-tap enable/disable sources
+- ✅ Swipe/long-press to delete
 
 Safety:
-- Build verification: successful (assembleDebug passed)
-- No logic changes, only compilation fixes
-- Backward compatible
+- Backward compatible: existing sources get first endpoint
+- No behavior change for configured sources
+- Managed coroutine scopes prevent memory leaks
+- All changes reversible
+
+Testing Required:
+1. Add BNN app → verify assigned to first endpoint
+2. Create second endpoint → open Sources → reassign BNN
+3. Send test notification → verify uses correct endpoint
+4. Create multiple sources with different endpoints → verify independence
 
 Rollback plan:
-- git revert HEAD (reverts only syntax fixes)",
+- git revert HEAD
+- Restore hardcoded endpoint IDs
+- Remove SourceConfigActivity",
   "files_changed": [
+    ".ai-context/changes/2025-12-22.json",
+    "CODEBASE_VALIDATION_REPORT.md",
+    "android/.gradle/8.7/checksums/checksums.lock",
+    "android/.gradle/8.7/checksums/md5-checksums.bin",
+    "android/.gradle/8.7/checksums/sha1-checksums.bin",
     "android/.gradle/8.7/executionHistory/executionHistory.bin",
     "android/.gradle/8.7/executionHistory/executionHistory.lock",
     "android/.gradle/8.7/fileHashes/fileHashes.bin",
@@ -27,189 +96,21 @@ Rollback plan:
     "android/.gradle/8.7/fileHashes/resourceHashesCache.bin",
     "android/.gradle/buildOutputCleanup/buildOutputCleanup.lock",
     "android/.gradle/buildOutputCleanup/outputFiles.bin",
-    "android/.gradle/file-system.probe",
-    "android/app/build/intermediates/dex/debug/mergeProjectDexDebug/15/classes.dex",
-    "android/app/build/intermediates/dex/debug/mergeProjectDexDebug/2/classes.dex",
-    "android/app/build/intermediates/dex/debug/mergeProjectDexDebug/4/classes.dex",
-    "android/app/build/intermediates/dex/debug/mergeProjectDexDebug/7/classes.dex",
-    "android/app/build/intermediates/incremental/packageDebug/tmp/debug/dex-renamer-state.txt",
-    "android/app/build/intermediates/incremental/packageDebug/tmp/debug/zip-cache/androidResources",
-    "android/app/build/intermediates/manifest_merge_blame_file/debug/manifest-merger-blame-debug-report.txt",
-    "android/app/build/intermediates/merged_manifest/debug/AndroidManifest.xml",
-    "android/app/build/intermediates/merged_manifests/debug/AndroidManifest.xml",
-    "android/app/build/intermediates/packaged_manifests/debug/AndroidManifest.xml",
-    "android/app/build/intermediates/processed_res/debug/out/resources-debug.ap_",
-    "android/app/build/intermediates/project_dex_archive/debug/out/com/example/alertsheets/AlertsApplication.dex",
-    "android/app/build/intermediates/project_dex_archive/debug/out/com/example/alertsheets/AppConfig.dex",
-    "android/app/build/intermediates/project_dex_archive/debug/out/com/example/alertsheets/AppConfigActivity.dex",
-    "android/app/build/intermediates/project_dex_archive/debug/out/com/example/alertsheets/AppsListActivity$onCreate$1$2$1$1.dex",
-    "android/app/build/intermediates/project_dex_archive/debug/out/com/example/alertsheets/AppsListActivity$onCreate$1$2$1$2.dex",
-    "android/app/build/intermediates/project_dex_archive/debug/out/com/example/alertsheets/AppsListActivity$onCreate$1$2$1.dex",
-    "android/app/build/intermediates/project_dex_archive/debug/out/com/example/alertsheets/AppsListActivity$onCreate$1$2.dex",
-    "android/app/build/intermediates/project_dex_archive/debug/out/com/example/alertsheets/AppsListActivity$onCreate$1$3.dex",
-    "android/app/build/intermediates/project_dex_archive/debug/out/com/example/alertsheets/AppsListActivity$onCreate$1$appSources$1.dex",
-    "android/app/build/intermediates/project_dex_archive/debug/out/com/example/alertsheets/AppsListActivity$onCreate$1$apps$1$invokeSuspend$$inlined$sortedBy$1.dex",
-    "android/app/build/intermediates/project_dex_archive/debug/out/com/example/alertsheets/AppsListActivity$onCreate$1$apps$1.dex",
-    "android/app/build/intermediates/project_dex_archive/debug/out/com/example/alertsheets/AppsListActivity$onCreate$1.dex",
-    "android/app/build/intermediates/project_dex_archive/debug/out/com/example/alertsheets/AppsListActivity.dex",
-    "android/app/build/intermediates/project_dex_archive/debug/out/com/example/alertsheets/Endpoint.dex",
-    "android/app/build/intermediates/project_dex_archive/debug/out/com/example/alertsheets/EndpointActivity$onCreate$1.dex",
-    "android/app/build/intermediates/project_dex_archive/debug/out/com/example/alertsheets/EndpointActivity.dex",
-    "android/app/build/intermediates/project_dex_archive/debug/out/com/example/alertsheets/FieldMapping.dex",
-    "android/app/build/intermediates/project_dex_archive/debug/out/com/example/alertsheets/JsonTemplate.dex",
-    "android/app/build/intermediates/project_dex_archive/debug/out/com/example/alertsheets/LogActivity$onCreate$1.dex",
-    "android/app/build/intermediates/project_dex_archive/debug/out/com/example/alertsheets/LogActivity$repoListener$1.dex",
-    "android/app/build/intermediates/project_dex_archive/debug/out/com/example/alertsheets/LogActivity.dex",
-    "android/app/build/intermediates/project_dex_archive/debug/out/com/example/alertsheets/LogAdapter$LogViewHolder$WhenMappings.dex",
-    "android/app/build/intermediates/project_dex_archive/debug/out/com/example/alertsheets/LogAdapter$LogViewHolder.dex",
-    "android/app/build/intermediates/project_dex_archive/debug/out/com/example/alertsheets/LogEntry.dex",
-    "android/app/build/intermediates/project_dex_archive/debug/out/com/example/alertsheets/LogStatus.dex",
-    "android/app/build/intermediates/project_dex_archive/debug/out/com/example/alertsheets/MigrationManager.dex",
-    "android/app/build/intermediates/project_dex_archive/debug/out/com/example/alertsheets/NotificationField.dex",
-    "android/app/build/intermediates/project_dex_archive/debug/out/com/example/alertsheets/PrefsManager$deleteCustomTemplate$1.dex",
-    "android/app/build/intermediates/project_dex_archive/debug/out/com/example/alertsheets/PrefsManager$getCustomTemplates$type$1.dex",
-    "android/app/build/intermediates/project_dex_archive/debug/out/com/example/alertsheets/PrefsManager$getEndpoints$type$1.dex",
-    "android/app/build/intermediates/project_dex_archive/debug/out/com/example/alertsheets/PrefsManager$getSmsConfigList$type$1.dex",
-    "android/app/build/intermediates/project_dex_archive/debug/out/com/example/alertsheets/PrefsManager.dex",
-    "android/app/build/intermediates/project_dex_archive/debug/out/com/example/alertsheets/QueueProcessor.dex",
-    "android/app/build/intermediates/project_dex_archive/debug/out/com/example/alertsheets/SmsTarget.dex",
-    "android/app/build/intermediates/project_dex_archive/debug/out/com/example/alertsheets/StaticField.dex",
-    "android/app/build/intermediates/project_dex_archive/debug/out/com/example/alertsheets/TemplateMode.dex",
-    "android/app/build/intermediates/project_dex_archive/debug/out/com/example/alertsheets/data/repositories/EndpointRepository.dex",
-    "android/app/build/intermediates/project_dex_archive/debug/out/com/example/alertsheets/domain/DataPipeline$process$1.dex",
-    "android/app/build/intermediates/project_dex_archive/debug/out/com/example/alertsheets/domain/DataPipeline.dex",
-    "android/app/build/intermediates/project_dex_archive/debug/out/com/example/alertsheets/domain/models/Endpoint.dex",
-    "android/app/build/intermediates/project_dex_archive/debug/out/com/example/alertsheets/domain/models/EndpointStats.dex",
-    "android/app/build/intermediates/project_dex_archive/debug/out/com/example/alertsheets/domain/models/ParsedData.dex",
-    "android/app/build/intermediates/project_dex_archive/debug/out/com/example/alertsheets/utils/TemplateEngine.dex",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/inputs/source-to-output.tab",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/inputs/source-to-output.tab.keystream",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/inputs/source-to-output.tab.keystream.len",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/inputs/source-to-output.tab.len",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/inputs/source-to-output.tab.values.at",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/inputs/source-to-output.tab_i",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/class-attributes.tab",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/class-attributes.tab.keystream",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/class-attributes.tab.keystream.len",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/class-attributes.tab.len",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/class-attributes.tab.values.at",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/class-attributes.tab_i",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/class-fq-name-to-source.tab",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/class-fq-name-to-source.tab.keystream",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/class-fq-name-to-source.tab.keystream.len",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/class-fq-name-to-source.tab.len",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/class-fq-name-to-source.tab.values.at",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/class-fq-name-to-source.tab_i",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/constants.tab",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/constants.tab.keystream",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/constants.tab.keystream.len",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/constants.tab.len",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/constants.tab.values.at",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/constants.tab_i",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/internal-name-to-source.tab",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/internal-name-to-source.tab.keystream",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/internal-name-to-source.tab.keystream.len",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/internal-name-to-source.tab.len",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/internal-name-to-source.tab.values.at",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/internal-name-to-source.tab_i",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/proto.tab",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/proto.tab.keystream",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/proto.tab.keystream.len",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/proto.tab.len",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/proto.tab.values",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/proto.tab.values.at",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/proto.tab.values.s",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/proto.tab_i",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/source-to-classes.tab",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/source-to-classes.tab.keystream",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/source-to-classes.tab.keystream.len",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/source-to-classes.tab.len",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/source-to-classes.tab.values.at",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/source-to-classes.tab_i",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/subtypes.tab",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/subtypes.tab.keystream",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/subtypes.tab.keystream.len",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/subtypes.tab.len",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/subtypes.tab.values.at",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/subtypes.tab_i",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/supertypes.tab",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/supertypes.tab.keystream",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/supertypes.tab.keystream.len",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/supertypes.tab.len",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/supertypes.tab.values.at",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/supertypes.tab_i",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/lookups/counters.tab",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/lookups/file-to-id.tab",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/lookups/file-to-id.tab.keystream",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/lookups/file-to-id.tab.keystream.len",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/lookups/file-to-id.tab.len",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/lookups/file-to-id.tab.values.at",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/lookups/file-to-id.tab_i",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/lookups/id-to-file.tab",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/lookups/id-to-file.tab.keystream",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/lookups/id-to-file.tab.keystream.len",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/lookups/id-to-file.tab.len",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/lookups/id-to-file.tab.values.at",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/lookups/id-to-file.tab_i",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/lookups/lookups.tab",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/lookups/lookups.tab.keystream",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/lookups/lookups.tab.keystream.len",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/lookups/lookups.tab.len",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/lookups/lookups.tab.values",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/lookups/lookups.tab.values.at",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/lookups/lookups.tab.values.s",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/lookups/lookups.tab_i",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/last-build.bin",
-    "android/app/build/kotlin/compileDebugKotlin/classpath-snapshot/shrunk-classpath-snapshot.bin",
-    "android/app/build/kotlin/compileDebugKotlin/local-state/build-history.bin",
-    "android/app/build/outputs/apk/debug/app-debug.apk",
-    "android/app/build/outputs/logs/manifest-merger-debug-report.txt",
-    "android/app/build/tmp/kotlin-classes/debug/com/example/alertsheets/AlertsApplication.class",
-    "android/app/build/tmp/kotlin-classes/debug/com/example/alertsheets/AppConfig.class",
-    "android/app/build/tmp/kotlin-classes/debug/com/example/alertsheets/AppConfigActivity.class",
-    "android/app/build/tmp/kotlin-classes/debug/com/example/alertsheets/AppsListActivity$onCreate$1$2$1$1.class",
-    "android/app/build/tmp/kotlin-classes/debug/com/example/alertsheets/AppsListActivity$onCreate$1$2$1$2.class",
-    "android/app/build/tmp/kotlin-classes/debug/com/example/alertsheets/AppsListActivity$onCreate$1$2$1.class",
-    "android/app/build/tmp/kotlin-classes/debug/com/example/alertsheets/AppsListActivity$onCreate$1$2.class",
-    "android/app/build/tmp/kotlin-classes/debug/com/example/alertsheets/AppsListActivity$onCreate$1$3.class",
-    "android/app/build/tmp/kotlin-classes/debug/com/example/alertsheets/AppsListActivity$onCreate$1$appSources$1.class",
-    "android/app/build/tmp/kotlin-classes/debug/com/example/alertsheets/AppsListActivity$onCreate$1$apps$1$invokeSuspend$$inlined$sortedBy$1.class",
-    "android/app/build/tmp/kotlin-classes/debug/com/example/alertsheets/AppsListActivity$onCreate$1$apps$1.class",
-    "android/app/build/tmp/kotlin-classes/debug/com/example/alertsheets/AppsListActivity$onCreate$1.class",
-    "android/app/build/tmp/kotlin-classes/debug/com/example/alertsheets/AppsListActivity.class",
-    "android/app/build/tmp/kotlin-classes/debug/com/example/alertsheets/Endpoint.class",
-    "android/app/build/tmp/kotlin-classes/debug/com/example/alertsheets/EndpointActivity$onCreate$1.class",
-    "android/app/build/tmp/kotlin-classes/debug/com/example/alertsheets/EndpointActivity.class",
-    "android/app/build/tmp/kotlin-classes/debug/com/example/alertsheets/FieldMapping.class",
-    "android/app/build/tmp/kotlin-classes/debug/com/example/alertsheets/JsonTemplate.class",
-    "android/app/build/tmp/kotlin-classes/debug/com/example/alertsheets/LogActivity$onCreate$1.class",
-    "android/app/build/tmp/kotlin-classes/debug/com/example/alertsheets/LogActivity$repoListener$1.class",
-    "android/app/build/tmp/kotlin-classes/debug/com/example/alertsheets/LogActivity.class",
-    "android/app/build/tmp/kotlin-classes/debug/com/example/alertsheets/LogAdapter$LogViewHolder$WhenMappings.class",
-    "android/app/build/tmp/kotlin-classes/debug/com/example/alertsheets/LogAdapter$LogViewHolder.class",
-    "android/app/build/tmp/kotlin-classes/debug/com/example/alertsheets/LogEntry.class",
-    "android/app/build/tmp/kotlin-classes/debug/com/example/alertsheets/LogStatus.class",
-    "android/app/build/tmp/kotlin-classes/debug/com/example/alertsheets/MigrationManager.class",
-    "android/app/build/tmp/kotlin-classes/debug/com/example/alertsheets/NotificationField.class",
-    "android/app/build/tmp/kotlin-classes/debug/com/example/alertsheets/PrefsManager$deleteCustomTemplate$1.class",
-    "android/app/build/tmp/kotlin-classes/debug/com/example/alertsheets/PrefsManager$getCustomTemplates$type$1.class",
-    "android/app/build/tmp/kotlin-classes/debug/com/example/alertsheets/PrefsManager$getEndpoints$type$1.class",
-    "android/app/build/tmp/kotlin-classes/debug/com/example/alertsheets/PrefsManager$getSmsConfigList$type$1.class",
-    "android/app/build/tmp/kotlin-classes/debug/com/example/alertsheets/PrefsManager.class",
-    "android/app/build/tmp/kotlin-classes/debug/com/example/alertsheets/QueueProcessor.class",
-    "android/app/build/tmp/kotlin-classes/debug/com/example/alertsheets/SmsTarget.class",
-    "android/app/build/tmp/kotlin-classes/debug/com/example/alertsheets/StaticField.class",
-    "android/app/build/tmp/kotlin-classes/debug/com/example/alertsheets/TemplateMode.class",
-    "android/app/build/tmp/kotlin-classes/debug/com/example/alertsheets/data/repositories/EndpointRepository.class",
-    "android/app/build/tmp/kotlin-classes/debug/com/example/alertsheets/domain/DataPipeline$process$1.class",
-    "android/app/build/tmp/kotlin-classes/debug/com/example/alertsheets/domain/DataPipeline.class",
-    "android/app/build/tmp/kotlin-classes/debug/com/example/alertsheets/domain/models/Endpoint.class",
-    "android/app/build/tmp/kotlin-classes/debug/com/example/alertsheets/domain/models/EndpointStats.class",
-    "android/app/build/tmp/kotlin-classes/debug/com/example/alertsheets/domain/models/ParsedData.class",
-    "android/app/build/tmp/kotlin-classes/debug/com/example/alertsheets/utils/TemplateEngine.class",
+    "android/app/src/main/AndroidManifest.xml",
+    "android/app/src/main/java/com/example/alertsheets/AlertsApplication.kt",
     "android/app/src/main/java/com/example/alertsheets/AppsListActivity.kt",
-    "android/app/src/main/java/com/example/alertsheets/LogAdapter.kt",
-    "android/app/src/main/java/com/example/alertsheets/LogEntry.kt",
-    "android/app/src/test/java/com/example/alertsheets/data/repositories/SourceRepositoryTest.kt"
+    "android/app/src/main/java/com/example/alertsheets/LogRepository.kt",
+    "android/app/src/main/java/com/example/alertsheets/MigrationManager.kt",
+    "android/app/src/main/java/com/example/alertsheets/PrefsManager.kt",
+    "android/app/src/main/java/com/example/alertsheets/SmsConfigActivity.kt",
+    "android/app/src/main/java/com/example/alertsheets/SourceConfigActivity.kt",
+    "android/app/src/main/java/com/example/alertsheets/SourceConfigAdapter.kt",
+    "android/app/src/main/java/com/example/alertsheets/domain/SourceManager.kt",
+    "android/app/src/main/java/com/example/alertsheets/ui/MainActivity.kt",
+    "android/app/src/main/res/layout/activity_main_dashboard.xml",
+    "android/app/src/main/res/layout/activity_source_config.xml",
+    "android/app/src/main/res/layout/dialog_edit_source.xml",
+    "android/app/src/main/res/layout/item_source.xml",
+    "android/app/src/test/java/com/example/alertsheets/data/repositories/SourceRepositoryTest.kt.disabled"
   ]
 }

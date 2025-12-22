@@ -1,9 +1,17 @@
 package com.example.alertsheets
 
+import com.example.alertsheets.utils.PayloadSerializer
+
+/**
+ * Per-app notification configuration
+ * 
+ * @property schemaVersion For migration support - increment when structure changes
+ */
 data class AppConfig(
     val packageName: String,
     val mappings: MutableList<FieldMapping> = mutableListOf(),
-    val staticFields: MutableList<StaticField> = mutableListOf()
+    val staticFields: MutableList<StaticField> = mutableListOf(),
+    val schemaVersion: Int = PayloadSerializer.SchemaVersion.APP_CONFIGS
 )
 
 data class FieldMapping(

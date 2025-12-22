@@ -1,5 +1,7 @@
 package com.example.alertsheets.domain.models
 
+import com.example.alertsheets.utils.PayloadSerializer
+
 /**
  * HTTP endpoint where notifications are sent
  * 
@@ -7,6 +9,8 @@ package com.example.alertsheets.domain.models
  * - Google Apps Script URL
  * - Firebase Cloud Function URL
  * - Custom webhook URL
+ * 
+ * @property schemaVersion For migration support - increment when structure changes
  */
 data class Endpoint(
     val id: String,                          // UUID
@@ -18,7 +22,8 @@ data class Endpoint(
     val headers: Map<String, String> = emptyMap(), // Custom headers (e.g., API keys)
     val stats: EndpointStats = EndpointStats(),
     val createdAt: Long = System.currentTimeMillis(),
-    val updatedAt: Long = System.currentTimeMillis()
+    val updatedAt: Long = System.currentTimeMillis(),
+    val schemaVersion: Int = PayloadSerializer.SchemaVersion.ENDPOINTS
 ) {
     /**
      * Check if URL is valid

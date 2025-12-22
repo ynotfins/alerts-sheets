@@ -2,6 +2,7 @@ package com.example.alertsheets
 
 import android.content.Context
 import com.example.alertsheets.utils.AppConstants
+import com.example.alertsheets.utils.PayloadSerializer
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 
@@ -26,11 +27,14 @@ import com.google.gson.reflect.TypeToken
 /**
  * V1 Endpoint model for backward compatibility
  * TODO: Migrate to domain.models.Endpoint
+ * 
+ * @property schemaVersion For migration support - default ensures backward compat
  */
 data class Endpoint(
     val name: String,
     val url: String,
-    var isEnabled: Boolean = true
+    var isEnabled: Boolean = true,
+    val schemaVersion: Int = PayloadSerializer.SchemaVersion.ENDPOINTS
 )
 
 object PrefsManager {

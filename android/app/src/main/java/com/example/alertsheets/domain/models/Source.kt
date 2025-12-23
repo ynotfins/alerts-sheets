@@ -22,6 +22,9 @@ data class Source(
     val iconColor: Int = 0xFF4A9EFF.toInt(), // For UI display
     val iconName: String = "notification",    // ✅ Icon for card (fire, sms, email, etc)
     val cardColor: Int = 0xFF4A9EFF.toInt(), // ✅ Card background color
+    val customTestPayload: String = "",       // ✅ Custom test payload (clean)
+    val customDuplicatePayload: String = "",  // ✅ Custom duplicate test payload (clean)
+    val customDirtyPayload: String = "",      // ✅ Custom dirty test payload (with emojis)
     val stats: SourceStats = SourceStats(),   // Usage statistics
     val createdAt: Long = System.currentTimeMillis(),
     val updatedAt: Long = System.currentTimeMillis()

@@ -133,6 +133,7 @@ id input_name
 id input_new_source_id
 id input_new_source_name
 id input_number
+id input_phone_number
 id input_source_name
 id input_target_key
 id input_url
@@ -209,6 +210,7 @@ layout dialog_add_mapping
 layout dialog_add_sms
 layout dialog_create_source
 layout dialog_edit_source
+layout dialog_sms_source
 layout item_configured_app
 layout item_dashboard_source_card
 layout item_endpoint

@@ -1,14 +1,22 @@
 package com.example.alertsheets
 
+import android.Manifest
+import android.app.Activity
 import android.app.AlertDialog
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.database.Cursor
 import android.graphics.Color
+import android.net.Uri
 import android.os.Bundle
+import android.provider.ContactsContract
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.cardview.widget.CardView
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import com.example.alertsheets.data.repositories.EndpointRepository
 import com.example.alertsheets.data.repositories.TemplateRepository
 import com.example.alertsheets.domain.SourceManager
@@ -24,8 +32,14 @@ import java.util.UUID
 
 /**
  * ⚗️ Lab Activity - Full-featured source creation with testing
+ * Each source maintains its own persistent configuration and test payloads
  */
 class LabActivity : AppCompatActivity() {
+
+    companion object {
+        private const val REQUEST_CONTACT_PICK = 1001
+        private const val REQUEST_READ_CONTACTS = 1002
+    }
 
     private val scope = CoroutineScope(Dispatchers.Main + SupervisorJob())
     
@@ -45,10 +59,15 @@ class LabActivity : AppCompatActivity() {
     private lateinit var previewColor: View
     
     private var sourceId: String? = null
+    private var selectedPhoneNumber: String? = null // For SMS source
     private var selectedIcon = "notification"
     private var selectedColor = 0xFF4A9EFF.toInt()
     private var selectedEndpointIds = mutableListOf<String>()
-    private var lastTestJson: String? = null // For duplicate test
+    
+    // Per-source custom test payloads (loaded from existing source)
+    private var customTestPayload: String = ""
+    private var customDuplicatePayload: String = ""
+    private var customDirtyPayload: String = ""
     
     // Available icons
     private val icons = listOf(
@@ -299,9 +318,28 @@ class LabActivity : AppCompatActivity() {
     }
     
     private fun showSmsConfigDialog() {
-        val dialogView = layoutInflater.inflate(R.layout.dialog_create_source, null)
-        val inputNumber = dialogView.findViewById<EditText>(R.id.input_new_source_id)
-        inputNumber.hint = "Phone number (e.g., +1234567890)"
+        val dialogView = layoutInflater.inflate(R.layout.dialog_sms_source, null)
+        val inputNumber = dialogView.findViewById<EditText>(R.id.input_phone_number)
+        val btnPickContact = dialogView.findViewById<Button>(R.id.btn_pick_contact)
+        
+        // Pre-fill if editing existing SMS source
+        selectedPhoneNumber?.let { phone ->
+            inputNumber.setText(phone.removePrefix("sms:"))
+        }
+        
+        btnPickContact.setOnClickListener {
+            // Check permission
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_CONTACTS) 
+                != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(
+                    this,
+                    arrayOf(Manifest.permission.READ_CONTACTS),
+                    REQUEST_READ_CONTACTS
+                )
+            } else {
+                pickContact()
+            }
+        }
         
         AlertDialog.Builder(this)
             .setTitle("Configure SMS Source")
@@ -309,12 +347,57 @@ class LabActivity : AppCompatActivity() {
             .setPositiveButton("OK") { _, _ ->
                 val number = inputNumber.text.toString().trim()
                 if (number.isNotEmpty()) {
+                    selectedPhoneNumber = number
                     sourceId = "sms:$number"
                     Toast.makeText(this, "SMS source configured: $number", Toast.LENGTH_SHORT).show()
                 }
             }
             .setNegativeButton("Cancel", null)
             .show()
+    }
+    
+    private fun pickContact() {
+        val intent = Intent(Intent.ACTION_PICK, ContactsContract.CommonDataKinds.Phone.CONTENT_URI)
+        startActivityForResult(intent, REQUEST_CONTACT_PICK)
+    }
+    
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        
+        if (requestCode == REQUEST_CONTACT_PICK && resultCode == Activity.RESULT_OK) {
+            data?.data?.let { contactUri ->
+                val cursor: Cursor? = contentResolver.query(
+                    contactUri,
+                    arrayOf(ContactsContract.CommonDataKinds.Phone.NUMBER),
+                    null, null, null
+                )
+                cursor?.use {
+                    if (it.moveToFirst()) {
+                        val phoneNumber = it.getString(0)
+                        selectedPhoneNumber = phoneNumber
+                        sourceId = "sms:$phoneNumber"
+                        Toast.makeText(this, "Selected: $phoneNumber", Toast.LENGTH_SHORT).show()
+                        // Re-show dialog with selected number
+                        showSmsConfigDialog()
+                    }
+                }
+            }
+        }
+    }
+    
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == REQUEST_READ_CONTACTS) {
+            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                pickContact()
+            } else {
+                Toast.makeText(this, "Permission denied. Enter number manually.", Toast.LENGTH_SHORT).show()
+            }
+        }
     }
     
     private fun saveTemplate() {
@@ -382,57 +465,162 @@ class LabActivity : AppCompatActivity() {
     }
     
     private fun performTest(isDuplicate: Boolean) {
-        val json = if (isDuplicate && lastTestJson != null) {
-            lastTestJson!!
+        val type = when (radioGroup.checkedRadioButtonId) {
+            R.id.radio_app -> SourceType.APP
+            R.id.radio_sms -> SourceType.SMS
+            else -> SourceType.APP
+        }
+        
+        // Generate clean test (no emojis)
+        val cleanJson = if (isDuplicate && customDuplicatePayload.isNotEmpty()) {
+            customDuplicatePayload
+        } else if (!isDuplicate && customTestPayload.isNotEmpty()) {
+            customTestPayload
         } else {
-            inputJson.text.toString().trim()
+            // Generate default clean test
+            if (type == SourceType.APP) {
+                """
+                {
+                  "source": "test",
+                  "package": "com.example.test",
+                  "title": "Test Notification",
+                  "text": "This is a clean test notification without emojis",
+                  "timestamp": "${System.currentTimeMillis()}"
+                }
+                """.trimIndent()
+            } else {
+                """
+                {
+                  "source": "sms-test",
+                  "sender": "+15551234567",
+                  "message": "This is a clean SMS test without emojis",
+                  "timestamp": "${System.currentTimeMillis()}"
+                }
+                """.trimIndent()
+            }
         }
         
-        if (json.isEmpty() || !json.startsWith("{")) {
-            Toast.makeText(this, "Enter valid JSON first", Toast.LENGTH_SHORT).show()
-            return
+        showTestDialog(cleanJson, if (isDuplicate) "duplicate" else "test")
+    }
+    
+    private fun performDirtyTest() {
+        val type = when (radioGroup.checkedRadioButtonId) {
+            R.id.radio_app -> SourceType.APP
+            R.id.radio_sms -> SourceType.SMS
+            else -> SourceType.APP
         }
         
+        // Generate dirty test (with emojis)
+        val dirtyJson = if (customDirtyPayload.isNotEmpty()) {
+            customDirtyPayload
+        } else {
+            if (type == SourceType.APP) {
+                """
+                {
+                  "source": "dirty-test",
+                  "package": "com.example.test",
+                  "title": "🔥 Emoji Test Alert 🚨",
+                  "text": "Test with emojis: 😀😃😄😁 🚀🎉 ⭐✨ symbols: ™®© special chars: \"quoted\" and 'single'",
+                  "timestamp": "${System.currentTimeMillis()}"
+                }
+                """.trimIndent()
+            } else {
+                """
+                {
+                  "source": "dirty-sms-test",
+                  "sender": "+15551234567",
+                  "message": "🔥 SMS with emojis: 😀😃😄 🚀🎉 ⭐✨ and symbols: ™®©",
+                  "timestamp": "${System.currentTimeMillis()}"
+                }
+                """.trimIndent()
+            }
+        }
+        
+        showTestDialog(dirtyJson, "dirty")
+    }
+    
+    private fun showTestDialog(json: String, testType: String) {
         if (selectedEndpointIds.isEmpty()) {
             Toast.makeText(this, "Select at least one endpoint", Toast.LENGTH_SHORT).show()
             return
         }
         
-        // Show preview dialog
-        val preview = TextView(this).apply {
-            text = json
+        val dialogView = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(24, 24, 24, 24)
+        }
+        
+        val titleText = TextView(this).apply {
+            text = when (testType) {
+                "test" -> "🧪 Test Payload"
+                "duplicate" -> "🔄 Duplicate Test Payload"
+                "dirty" -> "🔥 Dirty Test Payload (Emojis)"
+                else -> "Test Payload"
+            }
+            setTextColor(Color.WHITE)
+            textSize = 18f
+            setPadding(0, 0, 0, 16)
+        }
+        dialogView.addView(titleText)
+        
+        val scrollView = ScrollView(this).apply {
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                400
+            )
+        }
+        
+        val preview = EditText(this).apply {
+            setText(json)
             setTextColor(Color.WHITE)
             textSize = 12f
             setPadding(16, 16, 16, 16)
             setBackgroundColor(Color.parseColor("#2C2C2E"))
+            inputType = android.text.InputType.TYPE_CLASS_TEXT or 
+                        android.text.InputType.TYPE_TEXT_FLAG_MULTI_LINE
+        }
+        scrollView.addView(preview)
+        dialogView.addView(scrollView)
+        
+        val btnLayout = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            setPadding(0, 16, 0, 0)
         }
         
-        val scrollView = ScrollView(this).apply {
-            addView(preview)
+        val btnSaveCustom = Button(this).apply {
+            text = "💾 Save Custom"
+            setOnClickListener {
+                // Save custom test payload
+                when (testType) {
+                    "test" -> customTestPayload = preview.text.toString()
+                    "duplicate" -> customDuplicatePayload = preview.text.toString()
+                    "dirty" -> customDirtyPayload = preview.text.toString()
+                }
+                Toast.makeText(this@LabActivity, "✅ Custom test saved!", Toast.LENGTH_SHORT).show()
+            }
         }
+        
+        val btnSend = Button(this).apply {
+            text = "✓ Send"
+            setOnClickListener {
+                val finalJson = preview.text.toString()
+                // Save as duplicate payload for next time
+                customDuplicatePayload = finalJson
+                sendTestPayload(finalJson)
+                (parent as? android.view.ViewGroup)?.let { 
+                    ((it.parent as? android.view.ViewGroup)?.parent as? AlertDialog)?.dismiss()
+                }
+            }
+        }
+        
+        btnLayout.addView(btnSaveCustom)
+        btnLayout.addView(btnSend)
+        dialogView.addView(btnLayout)
         
         AlertDialog.Builder(this)
-            .setTitle("📋 JSON Payload Preview")
-            .setView(scrollView)
-            .setPositiveButton("✓ Send") { _, _ ->
-                lastTestJson = json // Save for duplicate test
-                sendTestPayload(json)
-            }
+            .setView(dialogView)
             .setNegativeButton("✗ Cancel", null)
             .show()
-    }
-    
-    private fun performDirtyTest() {
-        val dirtyJson = """
-        {
-          "source": "dirty-test",
-          "message": "🔥 Emoji test: 😀😃😄😁 🚀🎉 ⭐✨ with symbols: ™®© special chars: \"quoted\" and 'single'",
-          "timestamp": "${System.currentTimeMillis()}"
-        }
-        """.trimIndent()
-        
-        inputJson.setText(dirtyJson)
-        Toast.makeText(this, "🔥 Dirty test loaded! Review and send.", Toast.LENGTH_SHORT).show()
     }
     
     private fun sendTestPayload(json: String) {
@@ -542,10 +730,16 @@ class LabActivity : AppCompatActivity() {
             else -> SourceType.APP
         }
         
-        val id = sourceId ?: UUID.randomUUID().toString()
+        // Determine final source ID
+        val finalId = when {
+            sourceId != null -> sourceId!!
+            type == SourceType.SMS && selectedPhoneNumber != null -> "sms:$selectedPhoneNumber"
+            else -> UUID.randomUUID().toString()
+        }
         
+        // ✅ CRITICAL: Each source maintains its own independent configuration
         val source = Source(
-            id = id,
+            id = finalId,
             type = type,
             name = name,
             enabled = true,
@@ -553,10 +747,13 @@ class LabActivity : AppCompatActivity() {
             templateJson = json,
             templateId = "", // Deprecated
             parserId = "generic",
-            endpointIds = selectedEndpointIds.toList(),
+            endpointIds = selectedEndpointIds.toList(), // Independent endpoint list
             iconName = selectedIcon,
             iconColor = selectedColor,
             cardColor = selectedColor,
+            customTestPayload = customTestPayload,       // ✅ Per-source test
+            customDuplicatePayload = customDuplicatePayload, // ✅ Per-source duplicate
+            customDirtyPayload = customDirtyPayload,      // ✅ Per-source dirty test
             createdAt = System.currentTimeMillis(),
             updatedAt = System.currentTimeMillis()
         )
@@ -571,10 +768,14 @@ class LabActivity : AppCompatActivity() {
             val source = sourceManager.getAllSources().find { it.id == sourceId }
             withContext(Dispatchers.Main) {
                 source?.let { src ->
+                    // ✅ LOAD ALL source-specific configuration
                     inputName.setText(src.name)
                     when (src.type) {
                         SourceType.APP -> radioGroup.check(R.id.radio_app)
-                        SourceType.SMS -> radioGroup.check(R.id.radio_sms)
+                        SourceType.SMS -> {
+                            radioGroup.check(R.id.radio_sms)
+                            selectedPhoneNumber = src.id.removePrefix("sms:")
+                        }
                     }
                     inputJson.setText(src.templateJson)
                     checkAutoClean.isChecked = src.autoClean
@@ -582,6 +783,11 @@ class LabActivity : AppCompatActivity() {
                     selectedEndpointIds.addAll(src.endpointIds)
                     selectedIcon = src.iconName ?: "notification"
                     selectedColor = src.cardColor
+                    
+                    // ✅ LOAD custom test payloads (per-source persistence)
+                    customTestPayload = src.customTestPayload
+                    customDuplicatePayload = src.customDuplicatePayload
+                    customDirtyPayload = src.customDirtyPayload
                     
                     previewIcon.setImageResource(icons.find { (name, _) -> name == selectedIcon }?.second ?: R.drawable.ic_notification)
                     previewColor.setBackgroundColor(selectedColor)

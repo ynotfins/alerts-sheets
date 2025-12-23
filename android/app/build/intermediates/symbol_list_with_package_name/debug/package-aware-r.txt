@@ -3267,6 +3267,7 @@ id btn_app_filter
 id btn_configure_source
 id btn_delete
 id btn_edit
+id btn_manage_endpoints
 id btn_permissions
 id btn_pick_contact
 id btn_save_source

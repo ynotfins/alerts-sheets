@@ -43,6 +43,7 @@ class LabActivity : AppCompatActivity() {
     private lateinit var radioGroup: RadioGroup
     private lateinit var inputJson: EditText
     private lateinit var spinnerEndpoint: Spinner
+    private lateinit var btnManageEndpoints: Button
     private lateinit var iconGrid: GridLayout
     private lateinit var colorGrid: GridLayout
     
@@ -109,6 +110,7 @@ class LabActivity : AppCompatActivity() {
         radioGroup = findViewById(R.id.radio_source_type)
         inputJson = findViewById(R.id.input_json)
         spinnerEndpoint = findViewById(R.id.spinner_endpoint)
+        btnManageEndpoints = findViewById(R.id.btn_manage_endpoints)
         iconGrid = findViewById(R.id.icon_grid)
         colorGrid = findViewById(R.id.color_grid)
     }
@@ -127,6 +129,11 @@ class LabActivity : AppCompatActivity() {
         // Save button
         findViewById<Button>(R.id.btn_save_source).setOnClickListener {
             saveSource()
+        }
+        
+        // Manage Endpoints button
+        btnManageEndpoints.setOnClickListener {
+            startActivity(Intent(this, EndpointActivity::class.java))
         }
     }
     
@@ -190,9 +197,9 @@ class LabActivity : AppCompatActivity() {
             withContext(Dispatchers.Main) {
                 if (endpoints.isEmpty()) {
                     Toast.makeText(this@LabActivity, 
-                        "No endpoints found. Create one from main menu first.", 
+                        "⚠️ No endpoints found. Click '+ Manage' to create one.", 
                         Toast.LENGTH_LONG).show()
-                    finish()
+                    // Don't finish - let user create endpoint
                     return@withContext
                 }
                 
@@ -340,9 +347,10 @@ class LabActivity : AppCompatActivity() {
         }
     }
     
-    override fun onDestroy() {
-        super.onDestroy()
-        scope.cancel()
+    override fun onResume() {
+        super.onResume()
+        // Reload endpoints when returning from EndpointActivity
+        loadEndpoints()
     }
 }
 

@@ -24,6 +24,14 @@
         "source": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-main-34:\\drawable\\ic_sms_card.xml"
     },
     {
+        "merged": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-merged_res-32:\\drawable_bg_status_badge.xml.flat",
+        "source": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-main-34:\\drawable\\bg_status_badge.xml"
+    },
+    {
+        "merged": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-merged_res-32:\\drawable_bg_card_modern.xml.flat",
+        "source": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-main-34:\\drawable\\bg_card_modern.xml"
+    },
+    {
         "merged": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-merged_res-32:\\drawable_bg_spinner_dark.xml.flat",
         "source": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-main-34:\\drawable\\bg_spinner_dark.xml"
     },
@@ -46,6 +54,10 @@
     {
         "merged": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-merged_res-32:\\drawable_ic_sms.xml.flat",
         "source": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-main-34:\\drawable\\ic_sms.xml"
+    },
+    {
+        "merged": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-merged_res-32:\\drawable_bg_status_dot_green.xml.flat",
+        "source": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-main-34:\\drawable\\bg_status_dot_green.xml"
     },
     {
         "merged": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-merged_res-32:\\drawable_status_indicator.xml.flat",
@@ -96,6 +108,10 @@
         "source": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-main-34:\\drawable\\ic_apps_card.xml"
     },
     {
+        "merged": "com.example.alertsheets.app-merged_res-32:/layout_activity_lab.xml.flat",
+        "source": "com.example.alertsheets.app-main-34:/layout/activity_lab.xml"
+    },
+    {
         "merged": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-merged_res-32:\\drawable_ic_activity_logs_card.xml.flat",
         "source": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-main-34:\\drawable\\ic_activity_logs_card.xml"
     },
@@ -106,10 +122,6 @@
     {
         "merged": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-merged_res-32:\\layout_dialog_create_source.xml.flat",
         "source": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-main-34:\\layout\\dialog_create_source.xml"
-    },
-    {
-        "merged": "com.example.alertsheets.app-merged_res-32:/drawable_bg_card_elevated.xml.flat",
-        "source": "com.example.alertsheets.app-main-34:/drawable/bg_card_elevated.xml"
     },
     {
         "merged": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-merged_res-32:\\layout_activity_source_config.xml.flat",
@@ -144,24 +156,16 @@
         "source": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-main-34:\\drawable\\ic_email.xml"
     },
     {
-        "merged": "com.example.alertsheets.app-merged_res-32:/layout_activity_main_dashboard.xml.flat",
-        "source": "com.example.alertsheets.app-main-34:/layout/activity_main_dashboard.xml"
+        "merged": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-merged_res-32:\\layout_item_dashboard_source_card.xml.flat",
+        "source": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-main-34:\\layout\\item_dashboard_source_card.xml"
     },
     {
-        "merged": "com.example.alertsheets.app-merged_res-32:/drawable_ripple_card.xml.flat",
-        "source": "com.example.alertsheets.app-main-34:/drawable/ripple_card.xml"
-    },
-    {
-        "merged": "com.example.alertsheets.app-merged_res-32:/drawable_bg_status_dot_red.xml.flat",
-        "source": "com.example.alertsheets.app-main-34:/drawable/bg_status_dot_red.xml"
+        "merged": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-merged_res-32:\\drawable_bg_header_gradient.xml.flat",
+        "source": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-main-34:\\drawable\\bg_header_gradient.xml"
     },
     {
         "merged": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-merged_res-32:\\drawable_ic_endpoints_card.xml.flat",
         "source": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-main-34:\\drawable\\ic_endpoints_card.xml"
-    },
-    {
-        "merged": "com.example.alertsheets.app-merged_res-32:/drawable_bg_status_dot_green.xml.flat",
-        "source": "com.example.alertsheets.app-main-34:/drawable/bg_status_dot_green.xml"
     },
     {
         "merged": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-merged_res-32:\\layout_item_sms_target.xml.flat",
@@ -180,20 +184,20 @@
         "source": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-main-34:\\layout\\dialog_add_endpoint.xml"
     },
     {
-        "merged": "com.example.alertsheets.app-merged_res-32:/drawable_bg_header_gradient.xml.flat",
-        "source": "com.example.alertsheets.app-main-34:/drawable/bg_header_gradient.xml"
-    },
-    {
-        "merged": "com.example.alertsheets.app-merged_res-32:/layout_item_dashboard_source_card.xml.flat",
-        "source": "com.example.alertsheets.app-main-34:/layout/item_dashboard_source_card.xml"
-    },
-    {
         "merged": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-merged_res-32:\\drawable_ic_dashboard.xml.flat",
         "source": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-main-34:\\drawable\\ic_dashboard.xml"
     },
     {
-        "merged": "com.example.alertsheets.app-merged_res-32:/drawable_bg_card_modern.xml.flat",
-        "source": "com.example.alertsheets.app-main-34:/drawable/bg_card_modern.xml"
+        "merged": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-merged_res-32:\\drawable_bg_card_elevated.xml.flat",
+        "source": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-main-34:\\drawable\\bg_card_elevated.xml"
+    },
+    {
+        "merged": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-merged_res-32:\\drawable_bg_status_dot_red.xml.flat",
+        "source": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-main-34:\\drawable\\bg_status_dot_red.xml"
+    },
+    {
+        "merged": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-merged_res-32:\\drawable_ripple_card.xml.flat",
+        "source": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-main-34:\\drawable\\ripple_card.xml"
     },
     {
         "merged": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-merged_res-32:\\layout_item_source.xml.flat",
@@ -202,10 +206,6 @@
     {
         "merged": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-merged_res-32:\\layout_dialog_add_mapping.xml.flat",
         "source": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-main-34:\\layout\\dialog_add_mapping.xml"
-    },
-    {
-        "merged": "com.example.alertsheets.app-merged_res-32:/drawable_bg_status_badge.xml.flat",
-        "source": "com.example.alertsheets.app-main-34:/drawable/bg_status_badge.xml"
     },
     {
         "merged": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-merged_res-32:\\layout_item_endpoint.xml.flat",

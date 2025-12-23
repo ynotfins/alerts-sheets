@@ -1,47 +1,25 @@
 {
-  "timestamp": "2025-12-22_15-05-30",
-  "commit": "72ef7ee297e5be7b2e124bed69b7e3c129bde4a0",
-  "message": "refactor: fix source-endpoint wiring with fan-out delivery
+  "timestamp": "2025-12-22_17-59-24",
+  "commit": "85e5f45799b9593bc944f6bef8ba02c808247ad8",
+  "message": "fix: correct 'Include system apps' filter logic
 
-CRITICAL FIXES:
-- Source.endpointIds now List<String> (was single endpointId)
-- NO silent defaults: source creation requires valid endpoint or fails with UX error
-- Fan-out delivery: DataPipeline sends to ALL configured endpoints per source
-- Endpoint.id always UUID (migrated from 'default-endpoint')
-- Added LogStatus.PARTIAL for multi-endpoint partial success
+ISSUE: Checkbox behavior was inverted
+- Checked: showed ONLY system apps (excluded user apps)
+- Unchecked: showed ONLY user apps
 
-MIGRATION (V2.2):
-- Auto-migrates endpointId → endpointIds for existing sources
-- Ensures all endpoints have proper UUIDs
-- Preserves data integrity during transition
+FIXED:
+- Unchecked: show user apps only (default)
+- Checked: show user apps + system apps (all)
 
-FILES CHANGED:
-- Source.kt: endpointIds List + isValid() + getPrimaryEndpointId()
-- DataPipeline.kt: Fan-out loop delivers to all endpointIds with per-endpoint logging
-- AppsListActivity.kt: Fail loudly if no endpoints configured
-- SmsConfigActivity.kt: Fail loudly if no endpoints configured
-- EndpointRepository.kt: Always use UUID for new endpoints
-- MigrationManager.kt: V2.2 migration for endpointIds + UUID enforcement
-- LogEntry.kt: Added PARTIAL status for mixed delivery results
-- LogAdapter.kt: Display PARTIAL status (amber)
-- SourceConfigAdapter.kt: Show all endpoint names for source
+Lines 224-235: simplified to single condition
+Lines 256-269: updated BNN diagnostic logs
 
-VALIDATION:
-- ✅ Builds successfully (compileDebugKotlin + assembleDebug)
-- ✅ No hardcoded 'default-endpoint' fallbacks
-- ✅ Sources validate endpointIds.isNotEmpty() before saving
-- ✅ Multi-endpoint delivery implemented and logged",
+VERIFY:
+- Open App Sources list
+- Default view: user apps visible, BNN visible
+- Check 'Include system': more apps appear, BNN still visible
+- Search: works on both filtered sets",
   "files_changed": [
-    "android/app/src/main/java/com/example/alertsheets/AppsListActivity.kt",
-    "android/app/src/main/java/com/example/alertsheets/LabActivity.kt",
-    "android/app/src/main/java/com/example/alertsheets/LogAdapter.kt",
-    "android/app/src/main/java/com/example/alertsheets/LogEntry.kt",
-    "android/app/src/main/java/com/example/alertsheets/MigrationManager.kt",
-    "android/app/src/main/java/com/example/alertsheets/SmsConfigActivity.kt",
-    "android/app/src/main/java/com/example/alertsheets/SourceConfigActivity.kt",
-    "android/app/src/main/java/com/example/alertsheets/SourceConfigAdapter.kt",
-    "android/app/src/main/java/com/example/alertsheets/data/repositories/EndpointRepository.kt",
-    "android/app/src/main/java/com/example/alertsheets/domain/DataPipeline.kt",
-    "android/app/src/main/java/com/example/alertsheets/domain/models/Source.kt"
+    "android/app/src/main/java/com/example/alertsheets/AppsListActivity.kt"
   ]
 }

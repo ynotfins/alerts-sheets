@@ -116,8 +116,9 @@
         <!-- ============================================ -->
         <activity
             android:name="com.example.alertsheets.ui.MainActivity"
+            android:excludeFromRecents="false"
             android:exported="true"
-            android:launchMode="singleInstance"
+            android:launchMode="singleTask"
             android:resizeableActivity="false"
             android:taskAffinity="" >
             <intent-filter>
@@ -125,6 +126,14 @@
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+
+            <!-- Samsung Dual App Prevention (Activity-Level) -->
+            <meta-data
+                android:name="com.samsung.android.dual_messenger.nondualapplicable"
+                android:value="true" />
+            <meta-data
+                android:name="com.samsung.android.multidisplay.keep_process_alive"
+                android:value="false" />
         </activity>
 
         <!-- ============================================ -->

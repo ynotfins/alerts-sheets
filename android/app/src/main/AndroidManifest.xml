@@ -103,13 +103,22 @@
         <activity
             android:name=".ui.MainActivity"
             android:exported="true"
-            android:launchMode="singleInstance"
+            android:launchMode="singleTask"
             android:taskAffinity=""
+            android:excludeFromRecents="false"
             android:resizeableActivity="false">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+            
+            <!-- Samsung Dual App Prevention (Activity-Level) -->
+            <meta-data
+                android:name="com.samsung.android.dual_messenger.nondualapplicable"
+                android:value="true" />
+            <meta-data
+                android:name="com.samsung.android.multidisplay.keep_process_alive"
+                android:value="false" />
         </activity>
 
         <!-- ============================================ -->

@@ -1,437 +1,259 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.coordinatorlayout.widget.CoordinatorLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/oneui_black">
+    android:orientation="vertical"
+    android:background="@color/oneui_background_dark">
 
+    <!-- HEADER -->
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical">
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="@drawable/bg_header_gradient"
+        android:padding="20dp">
 
-        <!-- Modern Header with Gradient -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Alerts to Sheets"
+            android:textColor="@color/oneui_text_primary"
+            android:textSize="28sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/text_stats"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Ready"
+            android:textColor="@color/oneui_text_secondary"
+            android:textSize="14sp"
+            android:layout_marginTop="4dp" />
+    </LinearLayout>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:fillViewport="true">
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:background="@drawable/bg_header_gradient"
-            android:paddingStart="24dp"
-            android:paddingEnd="24dp"
-            android:paddingTop="48dp"
-            android:paddingBottom="32dp"
-            android:elevation="4dp">
+            android:padding="16dp">
 
-            <!-- App Title -->
+            <!-- PERMANENT CARDS ROW (3 cards in one row) -->
             <TextView
-                android:text="AlertsToSheets"
-                android:textColor="@color/text_primary"
-                android:textSize="32sp"
-                android:textStyle="bold"
-                android:fontFamily="sans-serif-medium"
-                android:letterSpacing="0.02"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:paddingBottom="12dp" />
+                android:text="System"
+                android:textColor="@color/oneui_text_secondary"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="8dp" />
 
-            <!-- Status Row -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:gravity="center_vertical">
+                android:weightSum="3"
+                android:layout_marginBottom="24dp">
 
-                <LinearLayout
+                <!-- LAB CARD -->
+                <FrameLayout
+                    android:id="@+id/card_lab"
+                    android:layout_width="0dp"
+                    android:layout_height="100dp"
+                    android:layout_weight="1"
+                    android:layout_margin="4dp"
+                    android:background="@drawable/bg_card_elevated"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:foreground="@drawable/ripple_card">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:orientation="vertical"
+                        android:gravity="center"
+                        android:padding="8dp">
+
+                        <ImageView
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:src="@drawable/ic_dashboard"
+                            android:tint="@color/oneui_accent_blue" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Lab"
+                            android:textColor="@color/oneui_text_primary"
+                            android:textSize="12sp"
+                            android:textStyle="bold"
+                            android:layout_marginTop="4dp" />
+                    </LinearLayout>
+                </FrameLayout>
+
+                <!-- PERMISSIONS CARD -->
+                <FrameLayout
+                    android:id="@+id/card_permissions"
+                    android:layout_width="0dp"
+                    android:layout_height="100dp"
+                    android:layout_weight="1"
+                    android:layout_margin="4dp"
+                    android:background="@drawable/bg_card_elevated"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:foreground="@drawable/ripple_card">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:orientation="vertical"
+                        android:gravity="center"
+                        android:padding="8dp">
+
+                        <ImageView
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:src="@drawable/ic_security"
+                            android:tint="@color/oneui_accent_orange" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Perms"
+                            android:textColor="@color/oneui_text_primary"
+                            android:textSize="12sp"
+                            android:textStyle="bold"
+                            android:layout_marginTop="4dp" />
+
+                        <ImageView
+                            android:id="@+id/dot_permissions"
+                            android:layout_width="8dp"
+                            android:layout_height="8dp"
+                            android:src="@drawable/bg_status_dot_red"
+                            android:layout_marginTop="4dp" />
+                    </LinearLayout>
+                </FrameLayout>
+
+                <!-- ACTIVITY LOG CARD -->
+                <FrameLayout
+                    android:id="@+id/card_logs"
+                    android:layout_width="0dp"
+                    android:layout_height="100dp"
+                    android:layout_weight="1"
+                    android:layout_margin="4dp"
+                    android:background="@drawable/bg_card_elevated"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:foreground="@drawable/ripple_card">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:orientation="vertical"
+                        android:gravity="center"
+                        android:padding="8dp">
+
+                        <ImageView
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:src="@drawable/ic_alert"
+                            android:tint="@color/oneui_accent_purple" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Logs"
+                            android:textColor="@color/oneui_text_primary"
+                            android:textSize="12sp"
+                            android:textStyle="bold"
+                            android:layout_marginTop="4dp" />
+
+                        <ImageView
+                            android:id="@+id/dot_logs"
+                            android:layout_width="8dp"
+                            android:layout_height="8dp"
+                            android:src="@drawable/bg_status_dot_red"
+                            android:layout_marginTop="4dp" />
+                    </LinearLayout>
+                </FrameLayout>
+            </LinearLayout>
+
+            <!-- DYNAMIC SOURCE CARDS SECTION -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="8dp">
+
+                <TextView
+                    android:id="@+id/text_sources_header"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:orientation="vertical">
-
-                    <TextView
-                        android:text="Service Status"
-                        android:textColor="@color/text_secondary"
-                        android:textSize="13sp"
-                        android:fontFamily="sans-serif"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginBottom="4dp" />
-
-                    <TextView
-                        android:text="● Active &amp; Monitoring"
-                        android:textColor="@color/success_green"
-                        android:textSize="15sp"
-                        android:fontFamily="sans-serif-medium"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content" />
-                </LinearLayout>
+                    android:text="Sources (0)"
+                    android:textColor="@color/oneui_text_secondary"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
 
                 <TextView
-                    android:id="@+id/text_status"
-                    android:text="LIVE"
-                    android:textColor="@color/oneui_black"
-                    android:textSize="13sp"
-                    android:textStyle="bold"
-                    android:fontFamily="sans-serif-medium"
-                    android:background="@drawable/bg_status_badge"
-                    android:paddingStart="20dp"
-                    android:paddingEnd="20dp"
-                    android:paddingTop="8dp"
-                    android:paddingBottom="8dp"
-                    android:letterSpacing="0.1"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content" />
+                    android:layout_height="wrap_content"
+                    android:text="+ Create in Lab"
+                    android:textColor="@color/oneui_accent_green"
+                    android:textSize="11sp"
+                    android:textStyle="bold" />
             </LinearLayout>
-        </LinearLayout>
 
-        <!-- Cards Container -->
-        <ScrollView
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
-            android:fillViewport="true"
-            android:overScrollMode="never">
+            <!-- DYNAMIC CARDS GRID (2 columns) -->
+            <GridLayout
+                android:id="@+id/grid_cards"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:columnCount="2"
+                android:rowCount="10">
+                <!-- Dynamic source cards added here -->
+            </GridLayout>
 
+            <!-- EMPTY STATE (shown when no sources) -->
             <LinearLayout
+                android:id="@+id/empty_state"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:paddingTop="24dp"
-                android:paddingStart="16dp"
-                android:paddingEnd="16dp"
-                android:paddingBottom="24dp">
+                android:gravity="center"
+                android:padding="32dp"
+                android:visibility="gone">
 
-                <!-- Section: System -->
-                <TextView
-                    android:text="SYSTEM"
-                    android:textColor="@color/text_tertiary"
-                    android:textSize="12sp"
-                    android:textStyle="bold"
-                    android:fontFamily="sans-serif-medium"
-                    android:letterSpacing="0.1"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:paddingStart="8dp"
-                    android:paddingBottom="12dp" />
-
-                <GridLayout
-                    android:id="@+id/grid_system_cards"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:columnCount="2"
-                    android:rowCount="2"
-                    android:alignmentMode="alignMargins"
-                    android:layout_marginBottom="32dp">
-
-                    <!-- Lab Card -->
-                    <androidx.cardview.widget.CardView
-                        android:id="@+id/card_lab"
-                        android:layout_width="0dp"
-                        android:layout_height="160dp"
-                        android:layout_columnWeight="1"
-                        android:layout_margin="8dp"
-                        app:cardBackgroundColor="@color/oneui_card_elevated"
-                        app:cardCornerRadius="20dp"
-                        app:cardElevation="0dp"
-                        android:clickable="true"
-                        android:focusable="true"
-                        android:foreground="?android:attr/selectableItemBackground">
-
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent"
-                            android:orientation="vertical"
-                            android:gravity="center"
-                            android:padding="20dp">
-
-                            <ImageView
-                                android:layout_width="56dp"
-                                android:layout_height="56dp"
-                                android:src="@drawable/ic_dashboard"
-                                app:tint="@color/vibrant_purple"
-                                android:layout_marginBottom="12dp" />
-
-                            <TextView
-                                android:text="Lab"
-                                android:textColor="@color/text_primary"
-                                android:textSize="16sp"
-                                android:textStyle="bold"
-                                android:fontFamily="sans-serif-medium"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content" />
-
-                            <TextView
-                                android:text="Create Sources"
-                                android:textColor="@color/text_secondary"
-                                android:textSize="12sp"
-                                android:fontFamily="sans-serif"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="4dp" />
-                        </LinearLayout>
-                    </androidx.cardview.widget.CardView>
-
-                    <!-- Permissions Card -->
-                    <androidx.cardview.widget.CardView
-                        android:id="@+id/card_permissions"
-                        android:layout_width="0dp"
-                        android:layout_height="160dp"
-                        android:layout_columnWeight="1"
-                        android:layout_margin="8dp"
-                        app:cardBackgroundColor="@color/oneui_card_elevated"
-                        app:cardCornerRadius="20dp"
-                        app:cardElevation="0dp"
-                        android:clickable="true"
-                        android:focusable="true"
-                        android:foreground="?android:attr/selectableItemBackground">
-
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent"
-                            android:orientation="vertical"
-                            android:gravity="center"
-                            android:padding="20dp">
-
-                            <FrameLayout
-                                android:layout_width="56dp"
-                                android:layout_height="56dp"
-                                android:layout_marginBottom="12dp">
-
-                                <ImageView
-                                    android:layout_width="match_parent"
-                                    android:layout_height="match_parent"
-                                    android:src="@drawable/ic_security"
-                                    app:tint="@color/vibrant_red" />
-
-                                <View
-                                    android:id="@+id/dot_permissions"
-                                    android:layout_width="12dp"
-                                    android:layout_height="12dp"
-                                    android:layout_gravity="top|end"
-                                    android:background="@drawable/bg_status_dot_red"
-                                    android:visibility="gone" />
-                            </FrameLayout>
-
-                            <TextView
-                                android:text="Permissions"
-                                android:textColor="@color/text_primary"
-                                android:textSize="16sp"
-                                android:textStyle="bold"
-                                android:fontFamily="sans-serif-medium"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content" />
-
-                            <TextView
-                                android:text="Access Control"
-                                android:textColor="@color/text_secondary"
-                                android:textSize="12sp"
-                                android:fontFamily="sans-serif"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="4dp" />
-                        </LinearLayout>
-                    </androidx.cardview.widget.CardView>
-
-                    <!-- Activity Log Card -->
-                    <androidx.cardview.widget.CardView
-                        android:id="@+id/card_logs"
-                        android:layout_width="0dp"
-                        android:layout_height="160dp"
-                        android:layout_columnWeight="1"
-                        android:layout_margin="8dp"
-                        app:cardBackgroundColor="@color/oneui_card_elevated"
-                        app:cardCornerRadius="20dp"
-                        app:cardElevation="0dp"
-                        android:clickable="true"
-                        android:focusable="true"
-                        android:foreground="?android:attr/selectableItemBackground">
-
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent"
-                            android:orientation="vertical"
-                            android:gravity="center"
-                            android:padding="20dp">
-
-                            <FrameLayout
-                                android:layout_width="56dp"
-                                android:layout_height="56dp"
-                                android:layout_marginBottom="12dp">
-
-                                <ImageView
-                                    android:layout_width="match_parent"
-                                    android:layout_height="match_parent"
-                                    android:src="@drawable/ic_link"
-                                    app:tint="@color/vibrant_blue" />
-
-                                <View
-                                    android:id="@+id/dot_logs"
-                                    android:layout_width="12dp"
-                                    android:layout_height="12dp"
-                                    android:layout_gravity="top|end"
-                                    android:background="@drawable/bg_status_dot_green"
-                                    android:visibility="gone" />
-                            </FrameLayout>
-
-                            <TextView
-                                android:text="Activity Log"
-                                android:textColor="@color/text_primary"
-                                android:textSize="16sp"
-                                android:textStyle="bold"
-                                android:fontFamily="sans-serif-medium"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content" />
-
-                            <TextView
-                                android:text="Recent Events"
-                                android:textColor="@color/text_secondary"
-                                android:textSize="12sp"
-                                android:fontFamily="sans-serif"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="4dp" />
-                        </LinearLayout>
-                    </androidx.cardview.widget.CardView>
-                </GridLayout>
-
-                <!-- Section: Sources (Dynamic) -->
-                <TextView
-                    android:id="@+id/text_sources_header"
-                    android:text="MY SOURCES"
-                    android:textColor="@color/text_tertiary"
-                    android:textSize="12sp"
-                    android:textStyle="bold"
-                    android:fontFamily="sans-serif-medium"
-                    android:letterSpacing="0.1"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:paddingStart="8dp"
-                    android:paddingBottom="12dp"
-                    android:visibility="gone" />
-
-                <GridLayout
-                    android:id="@+id/grid_source_cards"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:columnCount="2"
-                    android:rowCount="20"
-                    android:alignmentMode="alignMargins">
-                    <!-- Dynamic source cards added here -->
-                </GridLayout>
-            </LinearLayout>
-        </ScrollView>
-
-        <!-- Bottom Stats Bar -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:background="@color/oneui_surface"
-            android:paddingTop="16dp"
-            android:paddingBottom="16dp"
-            android:paddingStart="24dp"
-            android:paddingEnd="24dp"
-            android:elevation="8dp">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center">
-
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_weight="1"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:gravity="center">
-
-                    <TextView
-                        android:id="@+id/text_sources_count"
-                        android:text="0"
-                        android:textColor="@color/text_primary"
-                        android:textSize="20sp"
-                        android:textStyle="bold"
-                        android:fontFamily="sans-serif-medium"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content" />
-
-                    <TextView
-                        android:text="Sources"
-                        android:textColor="@color/text_tertiary"
-                        android:textSize="11sp"
-                        android:fontFamily="sans-serif"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="2dp" />
-                </LinearLayout>
-
-                <View
-                    android:layout_width="1dp"
-                    android:layout_height="32dp"
-                    android:background="@color/text_tertiary"
+                <ImageView
+                    android:layout_width="80dp"
+                    android:layout_height="80dp"
+                    android:src="@drawable/ic_dashboard"
+                    android:tint="@color/oneui_text_secondary"
                     android:alpha="0.3" />
 
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_weight="1"
+                <TextView
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:gravity="center">
+                    android:text="No sources yet"
+                    android:textColor="@color/oneui_text_secondary"
+                    android:textSize="16sp"
+                    android:layout_marginTop="16dp" />
 
-                    <TextView
-                        android:id="@+id/text_sent_today"
-                        android:text="0"
-                        android:textColor="@color/success_green"
-                        android:textSize="20sp"
-                        android:textStyle="bold"
-                        android:fontFamily="sans-serif-medium"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content" />
-
-                    <TextView
-                        android:text="Sent Today"
-                        android:textColor="@color/text_tertiary"
-                        android:textSize="11sp"
-                        android:fontFamily="sans-serif"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="2dp" />
-                </LinearLayout>
-
-                <View
-                    android:layout_width="1dp"
-                    android:layout_height="32dp"
-                    android:background="@color/text_tertiary"
-                    android:alpha="0.3" />
-
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_weight="1"
+                <TextView
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:gravity="center">
-
-                    <TextView
-                        android:id="@+id/text_failed_today"
-                        android:text="0"
-                        android:textColor="@color/error_red"
-                        android:textSize="20sp"
-                        android:textStyle="bold"
-                        android:fontFamily="sans-serif-medium"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content" />
-
-                    <TextView
-                        android:text="Failed"
-                        android:textColor="@color/text_tertiary"
-                        android:textSize="11sp"
-                        android:fontFamily="sans-serif"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="2dp" />
-                </LinearLayout>
+                    android:text="Tap Lab to create your first source"
+                    android:textColor="@color/oneui_text_secondary"
+                    android:textSize="12sp"
+                    android:layout_marginTop="4dp" />
             </LinearLayout>
         </LinearLayout>
-    </LinearLayout>
-</androidx.coordinatorlayout.widget.CoordinatorLayout>
+    </ScrollView>
+</LinearLayout>

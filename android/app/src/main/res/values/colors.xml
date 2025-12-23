@@ -1,17 +1,26 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- OneUI Dark Theme Colors -->
+    <color name="oneui_background_dark">#000000</color>
     <color name="oneui_black">#000000</color>
+    <color name="oneui_card_dark">#1C1C1E</color>
     <color name="oneui_surface">#0A0A0A</color>
     <color name="oneui_card">#1C1C1E</color>
     <color name="oneui_card_elevated">#2C2C2E</color>
     
     <!-- Text Colors -->
+    <color name="oneui_text_primary">#FFFFFF</color>
+    <color name="oneui_text_secondary">#8E8E93</color>
     <color name="text_primary">#FFFFFF</color>
     <color name="text_secondary">#8E8E93</color>
     <color name="text_tertiary">#636366</color>
     
     <!-- Vibrant Accent Colors -->
+    <color name="oneui_accent_blue">#0A84FF</color>
+    <color name="oneui_accent_green">#32D74B</color>
+    <color name="oneui_accent_purple">#BF5AF2</color>
+    <color name="oneui_accent_red">#FF453A</color>
+    <color name="oneui_accent_orange">#FF9F0A</color>
     <color name="vibrant_blue">#0A84FF</color>
     <color name="vibrant_purple">#BF5AF2</color>
     <color name="vibrant_pink">#FF375F</color>

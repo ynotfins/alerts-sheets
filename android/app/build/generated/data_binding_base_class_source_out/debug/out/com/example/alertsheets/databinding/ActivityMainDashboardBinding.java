@@ -4,12 +4,13 @@ package com.example.alertsheets.databinding;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.FrameLayout;
 import android.widget.GridLayout;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.cardview.widget.CardView;
-import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.viewbinding.ViewBinding;
 import androidx.viewbinding.ViewBindings;
 import com.example.alertsheets.R;
@@ -19,68 +20,55 @@ import java.lang.String;
 
 public final class ActivityMainDashboardBinding implements ViewBinding {
   @NonNull
-  private final CoordinatorLayout rootView;
+  private final LinearLayout rootView;
 
   @NonNull
-  public final CardView cardLab;
+  public final FrameLayout cardLab;
 
   @NonNull
-  public final CardView cardLogs;
+  public final FrameLayout cardLogs;
 
   @NonNull
-  public final CardView cardPermissions;
+  public final FrameLayout cardPermissions;
 
   @NonNull
-  public final View dotLogs;
+  public final ImageView dotLogs;
 
   @NonNull
-  public final View dotPermissions;
+  public final ImageView dotPermissions;
 
   @NonNull
-  public final GridLayout gridSourceCards;
+  public final LinearLayout emptyState;
 
   @NonNull
-  public final GridLayout gridSystemCards;
-
-  @NonNull
-  public final TextView textFailedToday;
-
-  @NonNull
-  public final TextView textSentToday;
-
-  @NonNull
-  public final TextView textSourcesCount;
+  public final GridLayout gridCards;
 
   @NonNull
   public final TextView textSourcesHeader;
 
   @NonNull
-  public final TextView textStatus;
+  public final TextView textStats;
 
-  private ActivityMainDashboardBinding(@NonNull CoordinatorLayout rootView,
-      @NonNull CardView cardLab, @NonNull CardView cardLogs, @NonNull CardView cardPermissions,
-      @NonNull View dotLogs, @NonNull View dotPermissions, @NonNull GridLayout gridSourceCards,
-      @NonNull GridLayout gridSystemCards, @NonNull TextView textFailedToday,
-      @NonNull TextView textSentToday, @NonNull TextView textSourcesCount,
-      @NonNull TextView textSourcesHeader, @NonNull TextView textStatus) {
+  private ActivityMainDashboardBinding(@NonNull LinearLayout rootView, @NonNull FrameLayout cardLab,
+      @NonNull FrameLayout cardLogs, @NonNull FrameLayout cardPermissions,
+      @NonNull ImageView dotLogs, @NonNull ImageView dotPermissions,
+      @NonNull LinearLayout emptyState, @NonNull GridLayout gridCards,
+      @NonNull TextView textSourcesHeader, @NonNull TextView textStats) {
     this.rootView = rootView;
     this.cardLab = cardLab;
     this.cardLogs = cardLogs;
     this.cardPermissions = cardPermissions;
     this.dotLogs = dotLogs;
     this.dotPermissions = dotPermissions;
-    this.gridSourceCards = gridSourceCards;
-    this.gridSystemCards = gridSystemCards;
-    this.textFailedToday = textFailedToday;
-    this.textSentToday = textSentToday;
-    this.textSourcesCount = textSourcesCount;
+    this.emptyState = emptyState;
+    this.gridCards = gridCards;
     this.textSourcesHeader = textSourcesHeader;
-    this.textStatus = textStatus;
+    this.textStats = textStats;
   }
 
   @Override
   @NonNull
-  public CoordinatorLayout getRoot() {
+  public LinearLayout getRoot() {
     return rootView;
   }
 
@@ -106,62 +94,44 @@ public final class ActivityMainDashboardBinding implements ViewBinding {
     int id;
     missingId: {
       id = R.id.card_lab;
-      CardView cardLab = ViewBindings.findChildViewById(rootView, id);
+      FrameLayout cardLab = ViewBindings.findChildViewById(rootView, id);
       if (cardLab == null) {
         break missingId;
       }
 
       id = R.id.card_logs;
-      CardView cardLogs = ViewBindings.findChildViewById(rootView, id);
+      FrameLayout cardLogs = ViewBindings.findChildViewById(rootView, id);
       if (cardLogs == null) {
         break missingId;
       }
 
       id = R.id.card_permissions;
-      CardView cardPermissions = ViewBindings.findChildViewById(rootView, id);
+      FrameLayout cardPermissions = ViewBindings.findChildViewById(rootView, id);
       if (cardPermissions == null) {
         break missingId;
       }
 
       id = R.id.dot_logs;
-      View dotLogs = ViewBindings.findChildViewById(rootView, id);
+      ImageView dotLogs = ViewBindings.findChildViewById(rootView, id);
       if (dotLogs == null) {
         break missingId;
       }
 
       id = R.id.dot_permissions;
-      View dotPermissions = ViewBindings.findChildViewById(rootView, id);
+      ImageView dotPermissions = ViewBindings.findChildViewById(rootView, id);
       if (dotPermissions == null) {
         break missingId;
       }
 
-      id = R.id.grid_source_cards;
-      GridLayout gridSourceCards = ViewBindings.findChildViewById(rootView, id);
-      if (gridSourceCards == null) {
+      id = R.id.empty_state;
+      LinearLayout emptyState = ViewBindings.findChildViewById(rootView, id);
+      if (emptyState == null) {
         break missingId;
       }
 
-      id = R.id.grid_system_cards;
-      GridLayout gridSystemCards = ViewBindings.findChildViewById(rootView, id);
-      if (gridSystemCards == null) {
-        break missingId;
-      }
-
-      id = R.id.text_failed_today;
-      TextView textFailedToday = ViewBindings.findChildViewById(rootView, id);
-      if (textFailedToday == null) {
-        break missingId;
-      }
-
-      id = R.id.text_sent_today;
-      TextView textSentToday = ViewBindings.findChildViewById(rootView, id);
-      if (textSentToday == null) {
-        break missingId;
-      }
-
-      id = R.id.text_sources_count;
-      TextView textSourcesCount = ViewBindings.findChildViewById(rootView, id);
-      if (textSourcesCount == null) {
+      id = R.id.grid_cards;
+      GridLayout gridCards = ViewBindings.findChildViewById(rootView, id);
+      if (gridCards == null) {
         break missingId;
       }
 
@@ -171,15 +141,15 @@ public final class ActivityMainDashboardBinding implements ViewBinding {
         break missingId;
       }
 
-      id = R.id.text_status;
-      TextView textStatus = ViewBindings.findChildViewById(rootView, id);
-      if (textStatus == null) {
+      id = R.id.text_stats;
+      TextView textStats = ViewBindings.findChildViewById(rootView, id);
+      if (textStats == null) {
         break missingId;
       }
 
-      return new ActivityMainDashboardBinding((CoordinatorLayout) rootView, cardLab, cardLogs,
-          cardPermissions, dotLogs, dotPermissions, gridSourceCards, gridSystemCards,
-          textFailedToday, textSentToday, textSourcesCount, textSourcesHeader, textStatus);
+      return new ActivityMainDashboardBinding((LinearLayout) rootView, cardLab, cardLogs,
+          cardPermissions, dotLogs, dotPermissions, emptyState, gridCards, textSourcesHeader,
+          textStats);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

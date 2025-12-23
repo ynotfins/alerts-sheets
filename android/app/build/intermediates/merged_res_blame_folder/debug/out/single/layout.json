@@ -4,10 +4,6 @@
         "source": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-main-34:\\layout\\item_log.xml"
     },
     {
-        "merged": "com.example.alertsheets.app-mergeDebugResources-31:/layout/dialog_sms_source.xml",
-        "source": "com.example.alertsheets.app-main-34:/layout/dialog_sms_source.xml"
-    },
-    {
         "merged": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-mergeDebugResources-31:\\layout\\item_sms_target.xml",
         "source": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-main-34:\\layout\\item_sms_target.xml"
     },
@@ -34,6 +30,10 @@
     {
         "merged": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-mergeDebugResources-31:\\layout\\item_dashboard_source_card.xml",
         "source": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-main-34:\\layout\\item_dashboard_source_card.xml"
+    },
+    {
+        "merged": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-mergeDebugResources-31:\\layout\\dialog_sms_source.xml",
+        "source": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-main-34:\\layout\\dialog_sms_source.xml"
     },
     {
         "merged": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-mergeDebugResources-31:\\layout\\item_configured_app.xml",
@@ -78,6 +78,10 @@
     {
         "merged": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-mergeDebugResources-31:\\layout\\activity_apps_list.xml",
         "source": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-main-34:\\layout\\activity_apps_list.xml"
+    },
+    {
+        "merged": "com.example.alertsheets.app-mergeDebugResources-31:/layout/activity_main_dashboard.xml",
+        "source": "com.example.alertsheets.app-main-34:/layout/activity_main_dashboard.xml"
     },
     {
         "merged": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-mergeDebugResources-31:\\layout\\activity_source_config.xml",

@@ -1,58 +1,7 @@
 {
-  "timestamp": "2025-12-22_19-59-23",
-  "commit": "2e731b19f3e0fae033376cf1a9edd44e2cf76100",
-  "message": "feat: full-featured Lab activity with testing and templates
-
-ENHANCED LAB WITH ALL PAYLOADS PAGE FEATURES:
-
-TEMPLATE MANAGEMENT:
-- Template selector dropdown (Rock Solid + custom templates)
-- '+ Save as New' button - save proven templates
-- '🗑️ Delete' button - remove custom templates
-- Auto-Clean Emojis checkbox - toggle emoji cleaning per source
-- Rock Solid templates cannot be deleted
-
-ENDPOINT MANAGEMENT:
-- Multiple endpoint selection (fan-out to multiple URLs)
-- Checkboxes for each endpoint with URL display
-- '+ Manage Endpoints' button opens EndpointActivity
-- Shows endpoint URLs below each checkbox for visibility
-
-TESTING SUITE:
-- 🧪 Test New - send fresh test payload with preview
-- 🔄 Duplicate - resend exact same payload as before
-- 🔥 Dirty Test - load emoji-rich test data automatically
-- JSON preview dialog before sending (like old Payloads page)
-
-CUSTOMIZE (COMPACT):
-- Icon preview with '✏️ Edit' button → opens grid picker dialog
-- Color preview with '🎨 Edit' button → opens color picker dialog
-- No more giant grids taking screen space
-
-VARIABLES HELP:
-- Shows context-specific variables based on source type
-- App: {{package}}, {{title}}, {{text}}, {{bigText}}, {{time}}
-- SMS: {{sender}}, {{message}}, {{time}}
-
-UI IMPROVEMENTS:
-- 7 organized cards with clear step numbers
-- Proper scrolling for long forms
-- Material card design with elevation
-- Clean separation between configuration and testing
-
-FILES CHANGED:
-- activity_lab.xml - complete redesign (7 cards)
-- LabActivity.kt - 604 lines, full testing + template logic
-
-USER FLOW:
-1. Name source
-2. Select type (App/SMS)
-3. Select template from dropdown
-4. Edit JSON (with auto-clean option)
-5. Select multiple endpoints (fan-out)
-6. Test with 3 test options
-7. Customize icon/color with compact edit buttons
-8. Save source",
+  "timestamp": "2025-12-22_23-02-44",
+  "commit": "9528a827a1c63dbebeee76df08d1a187842eef06",
+  "message": "feat: independent source configs with SMS contacts and persistent tests",
   "files_changed": [
     ".ai-context/changes/2025-12-22.json",
     "android/.gradle/8.7/executionHistory/executionHistory.bin",
@@ -63,10 +12,14 @@ USER FLOW:
     "android/.gradle/buildOutputCleanup/buildOutputCleanup.lock",
     "android/.gradle/file-system.probe",
     "android/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar",
+    "android/app/build/intermediates/data_binding_base_class_log_artifact/debug/out/com.example.alertsheets-binding_classes.json",
     "android/app/build/intermediates/dex/debug/mergeProjectDexDebug/0/classes.dex",
+    "android/app/build/intermediates/dex/debug/mergeProjectDexDebug/15/classes.dex",
     "android/app/build/intermediates/dex/debug/mergeProjectDexDebug/4/classes.dex",
     "android/app/build/intermediates/dex/debug/mergeProjectDexDebug/5/classes.dex",
+    "android/app/build/intermediates/dex/debug/mergeProjectDexDebug/7/classes.dex",
     "android/app/build/intermediates/dex_archive_input_jar_hashes/debug/out",
+    "android/app/build/intermediates/incremental/dataBindingGenBaseClassesDebug/base_builder_log.json",
     "android/app/build/intermediates/incremental/debug/mergeDebugResources/compile-file-map.properties",
     "android/app/build/intermediates/incremental/debug/mergeDebugResources/merger.xml",
     "android/app/build/intermediates/incremental/debug/packageDebugResources/compile-file-map.properties",
@@ -74,19 +27,24 @@ USER FLOW:
     "android/app/build/intermediates/incremental/packageDebug/tmp/debug/dex-renamer-state.txt",
     "android/app/build/intermediates/incremental/packageDebug/tmp/debug/zip-cache/androidResources",
     "android/app/build/intermediates/local_only_symbol_list/debug/R-def.txt",
-    "android/app/build/intermediates/merged_res/debug/values_values.arsc.flat",
-    "android/app/build/intermediates/merged_res_blame_folder/debug/out/multi-v2/debug.json",
-    "android/app/build/intermediates/merged_res_blame_folder/debug/out/multi-v2/values.json",
     "android/app/build/intermediates/merged_res_blame_folder/debug/out/single/debug.json",
     "android/app/build/intermediates/merged_res_blame_folder/debug/out/single/layout.json",
     "android/app/build/intermediates/processed_res/debug/out/resources-debug.ap_",
+    "android/app/build/intermediates/project_dex_archive/debug/out/com/example/alertsheets/AppConfigActivity.dex",
+    "android/app/build/intermediates/project_dex_archive/debug/out/com/example/alertsheets/AppsListActivity.dex",
+    "android/app/build/intermediates/project_dex_archive/debug/out/com/example/alertsheets/MigrationManager.dex",
+    "android/app/build/intermediates/project_dex_archive/debug/out/com/example/alertsheets/SmsConfigActivity$onCreate$2.dex",
+    "android/app/build/intermediates/project_dex_archive/debug/out/com/example/alertsheets/SmsConfigActivity.dex",
+    "android/app/build/intermediates/project_dex_archive/debug/out/com/example/alertsheets/data/repositories/SourceRepository.dex",
+    "android/app/build/intermediates/project_dex_archive/debug/out/com/example/alertsheets/domain/SourceManager.dex",
+    "android/app/build/intermediates/project_dex_archive/debug/out/com/example/alertsheets/domain/models/Source.dex",
+    "android/app/build/intermediates/project_dex_archive/debug/out/com/example/alertsheets/domain/models/SourceStats.dex",
+    "android/app/build/intermediates/project_dex_archive/debug/out/com/example/alertsheets/domain/models/SourceType.dex",
     "android/app/build/intermediates/runtime_symbol_list/debug/R.txt",
     "android/app/build/intermediates/stable_resource_ids_file/debug/stableIds.txt",
     "android/app/build/intermediates/symbol_list_with_package_name/debug/package-aware-r.txt",
     "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/inputs/source-to-output.tab",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/inputs/source-to-output.tab.keystream",
     "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/inputs/source-to-output.tab.values.at",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/inputs/source-to-output.tab_i",
     "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/class-attributes.tab",
     "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/class-attributes.tab.keystream",
     "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/class-attributes.tab.keystream.len",
@@ -109,6 +67,8 @@ USER FLOW:
     "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/internal-name-to-source.tab_i",
     "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/proto.tab",
     "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/proto.tab.keystream",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/proto.tab.keystream.len",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/proto.tab.len",
     "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/proto.tab.values",
     "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/proto.tab.values.at",
     "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/proto.tab.values.s",
@@ -133,9 +93,7 @@ USER FLOW:
     "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/supertypes.tab_i",
     "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/lookups/counters.tab",
     "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/lookups/file-to-id.tab",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/lookups/file-to-id.tab.keystream",
     "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/lookups/file-to-id.tab.values.at",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/lookups/file-to-id.tab_i",
     "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/lookups/id-to-file.tab",
     "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/lookups/id-to-file.tab.keystream",
     "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/lookups/id-to-file.tab.keystream.len",
@@ -155,7 +113,18 @@ USER FLOW:
     "android/app/build/kotlin/compileDebugKotlin/local-state/build-history.bin",
     "android/app/build/outputs/apk/debug/app-debug.apk",
     "android/app/build/tmp/compileDebugJavaWithJavac/previous-compilation-data.bin",
+    "android/app/build/tmp/kotlin-classes/debug/com/example/alertsheets/AppConfigActivity.class",
+    "android/app/build/tmp/kotlin-classes/debug/com/example/alertsheets/AppsListActivity.class",
+    "android/app/build/tmp/kotlin-classes/debug/com/example/alertsheets/MigrationManager.class",
+    "android/app/build/tmp/kotlin-classes/debug/com/example/alertsheets/SmsConfigActivity$onCreate$2.class",
+    "android/app/build/tmp/kotlin-classes/debug/com/example/alertsheets/SmsConfigActivity.class",
+    "android/app/build/tmp/kotlin-classes/debug/com/example/alertsheets/data/repositories/SourceRepository.class",
+    "android/app/build/tmp/kotlin-classes/debug/com/example/alertsheets/domain/SourceManager.class",
+    "android/app/build/tmp/kotlin-classes/debug/com/example/alertsheets/domain/models/Source.class",
+    "android/app/build/tmp/kotlin-classes/debug/com/example/alertsheets/domain/models/SourceStats.class",
+    "android/app/build/tmp/kotlin-classes/debug/com/example/alertsheets/domain/models/SourceType.class",
     "android/app/src/main/java/com/example/alertsheets/LabActivity.kt",
-    "android/app/src/main/res/layout/activity_lab.xml"
+    "android/app/src/main/java/com/example/alertsheets/domain/models/Source.kt",
+    "android/app/src/main/res/layout/dialog_sms_source.xml"
   ]
 }

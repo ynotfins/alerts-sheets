@@ -11,77 +11,44 @@
     <!-- ============================================ -->
     <!-- GOD MODE PERMISSIONS (CRITICAL - DO NOT REMOVE) -->
     <!-- ============================================ -->
-
-
     <!-- NOTIFICATION PERMISSIONS (HIGHEST PRIORITY) -->
     <uses-permission android:name="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
-    <uses-permission android:name="android.permission.ACCESS_NOTIFICATION_POLICY" />
-
-    <!-- SMS PERMISSIONS (FULL READ/WRITE/RECEIVE - NON-NEGOTIABLE) -->
+    <uses-permission android:name="android.permission.ACCESS_NOTIFICATION_POLICY" /> <!-- SMS PERMISSIONS (FULL READ/WRITE/RECEIVE - NON-NEGOTIABLE) -->
     <!-- READ_SMS: Read all messages (past, present, future) -->
-    <uses-permission android:name="android.permission.READ_SMS" />
-
-    <!-- RECEIVE_SMS: Receive incoming SMS in real-time -->
-    <uses-permission android:name="android.permission.RECEIVE_SMS" />
-
-    <!-- RECEIVE_MMS: Monitor incoming MMS messages -->
-    <uses-permission android:name="android.permission.RECEIVE_MMS" />
-
-    <!-- RECEIVE_WAP_PUSH: Receive WAP push messages -->
-    <uses-permission android:name="android.permission.RECEIVE_WAP_PUSH" />
-
-    <!-- SEND_SMS: Send SMS (for testing/verification) -->
-    <uses-permission android:name="android.permission.SEND_SMS" />
-
-    <!-- WRITE_SMS: Write to SMS database (full control) -->
-    <uses-permission android:name="android.permission.WRITE_SMS" />
-
-    <!-- BROADCAST_SMS: Broadcast SMS received intents -->
-    <uses-permission android:name="android.permission.BROADCAST_SMS" />
-
-    <!-- READ_PHONE_STATE: Read phone state (for SMS context) -->
-    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
-
-    <!-- READ_CONTACTS: Required for SMS default app role -->
-    <uses-permission android:name="android.permission.READ_CONTACTS" />
-
-    <!-- FOREGROUND SERVICE (PREVENT ANDROID FROM KILLING US) -->
+    <uses-permission android:name="android.permission.READ_SMS" /> <!-- RECEIVE_SMS: Receive incoming SMS in real-time -->
+    <uses-permission android:name="android.permission.RECEIVE_SMS" /> <!-- RECEIVE_MMS: Monitor incoming MMS messages -->
+    <uses-permission android:name="android.permission.RECEIVE_MMS" /> <!-- RECEIVE_WAP_PUSH: Receive WAP push messages -->
+    <uses-permission android:name="android.permission.RECEIVE_WAP_PUSH" /> <!-- SEND_SMS: Send SMS (for testing/verification) -->
+    <uses-permission android:name="android.permission.SEND_SMS" /> <!-- WRITE_SMS: Write to SMS database (full control) -->
+    <uses-permission android:name="android.permission.WRITE_SMS" /> <!-- BROADCAST_SMS: Broadcast SMS received intents -->
+    <uses-permission android:name="android.permission.BROADCAST_SMS" /> <!-- READ_PHONE_STATE: Read phone state (for SMS context) -->
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" /> <!-- READ_CONTACTS: Required for SMS default app role -->
+    <uses-permission android:name="android.permission.READ_CONTACTS" /> <!-- FOREGROUND SERVICE (PREVENT ANDROID FROM KILLING US) -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
-    <uses-permission android:name="android.permission.WAKE_LOCK" />
-
-    <!-- BATTERY OPTIMIZATION BYPASS (CRITICAL) -->
-    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
-
-    <!-- BOOT & RESTART -->
-    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
-
-    <!-- OVERLAYS & ALERTS -->
+    <uses-permission android:name="android.permission.WAKE_LOCK" /> <!-- BATTERY OPTIMIZATION BYPASS (CRITICAL) -->
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" /> <!-- BOOT & RESTART -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" /> <!-- OVERLAYS & ALERTS -->
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
-    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
-
-    <!-- EXACT ALARMS (FOR RETRY LOGIC) -->
-    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
-
-    <!-- NETWORK -->
+    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" /> <!-- EXACT ALARMS (FOR RETRY LOGIC) -->
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" /> <!-- NETWORK -->
     <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-
-    <!-- ACCESSIBILITY (BACKUP NOTIFICATION CAPTURE) -->
-    <uses-permission android:name="android.permission.BIND_ACCESSIBILITY_SERVICE" />
-
-    <!-- ANDROID 11+ PACKAGE VISIBILITY (CRITICAL FOR APP DISCOVERY) -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" /> <!-- ACCESSIBILITY (BACKUP NOTIFICATION CAPTURE) -->
+    <uses-permission android:name="android.permission.BIND_ACCESSIBILITY_SERVICE" /> <!-- ANDROID 11+ PACKAGE VISIBILITY (CRITICAL FOR APP DISCOVERY) -->
     <!-- Required to enumerate installed apps on Android 11+ (API 30+) -->
     <!-- This is a sideload/dev permission; for Play Store use <queries> instead -->
     <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" />
+    <uses-permission android:name="com.google.android.gms.permission.AD_ID" />
+    <uses-permission android:name="android.permission.ACCESS_ADSERVICES_ATTRIBUTION" />
+    <uses-permission android:name="android.permission.ACCESS_ADSERVICES_AD_ID" />
+    <uses-permission android:name="com.google.android.finsky.permission.BIND_GET_INSTALL_REFERRER_SERVICE" />
 
     <permission
         android:name="com.example.alertsheets.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
         android:protectionLevel="signature" />
 
-    <uses-permission android:name="com.example.alertsheets.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" />
-
+    <uses-permission android:name="com.example.alertsheets.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" /> <!-- DEBUG-ONLY: Ingest Test Harness Activity -->
     <application
         android:name="com.example.alertsheets.AlertsApplication"
         android:allowBackup="false"
@@ -96,7 +63,23 @@
         android:resizeableActivity="false"
         android:supportsRtl="true"
         android:theme="@style/Theme.AlertsToSheets" >
+        <activity
+            android:name="com.example.alertsheets.ui.IngestTestActivity"
+            android:exported="false"
+            android:label="@string/activity_ingest_test"
+            android:theme="@style/Theme.AlertsToSheets" >
 
+            <!--
+                Intent action allows MainActivity to launch this without reflection.
+                NOT exported - only accessible within the app.
+                This intent-filter exists ONLY in debug builds.
+            -->
+            <intent-filter>
+                <action android:name="com.example.alertsheets.DEBUG_INGEST_TEST" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
         <!-- ============================================ -->
         <!-- SAMSUNG DEVICE PROTECTION (CRITICAL) -->
         <!-- ============================================ -->
@@ -109,9 +92,7 @@
             android:value="true" />
         <meta-data
             android:name="com.samsung.android.multidisplay.keep_process_alive"
-            android:value="false" />
-
-        <!-- ============================================ -->
+            android:value="false" /> <!-- ============================================ -->
         <!-- MAIN ACTIVITY -->
         <!-- ============================================ -->
         <activity
@@ -134,9 +115,7 @@
             <meta-data
                 android:name="com.samsung.android.multidisplay.keep_process_alive"
                 android:value="false" />
-        </activity>
-
-        <!-- ============================================ -->
+        </activity> <!-- ============================================ -->
         <!-- V1 ACTIVITIES (TEMPORARY - DURING MIGRATION) -->
         <!-- ============================================ -->
         <activity
@@ -170,9 +149,7 @@
         <activity
             android:name="com.example.alertsheets.PermissionsActivity"
             android:label="Permissions"
-            android:parentActivityName="com.example.alertsheets.ui.MainActivity" />
-
-        <!-- ============================================ -->
+            android:parentActivityName="com.example.alertsheets.ui.MainActivity" /> <!-- ============================================ -->
         <!-- NOTIFICATION LISTENER (PRIMARY CAPTURE) -->
         <!-- ============================================ -->
         <service
@@ -183,9 +160,7 @@
             <intent-filter android:priority="999" >
                 <action android:name="android.service.notification.NotificationListenerService" />
             </intent-filter>
-        </service>
-
-        <!-- ============================================ -->
+        </service> <!-- ============================================ -->
         <!-- SMS RECEIVER (HIGHEST PRIORITY) -->
         <!-- ============================================ -->
         <receiver
@@ -206,9 +181,7 @@
 
                 <data android:mimeType="application/vnd.wap.mms-message" />
             </intent-filter>
-        </receiver>
-
-        <!-- ============================================ -->
+        </receiver> <!-- ============================================ -->
         <!-- BOOT RECEIVER (AUTO-START) -->
         <!-- ============================================ -->
         <receiver
@@ -236,6 +209,122 @@
                 android:name="androidx.profileinstaller.ProfileInstallerInitializer"
                 android:value="androidx.startup" />
         </provider>
+
+        <service
+            android:name="com.google.firebase.components.ComponentDiscoveryService"
+            android:directBootAware="true"
+            android:exported="false" >
+            <meta-data
+                android:name="com.google.firebase.components:com.google.firebase.auth.ktx.FirebaseAuthLegacyRegistrar"
+                android:value="com.google.firebase.components.ComponentRegistrar" />
+            <meta-data
+                android:name="com.google.firebase.components:com.google.firebase.auth.FirebaseAuthRegistrar"
+                android:value="com.google.firebase.components.ComponentRegistrar" />
+            <meta-data
+                android:name="com.google.firebase.components:com.google.firebase.analytics.ktx.FirebaseAnalyticsLegacyRegistrar"
+                android:value="com.google.firebase.components.ComponentRegistrar" />
+            <meta-data
+                android:name="com.google.firebase.components:com.google.firebase.firestore.ktx.FirebaseFirestoreLegacyRegistrar"
+                android:value="com.google.firebase.components.ComponentRegistrar" />
+            <meta-data
+                android:name="com.google.firebase.components:com.google.firebase.firestore.FirebaseFirestoreKtxRegistrar"
+                android:value="com.google.firebase.components.ComponentRegistrar" />
+            <meta-data
+                android:name="com.google.firebase.components:com.google.firebase.firestore.FirestoreRegistrar"
+                android:value="com.google.firebase.components.ComponentRegistrar" />
+            <meta-data
+                android:name="com.google.firebase.components:com.google.firebase.analytics.connector.internal.AnalyticsConnectorRegistrar"
+                android:value="com.google.firebase.components.ComponentRegistrar" />
+            <meta-data
+                android:name="com.google.firebase.components:com.google.firebase.installations.FirebaseInstallationsKtxRegistrar"
+                android:value="com.google.firebase.components.ComponentRegistrar" />
+            <meta-data
+                android:name="com.google.firebase.components:com.google.firebase.installations.FirebaseInstallationsRegistrar"
+                android:value="com.google.firebase.components.ComponentRegistrar" />
+            <meta-data
+                android:name="com.google.firebase.components:com.google.firebase.ktx.FirebaseCommonLegacyRegistrar"
+                android:value="com.google.firebase.components.ComponentRegistrar" />
+            <meta-data
+                android:name="com.google.firebase.components:com.google.firebase.FirebaseCommonKtxRegistrar"
+                android:value="com.google.firebase.components.ComponentRegistrar" />
+        </service>
+
+        <activity
+            android:name="com.google.firebase.auth.internal.GenericIdpActivity"
+            android:excludeFromRecents="true"
+            android:exported="true"
+            android:launchMode="singleTask"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar" >
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data
+                    android:host="firebase.auth"
+                    android:path="/"
+                    android:scheme="genericidp" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name="com.google.firebase.auth.internal.RecaptchaActivity"
+            android:excludeFromRecents="true"
+            android:exported="true"
+            android:launchMode="singleTask"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar" >
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data
+                    android:host="firebase.auth"
+                    android:path="/"
+                    android:scheme="recaptcha" />
+            </intent-filter>
+        </activity>
+
+        <property
+            android:name="android.adservices.AD_SERVICES_CONFIG"
+            android:resource="@xml/ga_ad_services_config" />
+
+        <provider
+            android:name="com.google.firebase.provider.FirebaseInitProvider"
+            android:authorities="com.example.alertsheets.firebaseinitprovider"
+            android:directBootAware="true"
+            android:exported="false"
+            android:initOrder="100" />
+
+        <receiver
+            android:name="com.google.android.gms.measurement.AppMeasurementReceiver"
+            android:enabled="true"
+            android:exported="false" >
+        </receiver>
+
+        <service
+            android:name="com.google.android.gms.measurement.AppMeasurementService"
+            android:enabled="true"
+            android:exported="false" />
+        <service
+            android:name="com.google.android.gms.measurement.AppMeasurementJobService"
+            android:enabled="true"
+            android:exported="false"
+            android:permission="android.permission.BIND_JOB_SERVICE" />
+
+        <uses-library
+            android:name="android.ext.adservices"
+            android:required="false" />
+
+        <activity
+            android:name="com.google.android.gms.common.api.GoogleApiActivity"
+            android:exported="false"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+
+        <meta-data
+            android:name="com.google.android.gms.version"
+            android:value="@integer/google_play_services_version" />
 
         <receiver
             android:name="androidx.profileinstaller.ProfileInstallReceiver"

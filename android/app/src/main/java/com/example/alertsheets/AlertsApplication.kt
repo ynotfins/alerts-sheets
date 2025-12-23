@@ -4,6 +4,8 @@ import android.app.Application
 import android.util.Log
 import com.example.alertsheets.domain.parsers.ParserRegistry
 import com.example.alertsheets.utils.Logger
+import com.google.firebase.FirebaseApp
+import com.google.firebase.auth.FirebaseAuth
 
 /**
  * AlertsToSheets Application - V2
@@ -18,7 +20,25 @@ class AlertsApplication : Application() {
         super.onCreate()
         Log.i(TAG, "🚀 AlertsToSheets V2 starting - GOD MODE")
         
-        // ✅ CRITICAL: Initialize LogRepository FIRST (before anything logs)
+        // ✅ CRITICAL: Initialize Firebase FIRST
+        FirebaseApp.initializeApp(this)
+        Log.i(TAG, "✅ Firebase initialized (Project: ${FirebaseApp.getInstance().options.projectId})")
+        
+        // ✅ CRITICAL: Initialize Firebase Auth (anonymous sign-in for testing)
+        val auth = FirebaseAuth.getInstance()
+        if (auth.currentUser == null) {
+            auth.signInAnonymously().addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    Log.i(TAG, "✅ Firebase Auth: Anonymous sign-in successful (UID: ${auth.currentUser?.uid})")
+                } else {
+                    Log.e(TAG, "❌ Firebase Auth: Anonymous sign-in FAILED", task.exception)
+                }
+            }
+        } else {
+            Log.i(TAG, "✅ Firebase Auth: Already signed in (UID: ${auth.currentUser?.uid})")
+        }
+        
+        // ✅ CRITICAL: Initialize LogRepository SECOND (after Firebase, before anything logs)
         LogRepository.initialize(this)
         Log.i(TAG, "✅ LogRepository initialized")
         

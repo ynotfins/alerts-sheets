@@ -1,141 +1,176 @@
-# AlertsToSheets - Android Notification Forwarder
+# AlertsToSheets
 
-**Purpose:** Intercepts BNN (Breaking News Network) notifications, parses incident data, and forwards to Google Sheets in real-time.
+**Android app that captures notifications and SMS messages, then delivers them to configured webhooks (Google Sheets, Firestore, custom endpoints)**
+
+**Version:** 2.3  
+**Status:** Production Ready  
+**Last Updated:** December 23, 2025
 
 ---
 
-## 📁 Project Structure
+## 📊 **Project Stats** (Verified Dec 23, 2025)
+
+- **Kotlin Files:** 55
+- **Lines of Code:** 8,149
+- **Architecture:** Clean Architecture (MVVM + Repository Pattern)
+- **Min SDK:** 26 (Android 8.0)
+- **Target SDK:** 34 (Android 14)
+- **Gradle:** 8.7
+- **Kotlin:** 1.9.22
+
+---
+
+## 🎯 **What It Does**
+
+1. **Captures** notifications from selected apps (e.g., BNN banking alerts)
+2. **Captures** SMS messages from configured phone numbers
+3. **Parses** notification/SMS content using custom parsers
+4. **Renders** JSON payloads from templates
+5. **Delivers** to multiple endpoints (fan-out) via HTTP POST
+
+---
+
+## 🏗️ **Architecture**
 
 ```
-alerts-sheets/
-├── android/                  # Android app source code
-│   ├── app/
-│   │   └── src/main/java/... # Kotlin source files
-│   └── build.gradle          # Dependencies
-│
-├── scripts/
-│   └── Code.gs               # Google Apps Script (doPost handler)
-│
-├── docs/                     # 📚 ALL DOCUMENTATION HERE
-│   ├── README.md             # Documentation organization guide
-│   │
-│   ├── tasks/                # 🎯 ACTIVE WORK (AI agents read this)
-│   │   └── AG_PARSING_FIX_PROMPT.md  # Current: Fix empty sheet fields
-│   │
-│   ├── architecture/         # 📐 SYSTEM DESIGN (reference docs)
-│   │   ├── HANDOFF.md        # Build, deploy, troubleshooting
-│   │   ├── DIAGNOSTICS.md    # Debug procedures
-│   │   └── parsing.md        # BNN parsing specification
-│   │
-│   └── refactor/             # 🚀 FUTURE WORK (ignore for now)
-│       └── OVERVIEW.md       # Long-term improvements (after bugs fixed)
-│
-├── prompt.md                 # Original implementation prompt
-└── README.md                 # This file
+Notification/SMS → Parser → ParsedData → TemplateEngine → JSON → HttpClient → Endpoint(s)
 ```
 
----
-
-## 🚨 Current Status
-
-**Active Bug:** BNN notifications only populate timestamp in Google Sheet. All other fields empty.
-
-**Fix In Progress:** See `/docs/tasks/AG_PARSING_FIX_PROMPT.md`
-
----
-
-## 🏃 Quick Start
-
-### For AI Agents (AG, Claude, etc.)
-
-**Working on active task?**
-1. ✅ Read: `/docs/tasks/{task-name}.md` (your assignment)
-2. ✅ Reference: `/docs/architecture/` (understand system)
-3. ❌ Ignore: `/docs/refactor/` (future work, will confuse context)
-
-**Starting a refactor?** (Not now!)
-1. ✅ Read: `/docs/refactor/OVERVIEW.md` first
-2. ✅ Verify: All P0/P1 bugs resolved
-3. ✅ Get approval: Stakeholder sign-off
+### Key Features:
+- ✅ Fan-out delivery (one event → N endpoints)
+- ✅ Custom JSON templates with variable substitution
+- ✅ UUID-based stable endpoint IDs
+- ✅ Activity log with delivery status
+- ✅ Samsung OneUI-inspired dark theme
+- ✅ Lab mode for testing payloads without real events
 
 ---
 
-## 🛠️ For Developers
+## 🚀 **Quick Start**
 
 ### Prerequisites
-- **JDK 17**
-- **Android Studio Hedgehog (2023.1.1) or newer**
-- **Android device/emulator** (API 26+)
+- Android device/emulator (API 26+)
+- Android Studio (recommended) or Gradle 8.7+
+- JDK 17
 
 ### Build & Install
 ```bash
 cd android
-.\gradlew.bat :app:assembleDebug --no-daemon
-adb install app/build/outputs/apk/debug/app-debug.apk
+./gradlew clean assembleDebug
+adb install -r app/build/outputs/apk/debug/app-debug.apk
 ```
 
-### Debug
-```powershell
-adb logcat | findstr "NotificationService Parser BNN"
+### Grant Permissions
+1. Open app → tap "Permissions" card
+2. Enable "Notification Access"
+3. Enable "SMS Permissions" (if using SMS sources)
+4. Disable battery optimization (for persistent background operation)
+
+### Configure
+1. Tap "Lab" card
+2. Add endpoint (Google Sheets webhook URL or Firestore ingest URL)
+3. Create template (JSON with variables like `{{title}}`, `{{body}}`, `{{timestamp}}`)
+4. Add source:
+   - **App Notification:** Select app(s) to monitor
+   - **SMS:** Enter phone number(s)
+5. Select endpoint(s) for delivery
+6. Test with "Send Test" button
+
+---
+
+## 📚 **Documentation**
+
+**Start here:** [`DOC_INDEX.md`](DOC_INDEX.md) - Complete documentation index
+
+### Key Docs:
+- [Complete Documentation Index](DOC_INDEX.md) - **Read this first**
+- [Architecture Analysis](ZERO_TRUST_ARCHITECTURE_ANALYSIS.md) - Comprehensive deep-dive
+- [MCP Tools Reference](MCP_QUICK_REFERENCE.md) - AI assistant tool usage
+- [Developer Settings](DEVELOPER_SETTINGS_GUIDE.md) - Environment setup
+- [Verification Checklist](VERIFICATION_CHECKLIST.md) - Testing guide
+- [Samsung Icon Fix](docs/SAMSUNG_ICON_FIX.md) - Fix duplicate launcher icons
+
+---
+
+## 🛠️ **Development**
+
+### Tech Stack
+- **Language:** Kotlin 1.9.22
+- **Build:** Gradle 8.7
+- **Network:** OkHttp 4.12.0
+- **JSON:** Gson 2.10.1
+- **Async:** Kotlinx Coroutines 1.7.3
+- **UI:** Material Design 3, AndroidX
+
+### Project Structure
+```
+android/app/src/main/java/com/example/alertsheets/
+├── ui/                          # Activities & UI
+├── domain/                      # Business logic
+│   ├── models/                  # Data models
+│   ├── parsers/                 # Notification/SMS parsers
+│   ├── DataPipeline.kt          # Core event processing
+│   └── SourceManager.kt         # Source lifecycle
+├── data/                        # Persistence
+│   ├── repositories/            # CRUD operations
+│   └── storage/                 # JSON file storage
+├── services/                    # Android services
+│   ├── AlertsNotificationListener.kt
+│   ├── AlertsSmsReceiver.kt
+│   └── BootReceiver.kt
+└── utils/                       # Utilities
+    ├── HttpClient.kt
+    ├── TemplateEngine.kt
+    └── PayloadSerializer.kt
 ```
 
-**Full instructions:** See `/docs/architecture/HANDOFF.md`
+### Testing
+```bash
+# Unit tests
+./gradlew testDebugUnitTest
+
+# Instrumented tests (on device/emulator)
+./gradlew connectedDebugAndroidTest
+
+# Logs
+adb logcat -s AlertsApp:I Pipe:V Logs:V
+```
+
+**Note:** Test coverage is currently 0%. See [DOC_INDEX.md](DOC_INDEX.md#-testing-status) for test implementation plan.
 
 ---
 
-## 📋 Key Files
+## 🔐 **Security**
 
-| File | Purpose |
-|------|---------|
-| `NotificationService.kt` | Intercepts notifications |
-| `Parser.kt` | Parses BNN pipe-delimited format |
-| `QueueProcessor.kt` | Offline queue + retry logic |
-| `NetworkClient.kt` | HTTP POST to Apps Script |
-| `scripts/Code.gs` | Google Apps Script webhook |
+- ❌ **Never commit** `.env` files or service account JSON
+- ✅ Store secrets in `functions/.env.local` (gitignored)
+- ✅ Use environment variables for sensitive data
+- ✅ Validate all HTTP endpoints before adding
 
 ---
 
-## 🔧 Troubleshooting
+## 🐛 **Troubleshooting**
 
-**Issue:** Sheet fields empty  
-**Fix:** See `/docs/tasks/AG_PARSING_FIX_PROMPT.md`
-
-**Issue:** Notifications not intercepted  
-**Fix:** See `/docs/architecture/DIAGNOSTICS.md`
-
-**Issue:** Queue stuck pending  
-**Fix:** See `/docs/architecture/DIAGNOSTICS.md`
-
----
-
-## 📚 Documentation Index
-
-- **System Architecture:** `/docs/architecture/HANDOFF.md`
-- **Build & Deploy:** `/docs/architecture/HANDOFF.md`
-- **Debugging Guide:** `/docs/architecture/DIAGNOSTICS.md`
-- **Parsing Spec:** `/docs/architecture/parsing.md`
-- **Active Tasks:** `/docs/tasks/`
-- **Future Plans:** `/docs/refactor/` (DO NOT implement yet)
+| Issue | Solution |
+|-------|----------|
+| Duplicate launcher icons (Samsung) | See [docs/SAMSUNG_ICON_FIX.md](docs/SAMSUNG_ICON_FIX.md) |
+| Gradle lock errors | See [GRADLE_FIX.md](GRADLE_FIX.md) |
+| Notifications not captured | Check NotificationListener permission |
+| SMS not captured | Check SMS permissions + default SMS app |
+| Failed delivery | Check LogActivity for HTTP errors |
 
 ---
 
-## 🤝 Contributing
+## 📝 **License**
 
-1. Check `/docs/tasks/` for active assignments
-2. Reference `/docs/architecture/` for system understanding
-3. Follow existing code patterns (minimal changes preferred)
-4. Test thoroughly before submitting
-5. Update relevant docs if architecture changes
+Private project - All rights reserved
 
 ---
 
-## 📞 Support
+## 🤝 **Contributing**
 
-**For current bugs:** See `/docs/tasks/`  
-**For system questions:** See `/docs/architecture/`  
-**For future features:** See `/docs/refactor/` (after bugs fixed)
+For internal use. Contact project maintainer for access.
 
 ---
 
-**Current Focus:** Fix BNN parsing to populate all Google Sheet columns. See active task in `/docs/tasks/`.
-
+**For complete documentation, see [`DOC_INDEX.md`](DOC_INDEX.md)**

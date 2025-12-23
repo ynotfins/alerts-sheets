@@ -1,0 +1,519 @@
+# Cursor MCP Optimization Rules
+# Global workflow rules for intelligent MCP tool usage
+
+## 🎯 CORE PRINCIPLES
+rules:
+  - description: "Master rule for all MCP interactions"
+    match: ".*"
+    priority: "critical"
+    actions:
+      - use_right_tool_right_job: true
+      - maximize_parallel_execution: true
+      - minimize_redundant_calls: true
+      - think_before_act: true  # NEW: Use Sequential Thinking for complex tasks
+
+---
+
+## 🧩 SEQUENTIAL THINKING MCP - Reasoning Engine (FOUNDATIONAL)
+# Use BEFORE complex tasks requiring multi-step planning
+
+sequential_thinking_rules:
+  when_to_use:
+    - "Complex refactoring across multiple files/systems"
+    - "Architecture decisions with multiple trade-offs"
+    - "Debugging issues with unclear root causes"
+    - "Planning large features with many dependencies"
+    - "Migration strategies requiring careful analysis"
+    - "Performance optimization requiring profiling + analysis"
+    - "Security audits requiring threat modeling"
+    - "API design requiring consistency + extensibility"
+  
+  workflow:
+    planning_phase:
+      1. "Invoke Sequential Thinking to break down problem"
+      2. "Identify all constraints, risks, and dependencies"
+      3. "Generate solution options with trade-off analysis"
+      4. "Select best approach based on project context"
+    
+    execution_phase:
+      1. "Follow the plan from Sequential Thinking output"
+      2. "Use appropriate MCP tools for each step"
+      3. "Validate assumptions at each checkpoint"
+      4. "Adjust plan if new information emerges"
+    
+    verification_phase:
+      1. "Cross-check solution against original requirements"
+      2. "Test edge cases identified during thinking phase"
+      3. "Document decisions and rationale for future reference"
+  
+  integration_with_other_mcps:
+    - "Think → Search (Serena/Exa/Context7) → Plan → Execute"
+    - "Use Memory MCP to store reasoning chains for similar future tasks"
+    - "Combine with Context7 for library-specific best practices"
+    - "Use Serena after planning to efficiently navigate codebase"
+  
+  optimization:
+    - "Don't over-think trivial tasks (< 3 steps)"
+    - "Use for tasks with >5 interconnected steps"
+    - "Store successful reasoning patterns in Memory MCP"
+    - "Reference past Sequential Thinking chains via Memory search"
+
+---
+
+## 🔧 SERENA MCP - Code Intelligence (PRIMARY)
+# Use Serena FIRST for all code operations
+
+serena_rules:
+  when_to_use:
+    - "ANY code search, navigation, or understanding task"
+    - "Before reading entire files - use get_symbols_overview first"
+    - "Finding where/how code is used - use find_referencing_symbols"
+    - "Editing complete functions/classes - use replace_symbol_body"
+    - "Small edits within functions - use replace_content with regex"
+    - "Cross-codebase pattern search - use search_for_pattern"
+  
+  workflow:
+    code_understanding:
+      1. "Start with find_symbol or get_symbols_overview (NEVER read entire files blind)"
+      2. "Use find_referencing_symbols to understand dependencies"
+      3. "Only read symbol bodies when necessary with include_body=true"
+    
+    code_editing:
+      1. "Identify target symbols first with find_symbol"
+      2. "For whole symbol changes: use replace_symbol_body"
+      3. "For partial changes: use replace_content with regex"
+      4. "Always verify references with find_referencing_symbols before breaking changes"
+    
+    code_search:
+      1. "Use search_for_pattern for unknown locations (faster than grep)"
+      2. "Use find_symbol with fuzzy matching for known symbol names"
+      3. "Never use terminal grep/find when Serena tools available"
+  
+  optimization:
+    - "NEVER read files unnecessarily - Serena gives you surgical precision"
+    - "Use depth parameter to control symbol traversal (0=shallow, 2=deep)"
+    - "Batch symbol operations when possible"
+    - "Trust Serena's tools - no verification needed on success"
+
+---
+
+## 📚 CONTEXT7 MCP - Documentation (AUTO-INVOKE)
+# Automatically fetch docs for ANY library/framework/API
+
+context7_rules:
+  auto_invoke_for:
+    - "Android SDK, Jetpack, Kotlin coroutines, Flow"
+    - "Firebase (Auth, Firestore, Functions, Cloud Run)"
+    - "Retrofit, OkHttp, Gson, Moshi, Room"
+    - "ANY third-party library setup or configuration"
+    - "API documentation needs"
+    - "Best practices for frameworks"
+    - "Error handling patterns"
+    - "Migration guides"
+  
+  workflow:
+    1. "ALWAYS resolve-library-id first (unless user provides /org/project format)"
+    2. "Then get-library-docs with appropriate token count (5000 default, 10000 for complex)"
+    3. "Include topic parameter for focused results"
+  
+  when_NOT_to_use:
+    - "Project-specific code (use Serena)"
+    - "General programming concepts"
+    - "Already have documentation in context"
+
+---
+
+## 🐙 GITHUB MCP - Version Control
+# Manage repositories, PRs, issues without leaving Cursor
+
+github_rules:
+  use_for:
+    - "Creating/updating files in remote repos"
+    - "Managing issues and PRs"
+    - "Searching code across GitHub"
+    - "Fork/branch operations"
+    - "Release management"
+  
+  workflow:
+    - "Use get_file_contents before updating remote files"
+    - "Use push_files for multi-file commits (atomic)"
+    - "Use create_or_update_file for single file changes"
+    - "Always include meaningful commit messages"
+    - "Search code with search_code before asking questions about external repos"
+  
+  optimization:
+    - "Batch related file changes into single push_files call"
+    - "Use search_repositories to find relevant projects"
+    - "Parallel tool calls for independent operations"
+
+---
+
+## 🧠 MEM0 MEMORY MCP - Context Persistence
+# Store and retrieve conversation context, preferences, facts
+
+memory_rules:
+  use_for:
+    - "Storing user preferences and workflow patterns"
+    - "Caching important decisions and their rationale"
+    - "Remembering project-specific conventions"
+    - "Tracking repeated issues and their solutions"
+    - "User's coding style preferences"
+  
+  workflow:
+    - "add_memory: Store facts immediately when user expresses preference"
+    - "search_memories: Use before making assumptions about user preferences"
+    - "update_memory: Correct when user contradicts previous memory"
+    - "delete_memory: Remove when user explicitly says memory is wrong"
+  
+  best_practices:
+    - "Always cite memory with [[memory:ID]] when using it"
+    - "Keep memories concise and actionable"
+    - "Use filters to scope searches (user_id, agent_id, etc.)"
+    - "Enable graph mode only when explicitly requested by user"
+
+---
+
+## 🔍 EXA SEARCH MCP - Real-Time Web Intelligence
+# Live web search and code context
+
+exa_rules:
+  use_for:
+    - "Real-time information about libraries, APIs, tools"
+    - "Latest documentation when Context7 insufficient"
+    - "Finding code examples and patterns"
+    - "Troubleshooting with current web knowledge"
+    - "Discovering new tools and solutions"
+  
+  tool_selection:
+    - "web_search_exa: General web search, news, current info"
+    - "get_code_context_exa: PRIORITY for code/API/library questions"
+  
+  workflow:
+    - "Use get_code_context_exa FIRST for any code-related query"
+    - "Adjust tokensNum based on complexity (1000-50000)"
+    - "Use web_search_exa for non-code research"
+    - "Prefer 'deep' search type for comprehensive results"
+
+---
+
+## 📊 GOOGLE SHEETS MCP - Data Operations
+# Spreadsheet automation and data management
+
+sheets_rules:
+  use_for:
+    - "Reading/writing structured data"
+    - "Data analysis and aggregation"
+    - "Reporting and dashboards"
+    - "SQL queries on spreadsheet data"
+    - "Batch data operations"
+  
+  workflow:
+    - "list_tables first to discover structure"
+    - "get_table_schema before querying"
+    - "Use execute_sql or query_table for complex operations"
+    - "batch_update for multiple range updates (atomic)"
+    - "search_spreadsheets to find relevant sheets"
+  
+  optimization:
+    - "Use SQL interface for complex queries (faster than multiple API calls)"
+    - "Batch operations whenever possible"
+    - "Clear filters before bulk operations"
+    - "Use data filters for targeted updates"
+
+---
+
+## 📧 GMAIL MCP - Email Automation
+# Email management and automation
+
+gmail_rules:
+  use_for:
+    - "Automated email sending and drafts"
+    - "Email search and filtering"
+    - "Label management"
+    - "Contact management"
+    - "Attachment handling"
+  
+  workflow:
+    - "Use query parameter with Gmail search syntax for filtering"
+    - "fetch_emails with verbose=false for faster metadata retrieval"
+    - "Batch label operations when possible"
+    - "create_email_draft before sending (allows review)"
+  
+  optimization:
+    - "Set max_results appropriately (don't fetch more than needed)"
+    - "Use ids_only=true when you just need message IDs"
+    - "Leverage advanced search queries (from:, subject:, has:attachment, etc.)"
+
+---
+
+## 🌐 BROWSER MCP - Web Testing & Interaction
+# Automated browser testing and web scraping
+
+browser_rules:
+  use_for:
+    - "Testing web features after implementation"
+    - "Verifying UI/UX changes"
+    - "Automated form filling and testing"
+    - "Web scraping and data extraction"
+    - "Cross-browser compatibility checks"
+  
+  workflow:
+    testing:
+      1. "browser_navigate to target URL"
+      2. "browser_snapshot to get page structure"
+      3. "browser_click / browser_type for interactions"
+      4. "browser_snapshot again to verify changes"
+      5. "browser_take_screenshot for visual inspection"
+      6. "browser_console_messages to check for errors"
+    
+    multi_page:
+      - "Use browser_tabs for parallel page operations"
+      - "Create separate tabs instead of navigating back/forth"
+  
+  optimization:
+    - "Use browser_snapshot (accessibility tree) for interactions"
+    - "Use browser_take_screenshot only for visual verification"
+    - "Batch independent page operations with parallel tool calls"
+    - "Always check console_messages after interactions"
+
+---
+
+## 🔥 FIRESTORE MCP - Database Operations
+# Firestore database management
+
+firestore_rules:
+  use_for:
+    - "Reading/writing Firestore documents"
+    - "Querying collections"
+    - "Database schema management"
+    - "Real-time data operations"
+  
+  workflow:
+    - "Query before bulk operations"
+    - "Use transactions for multi-document updates"
+    - "Leverage indexes for complex queries"
+
+---
+
+## 🌟 GOOGLE SUPER MCP - Unified Google Services
+# One MCP for all Google services
+
+google_super_rules:
+  use_for:
+    - "Cross-service Google operations"
+    - "When multiple Google services needed simultaneously"
+    - "Unified authentication across Google services"
+  
+  note: "May replace individual Gmail/Sheets MCPs - evaluate after testing"
+
+---
+
+## ⚡ WORKFLOW OPTIMIZATION RULES
+
+parallel_execution:
+  always_parallel_when:
+    - "Reading multiple independent files"
+    - "Searching multiple repositories"
+    - "Fetching documentation for multiple libraries"
+    - "Browser operations on different pages"
+    - "Independent GitHub operations"
+  
+  never_parallel_when:
+    - "Operations have dependencies"
+    - "Results needed for parameters"
+    - "Sequential logic required"
+
+tool_selection_priority:
+  0_reasoning: "Sequential Thinking MCP (for complex planning/architecture)"
+  1_code_ops: "Serena MCP (primary code intelligence)"
+  2_docs: "Context7 MCP (auto-invoke for libraries)"
+  3_web: "Exa Search MCP (code context + web search)"
+  4_memory: "Mem0 MCP (context persistence)"
+  5_version_control: "GitHub MCP (repository operations)"
+  6_data: "Google Sheets MCP (structured data)"
+  7_email: "Gmail MCP (email automation)"
+  8_testing: "Browser MCP (web testing)"
+  9_database: "Firestore MCP (database ops)"
+  10_google_unified: "Google Super MCP (multi-service operations)"
+
+avoid_redundancy:
+  - "Don't fetch same data twice"
+  - "Cache results in conversation context"
+  - "Use memory MCP for frequently needed info"
+  - "Serena symbol tools > file reading > grep/find"
+  - "Context7 > web search for docs"
+
+---
+
+## 🎯 TASK-SPECIFIC WORKFLOWS
+
+complex_refactoring:
+  sequence:
+    1. "Sequential Thinking: Analyze scope, dependencies, breaking changes"
+    2. "Memory search for similar past refactorings"
+    3. "Serena find_referencing_symbols for impact analysis"
+    4. "Context7 for library migration guides if needed"
+    5. "Serena replace_symbol_body/replace_content for changes"
+    6. "Test + verify"
+    7. "Memory MCP: Store refactoring pattern for future"
+
+architecture_design:
+  sequence:
+    1. "Sequential Thinking: Evaluate options, trade-offs, scalability"
+    2. "Context7 for framework best practices"
+    3. "Exa search for production patterns"
+    4. "Memory MCP: Check past architecture decisions"
+    5. "Document + commit with rationale"
+
+android_development:
+  sequence:
+    1. "Sequential Thinking if multi-component feature (>5 files)"
+    2. "Use Context7 for Android/Kotlin docs (auto-invoke)"
+    3. "Use Serena to navigate codebase"
+    4. "Use Serena to edit code precisely"
+    5. "Use Browser MCP to test on device/emulator"
+    6. "Use Memory MCP to store learnings"
+    7. "Use GitHub MCP to commit changes"
+
+debugging_complex:
+  sequence:
+    1. "Sequential Thinking: Hypothesis generation + elimination strategy"
+    2. "Serena find_symbol to locate suspected code"
+    3. "Serena find_referencing_symbols to understand call chains"
+    4. "Context7/Exa for error message research"
+    5. "Memory search for similar past issues"
+    6. "Serena replace_content/replace_symbol_body to fix"
+    7. "Browser MCP to verify fix"
+    8. "Memory MCP: Store root cause + solution pattern"
+
+documentation_research:
+  sequence:
+    1. "Context7 for official docs (if library/framework)"
+    2. "Exa get_code_context_exa for code examples"
+    3. "Exa web_search_exa for tutorials/blogs"
+    4. "Memory MCP to cache important findings"
+
+data_analysis:
+  sequence:
+    1. "Google Sheets search_spreadsheets to find data"
+    2. "Google Sheets list_tables to discover structure"
+    3. "Google Sheets execute_sql for analysis"
+    4. "Memory MCP to store insights"
+    5. "Gmail MCP to send reports"
+
+---
+
+## 🚫 ANTI-PATTERNS (NEVER DO)
+
+never:
+  - "Read entire files when Serena can give you symbols"
+  - "Use grep/find in terminal when Serena search available"
+  - "Make assumptions about library APIs without Context7"
+  - "Forget to cite memory when using it [[memory:ID]]"
+  - "Use web search for code docs when Context7 available"
+  - "Navigate browser back/forth instead of using tabs"
+  - "Make sequential API calls when parallel is possible"
+  - "Hardcode values that should be in Memory MCP"
+  - "Skip browser console_messages check after interactions"
+  - "Forget to search_memories before storing new ones"
+  - "Start complex refactoring WITHOUT Sequential Thinking analysis"
+  - "Make architecture decisions without explicit reasoning chain"
+  - "Debug complex issues by guessing instead of systematic thinking"
+
+---
+
+## 📋 CHECKLIST: Before Every Major Task
+
+pre_task:
+  1: "COMPLEX TASK (>5 files/steps)? → Use Sequential Thinking MCP first"
+  2: "Search Memory MCP for relevant context and past reasoning chains"
+  3: "If library/framework involved → Context7 auto-invoke"
+  4: "If code navigation needed → Serena find_symbol/get_symbols_overview"
+  5: "If code editing → Serena replace_symbol_body/replace_content"
+  6: "If external research → Exa get_code_context_exa or web_search_exa"
+  7: "If testing needed → Browser MCP workflow"
+  8: "Store learnings → Memory MCP"
+  9: "Commit changes → GitHub MCP"
+
+post_task:
+  1: "Store important decisions + reasoning chains in Memory MCP"
+  2: "Verify no linter errors"
+  3: "Test with Browser MCP if web-related"
+  4: "Update documentation if needed"
+  5: "Commit with meaningful messages via GitHub MCP"
+  6: "If complex task: Store Sequential Thinking pattern for future reuse"
+
+---
+
+## 🎓 LEARNING LOOP
+
+continuous_improvement:
+  - "When user corrects approach → update Memory MCP immediately"
+  - "When discovering new pattern → store in Memory MCP"
+  - "When user provides preference → add_memory instantly"
+  - "When memory contradicted → delete_memory, not update"
+  - "Always cite memories used with [[memory:ID]]"
+
+---
+
+## 🔐 PROJECT-SPECIFIC RULES
+
+# ENV / CREDENTIALS RULE (MUST FOLLOW):
+credentials:
+  - "`functions/.env.local` is source of truth for all real credentials"
+  - "`functions/.env` is generated deployment file - regenerate from .env.local before deploy"
+  - "`functions/.env` must NOT contain FIREBASE_* or X_GOOGLE_* keys"
+  - "Before deploy: ensure .env.local → .env sync"
+  - "Never hardcode secrets in source files"
+  - "Never commit .env* files or service account JSON to Git"
+
+architecture:
+  modularity:
+    - "Always separate concerns: auth, data, API, UI, utils, types"
+    - "Favor composable functions and service classes"
+    - "No monolithic inline logic beyond 20 lines"
+  
+  best_practices:
+    - "Use framework-native security and linting tools"
+    - "Prefer stateless functions; avoid global mutable state"
+    - "Write self-documenting code; comments only for rationale"
+    - "Strict typing and input validation at every interface"
+  
+  code_style:
+    - "Adhere to Prettier + ESLint (or Black + Ruff for Python)"
+    - "Optimize imports and tree-shaking automatically"
+  
+  versioning:
+    - "Always fetch libraries via Context7 for latest stable releases"
+    - "Prefer pinned versions once tested in production"
+  
+  testing:
+    - "Include unit + integration tests in same PR"
+    - "Use Context7's test data sources instead of mock data"
+
+---
+
+## 🎯 FINAL MANDATE
+
+1. **THINK FIRST** - Sequential Thinking for complex/multi-step tasks
+2. **SERENA FIRST** for all code operations
+3. **CONTEXT7 AUTO** for all library/framework needs
+4. **PARALLEL ALWAYS** when operations are independent
+5. **MEMORY PERSISTENCE** for learnings, preferences, and reasoning chains
+6. **CITE MEMORIES** with [[memory:ID]] when using them
+7. **NEVER REDUNDANT** - cache, reuse, optimize
+8. **RIGHT TOOL, RIGHT JOB** - follow priority list
+9. **TEST WITH BROWSER** after web feature implementation
+10. **STORE LEARNINGS** in Memory MCP after tasks
+11. **GITHUB COMMIT** with meaningful messages
+12. **EXPLICIT REASONING** - document complex decisions with clear rationale
+
+---
+
+# These rules optimize AI assistant performance and user productivity
+# Last updated: 2025-12-23
+# MCP Servers Configured: 10 (Sequential Thinking, Serena, Context7, GitHub, Memory, Exa, Sheets*, Gmail*, Super*, Firestore)
+# Active MCP Servers: 7 (*, *, * disabled via Cursor UI toggle)
+# Serena requires Cursor restart to activate
+# Total Available Tools: 70+
+

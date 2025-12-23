@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    
+    <!-- DEBUG-ONLY: Ingest Test Harness Activity -->
+    <application>
+        <activity
+            android:name=".ui.IngestTestActivity"
+            android:label="@string/activity_ingest_test"
+            android:exported="false"
+            android:theme="@style/Theme.AlertsToSheets">
+            <!-- 
+                Intent action allows MainActivity to launch this without reflection.
+                NOT exported - only accessible within the app.
+                This intent-filter exists ONLY in debug builds.
+            -->
+            <intent-filter>
+                <action android:name="com.example.alertsheets.DEBUG_INGEST_TEST" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+    </application>
+    
+</manifest>
+

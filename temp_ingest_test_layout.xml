@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true"
+    android:background="#000000">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <!-- Header -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="🧪 Milestone 1 Test Harness"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:textColor="#FFFFFF"
+            android:gravity="center"
+            android:paddingBottom="8dp"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="E2E validation for ingestion pipeline"
+            android:textSize="14sp"
+            android:textColor="#AAAAAA"
+            android:gravity="center"
+            android:paddingBottom="24dp"/>
+
+        <!-- Queue Stats -->
+        <TextView
+            android:id="@+id/text_queue_stats"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="📊 Queue Stats:\nPending: 0\nOldest: N/A"
+            android:textSize="14sp"
+            android:textColor="#FFFFFF"
+            android:background="#222222"
+            android:padding="12dp"
+            android:layout_marginBottom="16dp"
+            android:fontFamily="monospace"/>
+
+        <!-- Test Buttons -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="🎯 4 Critical Tests"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="#FFFFFF"
+            android:paddingBottom="12dp"/>
+
+        <Button
+            android:id="@+id/button_test1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="TEST 1: Happy Path\n(Enqueue → Ingest → Firestore)"
+            android:textSize="14sp"
+            android:backgroundTint="#4CAF50"
+            android:textColor="#FFFFFF"
+            android:layout_marginBottom="8dp"
+            android:minHeight="60dp"/>
+
+        <Button
+            android:id="@+id/button_test2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="TEST 2: Network Outage\n(Airplane mode → Retry → Success)"
+            android:textSize="14sp"
+            android:backgroundTint="#FF9800"
+            android:textColor="#FFFFFF"
+            android:layout_marginBottom="8dp"
+            android:minHeight="60dp"/>
+
+        <Button
+            android:id="@+id/button_test3"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="TEST 3: Crash Recovery\n(Kill app → Restart → Resume)"
+            android:textSize="14sp"
+            android:backgroundTint="#F44336"
+            android:textColor="#FFFFFF"
+            android:layout_marginBottom="8dp"
+            android:minHeight="60dp"/>
+
+        <Button
+            android:id="@+id/button_test4"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="TEST 4: Deduplication\n(Same UUID twice → One record)"
+            android:textSize="14sp"
+            android:backgroundTint="#2196F3"
+            android:textColor="#FFFFFF"
+            android:layout_marginBottom="16dp"
+            android:minHeight="60dp"/>
+
+        <!-- Force Fail Modes (Future) -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="⚙️ Force Fail Modes (Disabled)"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="#888888"
+            android:paddingBottom="8dp"/>
+
+        <Switch
+            android:id="@+id/switch_force_fail_network"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Force Network Failure"
+            android:textColor="#888888"
+            android:enabled="false"
+            android:layout_marginBottom="4dp"/>
+
+        <Switch
+            android:id="@+id/switch_force_fail_auth"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Force Auth Failure"
+            android:textColor="#888888"
+            android:enabled="false"
+            android:layout_marginBottom="16dp"/>
+
+        <!-- Utility Buttons -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="16dp">
+
+            <Button
+                android:id="@+id/button_clear_logs"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Clear Logs"
+                android:textSize="12sp"
+                android:backgroundTint="#666666"
+                android:layout_marginEnd="8dp"/>
+
+            <Button
+                android:id="@+id/button_clear_queue"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Clear Queue"
+                android:textSize="12sp"
+                android:backgroundTint="#666666"/>
+        </LinearLayout>
+
+        <!-- Logs -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="📋 Test Logs"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="#FFFFFF"
+            android:paddingBottom="8dp"/>
+
+        <ScrollView
+            android:id="@+id/scroll_logs"
+            android:layout_width="match_parent"
+            android:layout_height="300dp"
+            android:background="#1A1A1A"
+            android:padding="12dp">
+
+            <TextView
+                android:id="@+id/text_logs"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Waiting for tests..."
+                android:textSize="12sp"
+                android:textColor="#00FF00"
+                android:fontFamily="monospace"
+                android:lineSpacingExtra="4dp"/>
+        </ScrollView>
+
+    </LinearLayout>
+</ScrollView>
+

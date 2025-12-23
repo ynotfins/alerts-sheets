@@ -16,7 +16,9 @@
     <color name="oneui_accent_orange">#FF9F0A</color>
     <color name="oneui_accent_purple">#BF5AF2</color>
     <color name="oneui_accent_red">#FF453A</color>
+    <color name="oneui_accent_yellow">#FFD60A</color>
     <color name="oneui_background_dark">#000000</color>
+    <color name="oneui_bg_black">#000000</color>
     <color name="oneui_black">#000000</color>
     <color name="oneui_card">#1C1C1E</color>
     <color name="oneui_card_dark">#1C1C1E</color>
@@ -67,15 +69,42 @@
     <dimen name="text_title">20sp</dimen>
     <item name="radio_app" type="id"/>
     <item name="radio_sms" type="id"/>
-    <string name="accessibility_button">Enable Accessibility</string>
-    <string name="accessibility_service_description">Reads notifications to send to Google Sheets.</string>
+    <string name="accessibility_service_description">AlertsToSheets monitors notifications to forward them to configured endpoints</string>
+    <string name="activity_apps_list">Select Apps to Monitor</string>
+    <string name="activity_ingest_test">Ingest Test Harness (DEBUG ONLY)</string>
+    <string name="activity_lab">Lab - Source Configuration</string>
+    <string name="activity_log">Activity Log</string>
+    <string name="activity_main">AlertsToSheets</string>
+    <string name="activity_sms_config">Configure SMS Sources</string>
+    <string name="activity_source_config">Source Configuration</string>
     <string name="app_name">AlertsToSheets</string>
-    <string name="battery_button">Ignore Battery Opt</string>
-    <string name="permission_button">Grant Notification Permission</string>
-    <string name="save_button">Save URL</string>
-    <string name="service_name">Alerts Listener Service</string>
-    <string name="status_label">Status:</string>
-    <string name="url_hint">Google Apps Script Web App URL</string>
+    <string name="cancel">Cancel</string>
+    <string name="delete">Delete</string>
+    <string name="dev_mode_disabled">Developer mode disabled</string>
+    <string name="dev_mode_enabled">Developer mode enabled</string>
+    <string name="disable">Disable</string>
+    <string name="edit">Edit</string>
+    <string name="enable">Enable</string>
+    <string name="error_generic">An error occurred. Please try again.</string>
+    <string name="error_invalid_json">Invalid JSON format.</string>
+    <string name="error_network">Network error. Check your connection.</string>
+    <string name="error_no_endpoints">No endpoints configured. Please add at least one endpoint.</string>
+    <string name="firebase_functions_region">us-central1</string>
+    <string name="gcm_defaultSenderId" translatable="false">1043855657506</string>
+    <string name="google_api_key" translatable="false">AIzaSyDZYsaMFC5YaQxNGkAHyPrsdJDncinNVyw</string>
+    <string name="google_app_id" translatable="false">1:1043855657506:android:ee06d23a78c0b6a326587b</string>
+    <string name="google_crash_reporting_api_key" translatable="false">AIzaSyDZYsaMFC5YaQxNGkAHyPrsdJDncinNVyw</string>
+    <string name="google_storage_bucket" translatable="false">alerts-sheets-bb09c.firebasestorage.app</string>
+    <string name="notification_access_required">Notification access is required to monitor app notifications.</string>
+    <string name="notification_listener_service_label">AlertsToSheets Notification Listener</string>
+    <string name="project_id" translatable="false">alerts-sheets-bb09c</string>
+    <string name="save">Save</string>
+    <string name="send">Send</string>
+    <string name="sms_permission_required">SMS permission is required to monitor text messages.</string>
+    <string name="success_deleted">Deleted successfully</string>
+    <string name="success_saved">Saved successfully</string>
+    <string name="success_sent">Sent successfully</string>
+    <string name="test">Test</string>
     <style name="Theme.AlertsToSheets" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         
         <item name="colorPrimary">@color/vibrant_blue</item>

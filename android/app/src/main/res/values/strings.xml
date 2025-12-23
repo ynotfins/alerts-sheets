@@ -1,11 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">AlertsToSheets</string>
-    <string name="service_name">Alerts Listener Service</string>
-    <string name="url_hint">Google Apps Script Web App URL</string>
-    <string name="permission_button">Grant Notification Permission</string>
-    <string name="save_button">Save URL</string>
-    <string name="status_label">Status:</string>
-    <string name="accessibility_service_description">Reads notifications to send to Google Sheets.</string>
-    <string name="battery_button">Ignore Battery Opt</string>
-    <string name="accessibility_button">Enable Accessibility</string>
+    
+    <!-- Firebase Configuration -->
+    <string name="firebase_functions_region">us-central1</string>
+    
+    <!-- Notification Listener Service -->
+    <string name="notification_listener_service_label">AlertsToSheets Notification Listener</string>
+    
+    <!-- Permissions -->
+    <string name="notification_access_required">Notification access is required to monitor app notifications.</string>
+    <string name="sms_permission_required">SMS permission is required to monitor text messages.</string>
+    
+    <!-- Activity Titles -->
+    <string name="activity_main">AlertsToSheets</string>
+    <string name="activity_apps_list">Select Apps to Monitor</string>
+    <string name="activity_sms_config">Configure SMS Sources</string>
+    <string name="activity_log">Activity Log</string>
+    <string name="activity_lab">Lab - Source Configuration</string>
+    <string name="activity_source_config">Source Configuration</string>
+    <string name="activity_ingest_test">Ingest Test Harness (DEBUG ONLY)</string>
+    
+    <!-- Accessibility Service -->
+    <string name="accessibility_service_description">AlertsToSheets monitors notifications to forward them to configured endpoints</string>
+    
+    <!-- Button Labels -->
+    <string name="save">Save</string>
+    <string name="cancel">Cancel</string>
+    <string name="delete">Delete</string>
+    <string name="edit">Edit</string>
+    <string name="test">Test</string>
+    <string name="send">Send</string>
+    <string name="enable">Enable</string>
+    <string name="disable">Disable</string>
+    
+    <!-- Error Messages -->
+    <string name="error_generic">An error occurred. Please try again.</string>
+    <string name="error_network">Network error. Check your connection.</string>
+    <string name="error_invalid_json">Invalid JSON format.</string>
+    <string name="error_no_endpoints">No endpoints configured. Please add at least one endpoint.</string>
+    
+    <!-- Success Messages -->
+    <string name="success_saved">Saved successfully</string>
+    <string name="success_deleted">Deleted successfully</string>
+    <string name="success_sent">Sent successfully</string>
+    
+    <!-- Developer Options -->
+    <string name="dev_mode_enabled">Developer mode enabled</string>
+    <string name="dev_mode_disabled">Developer mode disabled</string>
 </resources>

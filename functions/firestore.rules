@@ -1,0 +1,172 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // ============================================================================
+    // HELPER FUNCTIONS
+    // ============================================================================
+    
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    function isValidTimestamp(ts) {
+      return ts is timestamp;
+    }
+    
+    function isValidUUID(uuid) {
+      // Basic UUID format validation (8-4-4-4-12 hex characters)
+      return uuid is string && uuid.matches('^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$');
+    }
+    
+    // ============================================================================
+    // EVENTS COLLECTION (CANONICAL DATA)
+    // ============================================================================
+    
+    match /events/{eventId} {
+      // Allow CREATE: User can write their own events
+      allow create: if isAuthenticated() 
+                    && isValidUUID(eventId)
+                    && request.resource.data.userId == request.auth.uid
+                    && request.resource.data.uuid == eventId
+                    && request.resource.data.keys().hasAll(['uuid', 'sourceId', 'payload', 'timestamp', 'userId'])
+                    && request.resource.data.deliveryStatus == 'PENDING';
+      
+      // Allow READ: User can read their own events
+      allow read: if isAuthenticated() 
+                  && resource.data.userId == request.auth.uid;
+      
+      // DENY UPDATE: Events are immutable after creation
+      allow update: if false;
+      
+      // DENY DELETE: Events are never deleted (soft delete only via admin)
+      allow delete: if false;
+      
+      // ============================================================================
+      // DELIVERY RECEIPTS SUBCOLLECTION (APPEND-ONLY)
+      // ============================================================================
+      
+      match /deliveryReceipts/{receiptId} {
+        // Allow CREATE: Server-only (Cloud Function with service account)
+        // Client CANNOT write delivery receipts
+        allow create: if false;
+        
+        // Allow READ: User can read their event's receipts
+        allow read: if isAuthenticated() 
+                    && get(/databases/$(database)/documents/events/$(eventId)).data.userId == request.auth.uid;
+        
+        // DENY UPDATE: Receipts are immutable
+        allow update: if false;
+        
+        // DENY DELETE: Receipts are permanent audit trail
+        allow delete: if false;
+      }
+    }
+    
+    // ============================================================================
+    // SOURCES COLLECTION (USER CONFIGURATION)
+    // ============================================================================
+    
+    match /sources/{sourceId} {
+      // Allow CREATE: User can create their own sources
+      allow create: if isAuthenticated()
+                    && request.resource.data.userId == request.auth.uid
+                    && request.resource.data.keys().hasAll(['userId', 'name', 'sourceType', 'enabled']);
+      
+      // Allow READ: User can read their own sources
+      allow read: if isAuthenticated() 
+                  && resource.data.userId == request.auth.uid;
+      
+      // Allow UPDATE: User can update their own sources
+      allow update: if isAuthenticated()
+                    && resource.data.userId == request.auth.uid
+                    && request.resource.data.userId == request.auth.uid;
+      
+      // Allow DELETE: User can delete their own sources
+      allow delete: if isAuthenticated()
+                    && resource.data.userId == request.auth.uid;
+    }
+    
+    // ============================================================================
+    // ENDPOINTS COLLECTION (USER CONFIGURATION)
+    // ============================================================================
+    
+    match /endpoints/{endpointId} {
+      // Allow CREATE: User can create their own endpoints
+      allow create: if isAuthenticated()
+                    && request.resource.data.userId == request.auth.uid
+                    && request.resource.data.keys().hasAll(['userId', 'name', 'url', 'enabled']);
+      
+      // Allow READ: User can read their own endpoints
+      allow read: if isAuthenticated() 
+                  && resource.data.userId == request.auth.uid;
+      
+      // Allow UPDATE: User can update their own endpoints
+      // BUT: Stats can only be updated by server (atomic increment)
+      allow update: if isAuthenticated()
+                    && resource.data.userId == request.auth.uid
+                    && request.resource.data.userId == request.auth.uid;
+      
+      // Allow DELETE: User can delete their own endpoints
+      allow delete: if isAuthenticated()
+                    && resource.data.userId == request.auth.uid;
+    }
+    
+    // ============================================================================
+    // TEMPLATES COLLECTION (USER CONFIGURATION)
+    // ============================================================================
+    
+    match /templates/{templateId} {
+      // Allow CREATE: User can create their own templates
+      allow create: if isAuthenticated()
+                    && request.resource.data.userId == request.auth.uid
+                    && request.resource.data.keys().hasAll(['userId', 'name', 'json']);
+      
+      // Allow READ: User can read their own templates
+      allow read: if isAuthenticated() 
+                  && resource.data.userId == request.auth.uid;
+      
+      // Allow UPDATE: User can update their own templates
+      allow update: if isAuthenticated()
+                    && resource.data.userId == request.auth.uid
+                    && request.resource.data.userId == request.auth.uid;
+      
+      // Allow DELETE: User can delete their own templates
+      allow delete: if isAuthenticated()
+                    && resource.data.userId == request.auth.uid;
+    }
+    
+    // ============================================================================
+    // FANOUT RULES COLLECTION (ADMIN-ONLY)
+    // ============================================================================
+    
+    match /fanoutRules/{ruleId} {
+      // DENY ALL CLIENT ACCESS: Admin-only (managed via Firebase Console)
+      allow read, write: if false;
+    }
+    
+    // ============================================================================
+    // SYSTEM CONFIGURATION (ADMIN-ONLY)
+    // ============================================================================
+    
+    match /_system/{document=**} {
+      // DENY ALL CLIENT ACCESS: Admin-only
+      allow read, write: if false;
+    }
+    
+    // ============================================================================
+    // DEFAULT DENY
+    // ============================================================================
+    
+    // Deny all other paths
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
+

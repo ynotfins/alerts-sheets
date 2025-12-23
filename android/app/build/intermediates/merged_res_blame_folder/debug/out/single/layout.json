@@ -1,90 +1,94 @@
 [
     {
-        "merged": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-mergeDebugResources-31:\\layout\\item_log.xml",
-        "source": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-main-34:\\layout\\item_log.xml"
+        "merged": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-mergeDebugResources-39:\\layout\\activity_ingest_test.xml",
+        "source": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-debug-41:\\layout\\activity_ingest_test.xml"
     },
     {
-        "merged": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-mergeDebugResources-31:\\layout\\item_sms_target.xml",
-        "source": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-main-34:\\layout\\item_sms_target.xml"
+        "merged": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-mergeDebugResources-39:\\layout\\dialog_edit_source.xml",
+        "source": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-main-42:\\layout\\dialog_edit_source.xml"
     },
     {
-        "merged": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-mergeDebugResources-31:\\layout\\activity_main_dashboard.xml",
-        "source": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-main-34:\\layout\\activity_main_dashboard.xml"
+        "merged": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-mergeDebugResources-39:\\layout\\item_log.xml",
+        "source": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-main-42:\\layout\\item_log.xml"
     },
     {
-        "merged": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-mergeDebugResources-31:\\layout\\activity_main.xml",
-        "source": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-main-34:\\layout\\activity_main.xml"
+        "merged": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-mergeDebugResources-39:\\layout\\activity_log.xml",
+        "source": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-main-42:\\layout\\activity_log.xml"
     },
     {
-        "merged": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-mergeDebugResources-31:\\layout\\dialog_create_source.xml",
-        "source": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-main-34:\\layout\\dialog_create_source.xml"
+        "merged": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-mergeDebugResources-39:\\layout\\dialog_add_mapping.xml",
+        "source": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-main-42:\\layout\\dialog_add_mapping.xml"
     },
     {
-        "merged": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-mergeDebugResources-31:\\layout\\dialog_add_endpoint.xml",
-        "source": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-main-34:\\layout\\dialog_add_endpoint.xml"
+        "merged": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-mergeDebugResources-39:\\layout\\item_mapping.xml",
+        "source": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-main-42:\\layout\\item_mapping.xml"
     },
     {
-        "merged": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-mergeDebugResources-31:\\layout\\dialog_add_sms.xml",
-        "source": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-main-34:\\layout\\dialog_add_sms.xml"
+        "merged": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-mergeDebugResources-39:\\layout\\activity_lab.xml",
+        "source": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-main-42:\\layout\\activity_lab.xml"
     },
     {
-        "merged": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-mergeDebugResources-31:\\layout\\item_dashboard_source_card.xml",
-        "source": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-main-34:\\layout\\item_dashboard_source_card.xml"
+        "merged": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-mergeDebugResources-39:\\layout\\item_dashboard_source_card.xml",
+        "source": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-main-42:\\layout\\item_dashboard_source_card.xml"
     },
     {
-        "merged": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-mergeDebugResources-31:\\layout\\dialog_sms_source.xml",
-        "source": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-main-34:\\layout\\dialog_sms_source.xml"
+        "merged": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-mergeDebugResources-39:\\layout\\dialog_sms_source.xml",
+        "source": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-main-42:\\layout\\dialog_sms_source.xml"
     },
     {
-        "merged": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-mergeDebugResources-31:\\layout\\item_configured_app.xml",
-        "source": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-main-34:\\layout\\item_configured_app.xml"
+        "merged": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-mergeDebugResources-39:\\layout\\activity_sms_config.xml",
+        "source": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-main-42:\\layout\\activity_sms_config.xml"
     },
     {
-        "merged": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-mergeDebugResources-31:\\layout\\activity_app_config.xml",
-        "source": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-main-34:\\layout\\activity_app_config.xml"
+        "merged": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-mergeDebugResources-39:\\layout\\activity_main.xml",
+        "source": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-main-42:\\layout\\activity_main.xml"
     },
     {
-        "merged": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-mergeDebugResources-31:\\layout\\dialog_edit_source.xml",
-        "source": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-main-34:\\layout\\dialog_edit_source.xml"
+        "merged": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-mergeDebugResources-39:\\layout\\item_sms_target.xml",
+        "source": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-main-42:\\layout\\item_sms_target.xml"
     },
     {
-        "merged": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-mergeDebugResources-31:\\layout\\item_endpoint.xml",
-        "source": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-main-34:\\layout\\item_endpoint.xml"
+        "merged": "com.example.alertsheets.app-mergeDebugResources-39:/layout/activity_ingest_test.xml",
+        "source": "com.example.alertsheets.app-debug-41:/layout/activity_ingest_test.xml"
     },
     {
-        "merged": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-mergeDebugResources-31:\\layout\\activity_sms_config.xml",
-        "source": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-main-34:\\layout\\activity_sms_config.xml"
+        "merged": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-mergeDebugResources-39:\\layout\\activity_source_config.xml",
+        "source": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-main-42:\\layout\\activity_source_config.xml"
     },
     {
-        "merged": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-mergeDebugResources-31:\\layout\\item_source.xml",
-        "source": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-main-34:\\layout\\item_source.xml"
+        "merged": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-mergeDebugResources-39:\\layout\\item_endpoint.xml",
+        "source": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-main-42:\\layout\\item_endpoint.xml"
     },
     {
-        "merged": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-mergeDebugResources-31:\\layout\\dialog_add_mapping.xml",
-        "source": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-main-34:\\layout\\dialog_add_mapping.xml"
+        "merged": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-mergeDebugResources-39:\\layout\\activity_main_dashboard.xml",
+        "source": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-main-42:\\layout\\activity_main_dashboard.xml"
     },
     {
-        "merged": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-mergeDebugResources-31:\\layout\\activity_lab.xml",
-        "source": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-main-34:\\layout\\activity_lab.xml"
+        "merged": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-mergeDebugResources-39:\\layout\\item_configured_app.xml",
+        "source": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-main-42:\\layout\\item_configured_app.xml"
     },
     {
-        "merged": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-mergeDebugResources-31:\\layout\\item_mapping.xml",
-        "source": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-main-34:\\layout\\item_mapping.xml"
+        "merged": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-mergeDebugResources-39:\\layout\\dialog_add_sms.xml",
+        "source": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-main-42:\\layout\\dialog_add_sms.xml"
     },
     {
-        "merged": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-mergeDebugResources-31:\\layout\\activity_log.xml",
-        "source": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-main-34:\\layout\\activity_log.xml"
+        "merged": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-mergeDebugResources-39:\\layout\\dialog_add_endpoint.xml",
+        "source": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-main-42:\\layout\\dialog_add_endpoint.xml"
     },
     {
-        "merged": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-mergeDebugResources-31:\\layout\\activity_apps_list.xml",
-        "source": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-main-34:\\layout\\activity_apps_list.xml"
+        "merged": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-mergeDebugResources-39:\\layout\\activity_apps_list.xml",
+        "source": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-main-42:\\layout\\activity_apps_list.xml"
     },
     {
-        "merged": "com.example.alertsheets.app-mergeDebugResources-31:/layout/activity_main_dashboard.xml",
-        "source": "com.example.alertsheets.app-main-34:/layout/activity_main_dashboard.xml"
+        "merged": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-mergeDebugResources-39:\\layout\\activity_app_config.xml",
+        "source": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-main-42:\\layout\\activity_app_config.xml"
     },
     {
-        "merged": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-mergeDebugResources-31:\\layout\\activity_source_config.xml",
-        "source": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-main-34:\\layout\\activity_source_config.xml"
+        "merged": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-mergeDebugResources-39:\\layout\\dialog_create_source.xml",
+        "source": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-main-42:\\layout\\dialog_create_source.xml"
+    },
+    {
+        "merged": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-mergeDebugResources-39:\\layout\\item_source.xml",
+        "source": "C:\\Users\\ynotf\\.gradle\\daemon\\8.7\\com.example.alertsheets.app-main-42:\\layout\\item_source.xml"
     }
 ]

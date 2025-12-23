@@ -1,5 +1,6 @@
 apply plugin: 'com.android.application'
 apply plugin: 'org.jetbrains.kotlin.android'
+apply plugin: 'com.google.gms.google-services'
 // apply plugin: 'kotlin-kapt'
 
 android {
@@ -17,7 +18,19 @@ android {
     }
 
     buildTypes {
+        debug {
+            // Debug uses production Cloud Functions (for real testing)
+            buildConfigField "String", "INGEST_ENDPOINT", '"https://us-central1-alerts-sheets-bb09c.cloudfunctions.net/ingest"'
+            buildConfigField "String", "ENVIRONMENT", '"debug"'
+            
+            // Uncomment to use local emulator:
+            // buildConfigField "String", "INGEST_ENDPOINT", '"http://10.0.2.2:5001/alerts-sheets-bb09c/us-central1/ingest"'
+        }
+        
         release {
+            buildConfigField "String", "INGEST_ENDPOINT", '"https://us-central1-alerts-sheets-bb09c.cloudfunctions.net/ingest"'
+            buildConfigField "String", "ENVIRONMENT", '"release"'
+            
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
@@ -31,10 +44,17 @@ android {
     }
     buildFeatures {
         viewBinding true
+        buildConfig true
     }
 }
 
 dependencies {
+    // Firebase
+    implementation platform('com.google.firebase:firebase-bom:32.7.0')
+    implementation 'com.google.firebase:firebase-auth-ktx'
+    implementation 'com.google.firebase:firebase-firestore-ktx'
+    implementation 'com.google.firebase:firebase-analytics-ktx'
+    
     implementation 'androidx.core:core-ktx:1.12.0'
     implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'com.google.android.material:material:1.11.0'

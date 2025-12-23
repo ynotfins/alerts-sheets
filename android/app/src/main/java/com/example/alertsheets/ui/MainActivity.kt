@@ -7,7 +7,14 @@ import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
-import com.example.alertsheets.*
+import com.example.alertsheets.BuildConfig
+import com.example.alertsheets.R
+import com.example.alertsheets.LabActivity
+import com.example.alertsheets.PermissionsActivity
+import com.example.alertsheets.LogActivity
+import com.example.alertsheets.LogEntry
+import com.example.alertsheets.LogRepository
+import com.example.alertsheets.LogStatus
 import com.example.alertsheets.data.repositories.EndpointRepository
 import com.example.alertsheets.domain.SourceManager
 import com.example.alertsheets.domain.models.Source
@@ -72,6 +79,26 @@ class MainActivity : AppCompatActivity() {
         // Logs card
         findViewById<FrameLayout>(R.id.card_logs).setOnClickListener {
             startActivity(Intent(this, LogActivity::class.java))
+        }
+        
+        // DEBUG ONLY: Test Harness accessible via intent action (no reflection)
+        // The intent action exists ONLY in debug/AndroidManifest.xml
+        // Release builds will have no matching activity, so this safely does nothing
+        if (BuildConfig.DEBUG) {
+            try {
+                val intent = Intent("com.example.alertsheets.DEBUG_INGEST_TEST")
+                intent.setPackage(packageName)
+                
+                // Verify activity exists (debug-only)
+                if (packageManager.resolveActivity(intent, 0) != null) {
+                    // Successfully found test harness
+                    // You can optionally add a visible UI card here if desired
+                    // For now, just log availability
+                    android.util.Log.i("MainActivity", "✅ Test harness available in debug build")
+                }
+            } catch (e: Exception) {
+                // Test harness not available (expected in release)
+            }
         }
     }
     

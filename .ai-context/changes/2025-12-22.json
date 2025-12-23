@@ -1,25 +1,107 @@
 {
-  "timestamp": "2025-12-22_17-59-24",
-  "commit": "85e5f45799b9593bc944f6bef8ba02c808247ad8",
-  "message": "fix: correct 'Include system apps' filter logic
+  "timestamp": "2025-12-22_19-10-44",
+  "commit": "559a1cba54c53d239727a1a36c3db8d0cb699101",
+  "message": "fix: add endpoint management access to Lab activity
 
-ISSUE: Checkbox behavior was inverted
-- Checked: showed ONLY system apps (excluded user apps)
-- Unchecked: showed ONLY user apps
+ISSUE: No way to create/edit endpoints from Lab activity
+- User stuck if no endpoints exist
+- Endpoint spinner shows empty list
+- No UI path to EndpointActivity from new dashboard
 
 FIXED:
-- Unchecked: show user apps only (default)
-- Checked: show user apps + system apps (all)
+- Added '+ Manage' button next to endpoint spinner
+- Button opens EndpointActivity for full endpoint CRUD
+- Updated loadEndpoints() to show helpful message instead of finish()
+- Added onResume() to reload endpoints when returning
 
-Lines 224-235: simplified to single condition
-Lines 256-269: updated BNN diagnostic logs
+CHANGES:
+- activity_lab.xml: endpoint spinner now in horizontal layout with button
+- LabActivity.kt: btnManageEndpoints button + listener + onResume()
 
-VERIFY:
-- Open App Sources list
-- Default view: user apps visible, BNN visible
-- Check 'Include system': more apps appear, BNN still visible
-- Search: works on both filtered sets",
+Lines changed:
+- activity_lab.xml:191-211 (endpoint selector + manage button)
+- LabActivity.kt:45,112,133,187,205 (button wiring + reload)
+
+USER FLOW:
+1. Open Lab
+2. No endpoints? Click '+ Manage'
+3. Add endpoint with name + URL
+4. Return to Lab → endpoint appears in spinner
+5. Create source successfully",
   "files_changed": [
-    "android/app/src/main/java/com/example/alertsheets/AppsListActivity.kt"
+    ".ai-context/changes/2025-12-22.json",
+    "UI_REDESIGN_COMPLETE.md",
+    "VERIFICATION_CHECKLIST.md",
+    "android/.gradle/8.7/executionHistory/executionHistory.bin",
+    "android/.gradle/8.7/executionHistory/executionHistory.lock",
+    "android/.gradle/8.7/fileHashes/fileHashes.bin",
+    "android/.gradle/8.7/fileHashes/fileHashes.lock",
+    "android/.gradle/8.7/fileHashes/resourceHashesCache.bin",
+    "android/.gradle/buildOutputCleanup/buildOutputCleanup.lock",
+    "android/.gradle/file-system.probe",
+    "android/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar",
+    "android/app/build/intermediates/dex/debug/mergeProjectDexDebug/0/classes.dex",
+    "android/app/build/intermediates/dex/debug/mergeProjectDexDebug/4/classes.dex",
+    "android/app/build/intermediates/dex/debug/mergeProjectDexDebug/5/classes.dex",
+    "android/app/build/intermediates/dex_archive_input_jar_hashes/debug/out",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/compile-file-map.properties",
+    "android/app/build/intermediates/incremental/debug/packageDebugResources/compile-file-map.properties",
+    "android/app/build/intermediates/incremental/packageDebug/tmp/debug/dex-renamer-state.txt",
+    "android/app/build/intermediates/incremental/packageDebug/tmp/debug/zip-cache/androidResources",
+    "android/app/build/intermediates/local_only_symbol_list/debug/R-def.txt",
+    "android/app/build/intermediates/merged_res_blame_folder/debug/out/single/debug.json",
+    "android/app/build/intermediates/merged_res_blame_folder/debug/out/single/layout.json",
+    "android/app/build/intermediates/processed_res/debug/out/resources-debug.ap_",
+    "android/app/build/intermediates/project_dex_archive/debug/out/com/example/alertsheets/AppsListActivity$onCreate$1$apps$1.dex",
+    "android/app/build/intermediates/project_dex_archive/debug/out/com/example/alertsheets/AppsListActivity$onCreate$1.dex",
+    "android/app/build/intermediates/project_dex_archive/debug/out/com/example/alertsheets/AppsListActivity.dex",
+    "android/app/build/intermediates/runtime_symbol_list/debug/R.txt",
+    "android/app/build/intermediates/stable_resource_ids_file/debug/stableIds.txt",
+    "android/app/build/intermediates/symbol_list_with_package_name/debug/package-aware-r.txt",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/inputs/source-to-output.tab",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/inputs/source-to-output.tab.values.at",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/class-attributes.tab",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/class-attributes.tab.values.at",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/class-fq-name-to-source.tab",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/class-fq-name-to-source.tab.values.at",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/internal-name-to-source.tab",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/internal-name-to-source.tab.values.at",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/proto.tab",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/proto.tab.values",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/proto.tab.values.at",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/proto.tab.values.s",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/source-to-classes.tab",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/source-to-classes.tab.values.at",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/subtypes.tab",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/subtypes.tab.values.at",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/supertypes.tab",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/supertypes.tab.values.at",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/lookups/counters.tab",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/lookups/file-to-id.tab",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/lookups/file-to-id.tab.values.at",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/lookups/id-to-file.tab",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/lookups/id-to-file.tab.keystream",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/lookups/id-to-file.tab.keystream.len",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/lookups/id-to-file.tab.len",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/lookups/id-to-file.tab.values.at",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/lookups/id-to-file.tab_i",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/lookups/lookups.tab",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/lookups/lookups.tab.keystream",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/lookups/lookups.tab.keystream.len",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/lookups/lookups.tab.len",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/lookups/lookups.tab.values",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/lookups/lookups.tab.values.at",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/lookups/lookups.tab.values.s",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/lookups/lookups.tab_i",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/last-build.bin",
+    "android/app/build/kotlin/compileDebugKotlin/classpath-snapshot/shrunk-classpath-snapshot.bin",
+    "android/app/build/kotlin/compileDebugKotlin/local-state/build-history.bin",
+    "android/app/build/outputs/apk/debug/app-debug.apk",
+    "android/app/build/tmp/compileDebugJavaWithJavac/previous-compilation-data.bin",
+    "android/app/build/tmp/kotlin-classes/debug/com/example/alertsheets/AppsListActivity$onCreate$1$apps$1.class",
+    "android/app/build/tmp/kotlin-classes/debug/com/example/alertsheets/AppsListActivity$onCreate$1.class",
+    "android/app/build/tmp/kotlin-classes/debug/com/example/alertsheets/AppsListActivity.class",
+    "android/app/src/main/java/com/example/alertsheets/LabActivity.kt",
+    "android/app/src/main/res/layout/activity_lab.xml"
   ]
 }

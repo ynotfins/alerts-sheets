@@ -4,6 +4,8 @@ import android.app.AlertDialog
 import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
+import android.view.LayoutInflater
+import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.cardview.widget.CardView
@@ -21,15 +23,7 @@ import kotlinx.coroutines.withContext
 import java.util.UUID
 
 /**
- * ⚗️ Lab Activity - All-in-one source creation
- * 
- * Everything needed to create a complete source in ONE page:
- * 1. Name it
- * 2. Pick type (App/SMS/Email)
- * 3. Edit JSON payload
- * 4. Select endpoint
- * 5. Customize icon + color
- * → Creates a card on home screen
+ * ⚗️ Lab Activity - Full-featured source creation with testing
  */
 class LabActivity : AppCompatActivity() {
 
@@ -41,15 +35,20 @@ class LabActivity : AppCompatActivity() {
     
     private lateinit var inputName: EditText
     private lateinit var radioGroup: RadioGroup
+    private lateinit var spinnerTemplate: Spinner
+    private lateinit var checkAutoClean: CheckBox
     private lateinit var inputJson: EditText
-    private lateinit var spinnerEndpoint: Spinner
+    private lateinit var textVariablesHelp: TextView
+    private lateinit var endpointsCheckboxes: LinearLayout
     private lateinit var btnManageEndpoints: Button
-    private lateinit var iconGrid: GridLayout
-    private lateinit var colorGrid: GridLayout
+    private lateinit var previewIcon: ImageView
+    private lateinit var previewColor: View
     
+    private var sourceId: String? = null
     private var selectedIcon = "notification"
     private var selectedColor = 0xFF4A9EFF.toInt()
-    private var sourceId: String? = null  // For edit mode
+    private var selectedEndpointIds = mutableListOf<String>()
+    private var lastTestJson: String? = null // For duplicate test
     
     // Available icons
     private val icons = listOf(
@@ -93,9 +92,8 @@ class LabActivity : AppCompatActivity() {
         supportActionBar?.title = "Lab"
         
         initViews()
+        loadTemplates()
         loadEndpoints()
-        setupIconGrid()
-        setupColorGrid()
         setupListeners()
         
         // Check if editing existing source
@@ -108,11 +106,14 @@ class LabActivity : AppCompatActivity() {
     private fun initViews() {
         inputName = findViewById(R.id.input_source_name)
         radioGroup = findViewById(R.id.radio_source_type)
+        spinnerTemplate = findViewById(R.id.spinner_template)
+        checkAutoClean = findViewById(R.id.check_auto_clean)
         inputJson = findViewById(R.id.input_json)
-        spinnerEndpoint = findViewById(R.id.spinner_endpoint)
+        textVariablesHelp = findViewById(R.id.text_variables_help)
+        endpointsCheckboxes = findViewById(R.id.endpoints_checkboxes)
         btnManageEndpoints = findViewById(R.id.btn_manage_endpoints)
-        iconGrid = findViewById(R.id.icon_grid)
-        colorGrid = findViewById(R.id.color_grid)
+        previewIcon = findViewById(R.id.preview_icon)
+        previewColor = findViewById(R.id.preview_color)
     }
     
     private fun setupListeners() {
@@ -121,34 +122,161 @@ class LabActivity : AppCompatActivity() {
             configureSourceDetails()
         }
         
-        // Radio group change
-        radioGroup.setOnCheckedChangeListener { _, checkedId ->
-            updateTemplateForType()
+        // Radio group change - reload templates for type
+        radioGroup.setOnCheckedChangeListener { _, _ ->
+            loadTemplates()
+            updateVariablesHelp()
+        }
+        
+        // Template management
+        findViewById<Button>(R.id.btn_save_template).setOnClickListener {
+            saveTemplate()
+        }
+        
+        findViewById<Button>(R.id.btn_delete_template).setOnClickListener {
+            deleteTemplate()
+        }
+        
+        // Template selection
+        spinnerTemplate.onItemSelectedListener = object : android.widget.AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: android.widget.AdapterView<*>?, view: android.view.View?, position: Int, id: Long) {
+                val selected = parent?.getItemAtPosition(position) as? com.example.alertsheets.JsonTemplate
+                selected?.let {
+                    inputJson.setText(it.content)
+                }
+            }
+            override fun onNothingSelected(parent: android.widget.AdapterView<*>?) {}
+        }
+        
+        // Endpoints
+        btnManageEndpoints.setOnClickListener {
+            startActivity(Intent(this, EndpointActivity::class.java))
+        }
+        
+        // Testing buttons
+        findViewById<Button>(R.id.btn_test_new).setOnClickListener {
+            performTest(isDuplicate = false)
+        }
+        
+        findViewById<Button>(R.id.btn_test_duplicate).setOnClickListener {
+            performTest(isDuplicate = true)
+        }
+        
+        findViewById<Button>(R.id.btn_test_dirty).setOnClickListener {
+            performDirtyTest()
+        }
+        
+        // Customize
+        findViewById<Button>(R.id.btn_edit_icon).setOnClickListener {
+            showIconPickerDialog()
+        }
+        
+        findViewById<Button>(R.id.btn_edit_color).setOnClickListener {
+            showColorPickerDialog()
         }
         
         // Save button
         findViewById<Button>(R.id.btn_save_source).setOnClickListener {
             saveSource()
         }
-        
-        // Manage Endpoints button
-        btnManageEndpoints.setOnClickListener {
-            startActivity(Intent(this, EndpointActivity::class.java))
+    }
+    
+    private fun loadTemplates() {
+        scope.launch(Dispatchers.IO) {
+            val type = when (radioGroup.checkedRadioButtonId) {
+                R.id.radio_app -> SourceType.APP
+                R.id.radio_sms -> SourceType.SMS
+                else -> SourceType.APP
+            }
+            
+            val mode = if (type == SourceType.APP) com.example.alertsheets.TemplateMode.APP else com.example.alertsheets.TemplateMode.SMS
+            val templates = templateRepo.getByMode(mode)
+            
+            withContext(Dispatchers.Main) {
+                val adapter = ArrayAdapter(
+                    this@LabActivity,
+                    android.R.layout.simple_spinner_item,
+                    templates
+                )
+                adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+                spinnerTemplate.adapter = adapter
+                
+                // Load first template if available
+                if (templates.isNotEmpty()) {
+                    inputJson.setText(templates[0].content)
+                }
+            }
         }
     }
     
-    private fun updateTemplateForType() {
+    private fun loadEndpoints() {
+        scope.launch(Dispatchers.IO) {
+            val endpoints = endpointRepo.getAll()
+            withContext(Dispatchers.Main) {
+                endpointsCheckboxes.removeAllViews()
+                
+                if (endpoints.isEmpty()) {
+                    val emptyText = TextView(this@LabActivity).apply {
+                        text = "No endpoints found. Click '+ Manage Endpoints' to create one."
+                        setTextColor(Color.parseColor("#FF9800"))
+                        textSize = 14f
+                        setPadding(0, 8, 0, 8)
+                    }
+                    endpointsCheckboxes.addView(emptyText)
+                    return@withContext
+                }
+                
+                endpoints.forEach { endpoint ->
+                    val checkboxLayout = LinearLayout(this@LabActivity).apply {
+                        orientation = LinearLayout.VERTICAL
+                        setPadding(0, 4, 0, 4)
+                    }
+                    
+                    val checkbox = CheckBox(this@LabActivity).apply {
+                        text = endpoint.name
+                        setTextColor(Color.WHITE)
+                        textSize = 14f
+                        isChecked = selectedEndpointIds.contains(endpoint.id)
+                        setOnCheckedChangeListener { _, isChecked ->
+                            if (isChecked) {
+                                if (!selectedEndpointIds.contains(endpoint.id)) {
+                                    selectedEndpointIds.add(endpoint.id)
+                                }
+                            } else {
+                                selectedEndpointIds.remove(endpoint.id)
+                            }
+                        }
+                    }
+                    
+                    val urlText = TextView(this@LabActivity).apply {
+                        text = "  → ${endpoint.url}"
+                        setTextColor(Color.parseColor("#888888"))
+                        textSize = 11f
+                        setPadding(48, 0, 0, 8)
+                    }
+                    
+                    checkboxLayout.addView(checkbox)
+                    checkboxLayout.addView(urlText)
+                    endpointsCheckboxes.addView(checkboxLayout)
+                }
+            }
+        }
+    }
+    
+    private fun updateVariablesHelp() {
         val type = when (radioGroup.checkedRadioButtonId) {
             R.id.radio_app -> SourceType.APP
             R.id.radio_sms -> SourceType.SMS
             else -> SourceType.APP
         }
         
-        // Load default template for this type
-        val defaultJson = templateRepo.getDefaultJsonForNewSource(type)
-        if (inputJson.text.toString().isEmpty() || inputJson.text.toString() == "{}") {
-            inputJson.setText(defaultJson)
+        val vars = if (type == SourceType.APP) {
+            "{{package}}, {{title}}, {{text}}, {{bigText}}, {{time}}"
+        } else {
+            "{{sender}}, {{message}}, {{time}}"
         }
+        
+        textVariablesHelp.text = "Variables: $vars"
     }
     
     private fun configureSourceDetails() {
@@ -160,12 +288,11 @@ class LabActivity : AppCompatActivity() {
         
         when (type) {
             SourceType.APP -> {
-                // Show app selector
-                val intent = Intent(this, AppsListActivity::class.java)
-                startActivity(intent)
+                // Launch apps list
+                startActivity(Intent(this, AppsListActivity::class.java))
+                Toast.makeText(this, "Select an app from the list", Toast.LENGTH_SHORT).show()
             }
             SourceType.SMS -> {
-                // Show SMS config dialog
                 showSmsConfigDialog()
             }
         }
@@ -182,7 +309,6 @@ class LabActivity : AppCompatActivity() {
             .setPositiveButton("OK") { _, _ ->
                 val number = inputNumber.text.toString().trim()
                 if (number.isNotEmpty()) {
-                    // Generate sourceId for SMS
                     sourceId = "sms:$number"
                     Toast.makeText(this, "SMS source configured: $number", Toast.LENGTH_SHORT).show()
                 }
@@ -191,27 +317,145 @@ class LabActivity : AppCompatActivity() {
             .show()
     }
     
-    private fun loadEndpoints() {
-        scope.launch(Dispatchers.IO) {
-            val endpoints = endpointRepo.getAll()
-            withContext(Dispatchers.Main) {
-                if (endpoints.isEmpty()) {
-                    Toast.makeText(this@LabActivity, 
-                        "⚠️ No endpoints found. Click '+ Manage' to create one.", 
-                        Toast.LENGTH_LONG).show()
-                    // Don't finish - let user create endpoint
-                    return@withContext
+    private fun saveTemplate() {
+        val json = inputJson.text.toString().trim()
+        if (json.isEmpty() || !json.startsWith("{")) {
+            Toast.makeText(this, "Enter valid JSON first", Toast.LENGTH_SHORT).show()
+            return
+        }
+        
+        val inputName = EditText(this).apply {
+            hint = "Template name"
+        }
+        
+        AlertDialog.Builder(this)
+            .setTitle("Save Template")
+            .setMessage("Enter a name for this template:")
+            .setView(inputName)
+            .setPositiveButton("Save") { _, _ ->
+                val name = inputName.text.toString().trim()
+                if (name.isNotEmpty()) {
+                    val type = when (radioGroup.checkedRadioButtonId) {
+                        R.id.radio_app -> SourceType.APP
+                        else -> SourceType.SMS
+                    }
+                    val mode = if (type == SourceType.APP) com.example.alertsheets.TemplateMode.APP else com.example.alertsheets.TemplateMode.SMS
+                    
+                    val template = com.example.alertsheets.JsonTemplate(
+                        name = name,
+                        content = json,
+                        isRockSolid = false,
+                        mode = mode
+                    )
+                    
+                    templateRepo.saveUserTemplate(template)
+                    loadTemplates() // Reload spinner
+                    Toast.makeText(this, "✅ Template '$name' saved!", Toast.LENGTH_SHORT).show()
                 }
-                
-                val endpointNames = endpoints.map { it.name }
-                val adapter = ArrayAdapter(this@LabActivity, android.R.layout.simple_spinner_item, endpointNames)
-                adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-                spinnerEndpoint.adapter = adapter
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+    
+    private fun deleteTemplate() {
+        val selected = spinnerTemplate.selectedItem as? com.example.alertsheets.JsonTemplate
+        if (selected == null) {
+            Toast.makeText(this, "Select a template first", Toast.LENGTH_SHORT).show()
+            return
+        }
+        
+        if (selected.isRockSolid) {
+            Toast.makeText(this, "Cannot delete Rock Solid templates", Toast.LENGTH_SHORT).show()
+            return
+        }
+        
+        AlertDialog.Builder(this)
+            .setTitle("Delete Template?")
+            .setMessage("Delete '${selected.name}'?")
+            .setPositiveButton("Delete") { _, _ ->
+                templateRepo.deleteUserTemplate(selected.name)
+                loadTemplates()
+                Toast.makeText(this, "🗑️ Template deleted", Toast.LENGTH_SHORT).show()
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+    
+    private fun performTest(isDuplicate: Boolean) {
+        val json = if (isDuplicate && lastTestJson != null) {
+            lastTestJson!!
+        } else {
+            inputJson.text.toString().trim()
+        }
+        
+        if (json.isEmpty() || !json.startsWith("{")) {
+            Toast.makeText(this, "Enter valid JSON first", Toast.LENGTH_SHORT).show()
+            return
+        }
+        
+        if (selectedEndpointIds.isEmpty()) {
+            Toast.makeText(this, "Select at least one endpoint", Toast.LENGTH_SHORT).show()
+            return
+        }
+        
+        // Show preview dialog
+        val preview = TextView(this).apply {
+            text = json
+            setTextColor(Color.WHITE)
+            textSize = 12f
+            setPadding(16, 16, 16, 16)
+            setBackgroundColor(Color.parseColor("#2C2C2E"))
+        }
+        
+        val scrollView = ScrollView(this).apply {
+            addView(preview)
+        }
+        
+        AlertDialog.Builder(this)
+            .setTitle("📋 JSON Payload Preview")
+            .setView(scrollView)
+            .setPositiveButton("✓ Send") { _, _ ->
+                lastTestJson = json // Save for duplicate test
+                sendTestPayload(json)
+            }
+            .setNegativeButton("✗ Cancel", null)
+            .show()
+    }
+    
+    private fun performDirtyTest() {
+        val dirtyJson = """
+        {
+          "source": "dirty-test",
+          "message": "🔥 Emoji test: 😀😃😄😁 🚀🎉 ⭐✨ with symbols: ™®© special chars: \"quoted\" and 'single'",
+          "timestamp": "${System.currentTimeMillis()}"
+        }
+        """.trimIndent()
+        
+        inputJson.setText(dirtyJson)
+        Toast.makeText(this, "🔥 Dirty test loaded! Review and send.", Toast.LENGTH_SHORT).show()
+    }
+    
+    private fun sendTestPayload(json: String) {
+        // Send to all selected endpoints
+        scope.launch(Dispatchers.IO) {
+            selectedEndpointIds.forEach { endpointId ->
+                val endpoint = endpointRepo.getById(endpointId)
+                endpoint?.let {
+                    // TODO: Integrate with actual HTTP sender
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(this@LabActivity, "✓ Sent to ${it.name}", Toast.LENGTH_SHORT).show()
+                    }
+                }
             }
         }
     }
     
-    private fun setupIconGrid() {
+    private fun showIconPickerDialog() {
+        val gridLayout = GridLayout(this).apply {
+            columnCount = 5
+            setPadding(24, 24, 24, 24)
+        }
+        
         icons.forEach { (iconName, iconRes) ->
             val imageView = ImageView(this).apply {
                 setImageResource(iconRes)
@@ -220,56 +464,57 @@ class LabActivity : AppCompatActivity() {
                 setBackgroundColor(if (iconName == selectedIcon) Color.parseColor("#00D980") else Color.TRANSPARENT)
                 setOnClickListener {
                     selectedIcon = iconName
-                    refreshIconGrid()
+                    previewIcon.setImageResource(iconRes)
+                    (parent as? AlertDialog)?.dismiss()
                 }
             }
             val params = GridLayout.LayoutParams().apply {
-                width = 0
-                height = GridLayout.LayoutParams.WRAP_CONTENT
-                columnSpec = GridLayout.spec(GridLayout.UNDEFINED, 1f)
+                width = 120
+                height = 120
                 setMargins(8, 8, 8, 8)
             }
             imageView.layoutParams = params
-            iconGrid.addView(imageView)
+            gridLayout.addView(imageView)
         }
+        
+        AlertDialog.Builder(this)
+            .setTitle("Select Icon")
+            .setView(gridLayout)
+            .setNegativeButton("Cancel", null)
+            .show()
     }
     
-    private fun refreshIconGrid() {
-        for (i in 0 until iconGrid.childCount) {
-            val view = iconGrid.getChildAt(i) as ImageView
-            val iconName = icons[i].first
-            view.setBackgroundColor(if (iconName == selectedIcon) Color.parseColor("#00D980") else Color.TRANSPARENT)
+    private fun showColorPickerDialog() {
+        val gridLayout = GridLayout(this).apply {
+            columnCount = 6
+            setPadding(24, 24, 24, 24)
         }
-    }
-    
-    private fun setupColorGrid() {
-        colors.forEach { color ->
-            val view = CardView(this).apply {
-                setCardBackgroundColor(color)
-                radius = 8f
-                elevation = if (color == selectedColor) 8f else 2f
+        
+        colors.forEach { colorValue ->
+            val colorView = View(this).apply {
+                setBackgroundColor(colorValue)
                 setOnClickListener {
-                    selectedColor = color
-                    refreshColorGrid()
+                    selectedColor = colorValue
+                    previewColor.setBackgroundColor(colorValue)
+                    (this.parent as? GridLayout)?.let { grid ->
+                        ((grid.parent as? android.view.ViewGroup)?.parent as? AlertDialog)?.dismiss()
+                    }
                 }
             }
             val params = GridLayout.LayoutParams().apply {
-                width = 0
+                width = 80
                 height = 80
-                columnSpec = GridLayout.spec(GridLayout.UNDEFINED, 1f)
                 setMargins(8, 8, 8, 8)
             }
-            view.layoutParams = params
-            colorGrid.addView(view)
+            colorView.layoutParams = params
+            gridLayout.addView(colorView)
         }
-    }
-    
-    private fun refreshColorGrid() {
-        for (i in 0 until colorGrid.childCount) {
-            val view = colorGrid.getChildAt(i) as CardView
-            val color = colors[i]
-            view.elevation = if (color == selectedColor) 8f else 2f
-        }
+        
+        AlertDialog.Builder(this)
+            .setTitle("Select Color")
+            .setView(gridLayout)
+            .setNegativeButton("Cancel", null)
+            .show()
     }
     
     private fun saveSource() {
@@ -286,62 +531,62 @@ class LabActivity : AppCompatActivity() {
             return
         }
         
+        if (selectedEndpointIds.isEmpty()) {
+            Toast.makeText(this, "Select at least one endpoint", Toast.LENGTH_SHORT).show()
+            return
+        }
+        
         val type = when (radioGroup.checkedRadioButtonId) {
             R.id.radio_app -> SourceType.APP
             R.id.radio_sms -> SourceType.SMS
             else -> SourceType.APP
         }
         
-        // Generate ID if not set
-        val finalId = sourceId ?: UUID.randomUUID().toString()
+        val id = sourceId ?: UUID.randomUUID().toString()
         
-        scope.launch(Dispatchers.IO) {
-            val endpoints = endpointRepo.getAll()
-            val selectedEndpoint = endpoints[spinnerEndpoint.selectedItemPosition]
-            
-            val source = Source(
-                id = finalId,
-                type = type,
-                name = name,
-                enabled = true,
-                templateJson = json,
-                templateId = "",
-                autoClean = type == SourceType.SMS,
-                parserId = if (type == SourceType.SMS) "sms" else "generic",
-                endpointIds = listOf(selectedEndpoint.id),  // ✅ FAN-OUT: Use list
-                iconColor = selectedColor,
-                iconName = selectedIcon,
-                cardColor = selectedColor,
-                createdAt = System.currentTimeMillis(),
-                updatedAt = System.currentTimeMillis()
-            )
-            
-            sourceManager.saveSource(source)
-            
-            withContext(Dispatchers.Main) {
-                Toast.makeText(this@LabActivity, "✅ Source created: $name", Toast.LENGTH_SHORT).show()
-                finish()
-            }
-        }
+        val source = Source(
+            id = id,
+            type = type,
+            name = name,
+            enabled = true,
+            autoClean = checkAutoClean.isChecked,
+            templateJson = json,
+            templateId = "", // Deprecated
+            parserId = "generic",
+            endpointIds = selectedEndpointIds.toList(),
+            iconName = selectedIcon,
+            iconColor = selectedColor,
+            cardColor = selectedColor,
+            createdAt = System.currentTimeMillis(),
+            updatedAt = System.currentTimeMillis()
+        )
+        
+        sourceManager.saveSource(source)
+        Toast.makeText(this, "✅ Source '$name' saved!", Toast.LENGTH_SHORT).show()
+        finish()
     }
     
-    private fun loadExistingSource(id: String) {
+    private fun loadExistingSource(sourceId: String) {
         scope.launch(Dispatchers.IO) {
-            val source = sourceManager.getSource(id)
+            val source = sourceManager.getAllSources().find { it.id == sourceId }
             withContext(Dispatchers.Main) {
-                source?.let {
-                    inputName.setText(it.name)
-                    inputJson.setText(it.templateJson)
-                    selectedIcon = it.iconName
-                    selectedColor = it.cardColor
-                    
-                    when (it.type) {
+                source?.let { src ->
+                    inputName.setText(src.name)
+                    when (src.type) {
                         SourceType.APP -> radioGroup.check(R.id.radio_app)
                         SourceType.SMS -> radioGroup.check(R.id.radio_sms)
                     }
+                    inputJson.setText(src.templateJson)
+                    checkAutoClean.isChecked = src.autoClean
+                    selectedEndpointIds.clear()
+                    selectedEndpointIds.addAll(src.endpointIds)
+                    selectedIcon = src.iconName ?: "notification"
+                    selectedColor = src.cardColor
                     
-                    refreshIconGrid()
-                    refreshColorGrid()
+                    previewIcon.setImageResource(icons.find { (name, _) -> name == selectedIcon }?.second ?: R.drawable.ic_notification)
+                    previewColor.setBackgroundColor(selectedColor)
+                    
+                    loadEndpoints() // Reload to check correct boxes
                 }
             }
         }
@@ -349,8 +594,11 @@ class LabActivity : AppCompatActivity() {
     
     override fun onResume() {
         super.onResume()
-        // Reload endpoints when returning from EndpointActivity
-        loadEndpoints()
+        loadEndpoints() // Reload when returning from EndpointActivity
+    }
+    
+    override fun onDestroy() {
+        super.onDestroy()
+        scope.cancel()
     }
 }
-

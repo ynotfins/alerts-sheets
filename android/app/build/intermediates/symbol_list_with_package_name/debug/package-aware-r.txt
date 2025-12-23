@@ -3266,13 +3266,20 @@ id btn_add_static
 id btn_app_filter
 id btn_configure_source
 id btn_delete
+id btn_delete_template
 id btn_edit
+id btn_edit_color
+id btn_edit_icon
 id btn_manage_endpoints
 id btn_permissions
 id btn_pick_contact
 id btn_save_source
+id btn_save_template
 id btn_select_apps
 id btn_sms_config
+id btn_test_dirty
+id btn_test_duplicate
+id btn_test_new
 id btn_verify
 id btn_view_logs
 id buttonPanel
@@ -3291,6 +3298,7 @@ id center_vertical
 id chain
 id chain2
 id chains
+id check_auto_clean
 id check_case
 id check_show_system
 id checkbox
@@ -3304,7 +3312,6 @@ id clip_vertical
 id clockwise
 id closest
 id collapseActionView
-id color_grid
 id compress
 id confirm_button
 id constraint
@@ -3364,6 +3371,7 @@ id elastic
 id embed
 id end
 id endToStart
+id endpoints_checkboxes
 id enterAlways
 id enterAlwaysCollapsed
 id exitUntilCollapsed
@@ -3407,7 +3415,6 @@ id homeAsUp
 id honorRequest
 id horizontal_only
 id icon
-id icon_grid
 id icon_group
 id ifRoom
 id ignore
@@ -3557,12 +3564,13 @@ id pin
 id position
 id postLayout
 id pressed
+id preview_color
+id preview_icon
 id progress_circular
 id progress_horizontal
 id progress_loading
 id radio
 id radio_app
-id radio_email
 id radio_sms
 id radio_source_type
 id ratio
@@ -3711,6 +3719,7 @@ id text_status
 id text_target
 id text_template
 id text_url
+id text_variables_help
 id textinput_counter
 id textinput_error
 id textinput_helper_text

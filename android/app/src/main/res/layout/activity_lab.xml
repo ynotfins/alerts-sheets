@@ -15,7 +15,7 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="⚗️ Lab - Create Source"
+            android:text="⚗️ Lab - Create/Edit Source"
             android:textColor="#FFFFFF"
             android:textSize="24sp"
             android:textStyle="bold"
@@ -104,15 +104,6 @@
                         android:layout_weight="1"
                         android:text="SMS"
                         android:textColor="#FFFFFF" />
-
-                    <RadioButton
-                        android:id="@+id/radio_email"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="Email"
-                        android:textColor="#FFFFFF"
-                        android:enabled="false" />
                 </RadioGroup>
 
                 <Button
@@ -120,12 +111,12 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
-                    android:text="Configure Source"
+                    android:text="Select App / SMS Number"
                     android:backgroundTint="#4A9EFF" />
             </LinearLayout>
         </androidx.cardview.widget.CardView>
 
-        <!-- PAYLOAD CARD -->
+        <!-- TEMPLATE SELECTION CARD -->
         <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -143,7 +134,77 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="3. Edit JSON Payload"
+                    android:text="3. Select Template"
+                    android:textColor="#00D980"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:paddingBottom="8dp" />
+
+                <Spinner
+                    android:id="@+id/spinner_template"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_spinner_dark"
+                    android:padding="12dp"
+                    android:layout_marginBottom="8dp" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <Button
+                        android:id="@+id/btn_save_template"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="+ Save as New"
+                        android:textSize="12sp"
+                        android:backgroundTint="#4CAF50"
+                        android:textColor="#FFFFFF" />
+
+                    <Button
+                        android:id="@+id/btn_delete_template"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginStart="8dp"
+                        android:text="🗑️ Delete"
+                        android:textSize="12sp"
+                        android:backgroundTint="#F44336"
+                        android:textColor="#FFFFFF" />
+                </LinearLayout>
+
+                <CheckBox
+                    android:id="@+id/check_auto_clean"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Auto-Clean Emojis/Symbols"
+                    android:textColor="#FFFFFF"
+                    android:textSize="14sp"
+                    android:layout_marginTop="12dp" />
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- PAYLOAD EDITOR CARD -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            app:cardBackgroundColor="#1E1E1E"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="4dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="4. Edit JSON Payload"
                     android:textColor="#00D980"
                     android:textSize="16sp"
                     android:textStyle="bold"
@@ -161,10 +222,19 @@
                     android:gravity="top|start"
                     android:inputType="textMultiLine"
                     android:fontFamily="monospace" />
+
+                <TextView
+                    android:id="@+id/text_variables_help"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Variables: {{package}}, {{title}}, {{text}}, {{time}}"
+                    android:textColor="#888888"
+                    android:textSize="11sp"
+                    android:layout_marginTop="8dp" />
             </LinearLayout>
         </androidx.cardview.widget.CardView>
 
-        <!-- ENDPOINT CARD -->
+        <!-- ENDPOINTS CARD (Multiple Selection) -->
         <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -182,7 +252,59 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="4. Select Endpoint"
+                    android:text="5. Select Endpoints (Fan-Out)"
+                    android:textColor="#00D980"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:paddingBottom="8dp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Send to multiple endpoints at once"
+                    android:textColor="#888888"
+                    android:textSize="12sp"
+                    android:paddingBottom="12dp" />
+
+                <LinearLayout
+                    android:id="@+id/endpoints_checkboxes"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+                    <!-- Checkboxes for endpoints will be added programmatically -->
+                </LinearLayout>
+
+                <Button
+                    android:id="@+id/btn_manage_endpoints"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="+ Manage Endpoints"
+                    android:textSize="12sp"
+                    android:textColor="#00D980"
+                    android:background="@android:color/transparent"
+                    android:layout_marginTop="8dp" />
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- TESTING CARD -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            app:cardBackgroundColor="#1E1E1E"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="4dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="6. Test Payload"
                     android:textColor="#00D980"
                     android:textSize="16sp"
                     android:textStyle="bold"
@@ -191,31 +313,43 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical">
+                    android:orientation="horizontal">
 
-                    <Spinner
-                        android:id="@+id/spinner_endpoint"
+                    <Button
+                        android:id="@+id/btn_test_new"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:background="@drawable/bg_spinner_dark"
-                        android:padding="12dp" />
+                        android:text="🧪 Test New"
+                        android:textSize="12sp"
+                        android:backgroundTint="#4CAF50"
+                        android:textColor="#FFFFFF" />
 
                     <Button
-                        android:id="@+id/btn_manage_endpoints"
-                        android:layout_width="wrap_content"
+                        android:id="@+id/btn_test_duplicate"
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:text="+ Manage"
+                        android:layout_weight="1"
+                        android:layout_marginStart="8dp"
+                        android:text="🔄 Duplicate"
                         android:textSize="12sp"
-                        android:textColor="#00D980"
-                        android:background="@android:color/transparent"
-                        android:layout_marginStart="8dp" />
+                        android:backgroundTint="#FF9800"
+                        android:textColor="#FFFFFF" />
                 </LinearLayout>
+
+                <Button
+                    android:id="@+id/btn_test_dirty"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="🔥 Dirty Test (Emojis)"
+                    android:textSize="12sp"
+                    android:backgroundTint="#E91E63"
+                    android:textColor="#FFFFFF" />
             </LinearLayout>
         </androidx.cardview.widget.CardView>
 
-        <!-- CUSTOMIZE CARD -->
+        <!-- CUSTOMIZE CARD (Compact with edit buttons) -->
         <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -233,46 +367,77 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="5. Customize Card"
+                    android:text="7. Customize Card Appearance"
                     android:textColor="#00D980"
                     android:textSize="16sp"
                     android:textStyle="bold"
                     android:paddingBottom="8dp" />
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Select Icon:"
-                    android:textColor="#FFFFFF"
-                    android:textSize="14sp"
-                    android:paddingBottom="8dp" />
-
-                <GridLayout
-                    android:id="@+id/icon_grid"
+                <!-- Icon Selection -->
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:columnCount="5"
-                    android:rowCount="2"
-                    android:layout_marginBottom="16dp">
-                    <!-- Icons will be added programmatically -->
-                </GridLayout>
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="8dp">
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Select Color:"
-                    android:textColor="#FFFFFF"
-                    android:textSize="14sp"
-                    android:paddingBottom="8dp" />
+                    <ImageView
+                        android:id="@+id/preview_icon"
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        android:src="@drawable/ic_notification"
+                        android:tint="#FFFFFF" />
 
-                <GridLayout
-                    android:id="@+id/color_grid"
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Icon"
+                        android:textColor="#FFFFFF"
+                        android:textSize="14sp"
+                        android:layout_marginStart="12dp" />
+
+                    <Button
+                        android:id="@+id/btn_edit_icon"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="✏️ Edit"
+                        android:textSize="12sp"
+                        android:backgroundTint="#4A9EFF"
+                        android:textColor="#FFFFFF" />
+                </LinearLayout>
+
+                <!-- Color Selection -->
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:columnCount="6"
-                    android:rowCount="2">
-                    <!-- Colors will be added programmatically -->
-                </GridLayout>
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
+
+                    <View
+                        android:id="@+id/preview_color"
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        android:background="#4A9EFF" />
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Color"
+                        android:textColor="#FFFFFF"
+                        android:textSize="14sp"
+                        android:layout_marginStart="12dp" />
+
+                    <Button
+                        android:id="@+id/btn_edit_color"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="🎨 Edit"
+                        android:textSize="12sp"
+                        android:backgroundTint="#4A9EFF"
+                        android:textColor="#FFFFFF" />
+                </LinearLayout>
             </LinearLayout>
         </androidx.cardview.widget.CardView>
 
@@ -281,7 +446,7 @@
             android:id="@+id/btn_save_source"
             android:layout_width="match_parent"
             android:layout_height="60dp"
-            android:text="✅ CREATE SOURCE CARD"
+            android:text="✅ SAVE SOURCE"
             android:textSize="18sp"
             android:textStyle="bold"
             android:backgroundTint="#00D980"
@@ -289,4 +454,3 @@
 
     </LinearLayout>
 </ScrollView>
-

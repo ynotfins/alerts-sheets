@@ -5,7 +5,24 @@
 
 ---
 
-## 🚨 **NEW: COMPREHENSIVE SYSTEM ANALYSIS (PHASES 0-7)**
+## 🚨 **NEW: PHASE 3 DETERMINISTIC AUDIT + CRM SCHEMA (DEC 23, 2025)**
+
+**Priority: READ FOR WINDOWS-PROOF EVIDENCE + FIRESTORE CRM DESIGN**
+
+### **Phase 3 Complete Deliverables**
+
+1. **[PHASE_3_EXECUTION_SUMMARY.md](PHASE_3_EXECUTION_SUMMARY.md)** - Start here for overview
+2. **[PHASE_3_DETERMINISTIC_PROOF.md](PHASE_3_DETERMINISTIC_PROOF.md)** - Manifest/UI/Email evidence (line-by-line)
+3. **[EMAIL_STATUS.md](EMAIL_STATUS.md)** - Email implementation status + requirements (67 lines, 2-3 hours)
+4. **[FIRESTORE_CRM_SCHEMA.md](FIRESTORE_CRM_SCHEMA.md)** - Address-centric CRM design (8 collections)
+5. **[COMMAND_DRIVEN_AUDIT.md](COMMAND_DRIVEN_AUDIT.md)** - PowerShell call chain proof
+6. **[SERENA_PREREQUISITES_TEST.md](SERENA_PREREQUISITES_TEST.md)** - Why Serena failed (Kotlin not indexed)
+
+**All evidence:** Windows PowerShell native (no rg/aapt/jadx). 100% deterministic with file paths + line numbers.
+
+---
+
+## 📊 **COMPREHENSIVE SYSTEM ANALYSIS (PHASES 0-7)**
 
 **Priority: READ THESE FIRST for production-hardening roadmap**
 
@@ -94,6 +111,90 @@
   - Infrastructure deliverables (server + client)
   - Configuration requirements
   - Three integration options (recommended: test first)
+
+---
+
+## 📊 **NEW: COMPREHENSIVE FRONT-TO-BACK AUDIT (DECEMBER 23, 2025)**
+
+**Priority: CRITICAL FINDINGS - READ IMMEDIATELY**
+
+### **9. Audit Index (START HERE)** ⭐
+- **File:** [`AUDIT_INDEX.md`](AUDIT_INDEX.md)
+- **Purpose:** Quick access guide to all audit documents
+- **Key Findings:** 1 critical bug (duplicate notifications), 1 high-priority race condition
+- **Action Items:** P0 (deduplication), P1 (per-entity files), integration roadmap
+- **Status:** ✅ Firestore ingest READY FOR INTEGRATION (isolation proven)
+
+### **10. Comprehensive Audit Summary**
+- **File:** [`COMPREHENSIVE_AUDIT_SUMMARY.md`](COMPREHENSIVE_AUDIT_SUMMARY.md)
+- **Purpose:** Executive overview with priority fixes
+- **Critical Findings:**
+  - ❌ **P0 (CRITICAL):** Duplicate notification delivery → fix before production
+  - ⚠️ **P1 (HIGH):** Source/Endpoint edit race conditions → data loss risk
+  - ✅ **EXCELLENT:** Firestore ingest fully isolated, safe to integrate
+- **Integration Gate:** PASSED (ready for dual-write)
+
+### **11. Workflow Map** 📍
+- **File:** [`WORKFLOW_MAP.md`](WORKFLOW_MAP.md)
+- **Purpose:** Complete tracing of all runtime paths
+- **Contents:**
+  - Notification Capture → Delivery (full flow with line numbers)
+  - SMS Capture → Delivery (converges with notification path)
+  - Email Status: **NOT IMPLEMENTED** (icon stub only, no capture mechanism)
+  - Firestore Ingest Pipeline (isolated, not integrated yet)
+  - Delivery guarantees and failure modes
+- **Evidence:** All claims cited with file paths + line numbers
+
+### **12. Card Wiring Matrix** 🗂️
+- **File:** [`CARD_WIRING_MATRIX.md`](CARD_WIRING_MATRIX.md)
+- **Purpose:** All UI cards, data bindings, side effects
+- **Contents:**
+  - Dashboard permanent cards (Lab, Permissions, Logs, Test Harness)
+  - Dynamic source cards (lazy-loaded from `sources.json`)
+  - Management activities (LabActivity, AppsListActivity, SmsConfigActivity, EndpointActivity)
+  - Data models (Source, Endpoint, Template, LogEntry, IngestQueueEntry)
+  - Concurrency analysis per card
+  - Independence matrix (shared resources, side effects)
+
+### **13. Concurrency Risk Analysis** 🔒
+- **File:** [`CONCURRENCY_RISK.md`](CONCURRENCY_RISK.md)
+- **Purpose:** Shared resources, race conditions, blocking operations
+- **Contents:**
+  - 10 shared resources inventoried (files, singletons, databases)
+  - 4 race conditions analyzed (with probability × impact)
+  - Blocking I/O check (all on Dispatchers.IO ✅)
+  - Firestore ingest isolation proof (no shared state with DataPipeline)
+
+### **14. Ground Truth Baseline Audit (CURRENT WORKING TREE)** ⭐ **NEW**
+- **File:** [`AUDIT_CRM_BASELINE.md`](AUDIT_CRM_BASELINE.md)
+- **Purpose:** Complete read-only audit of current codebase (post all changes)
+- **Contents:**
+  - All runtime ingestion paths (Notification, SMS, Email confirmation)
+  - Lab card workflows (Create → Persist → Render → Edit → Delete)
+  - Outbound HTTP paths (Apps Script fan-out, Firebase /ingest debug-only)
+  - Independence analysis with concrete file/line evidence
+  - Email status: ✅ CONFIRMED UI-ONLY STUB (no runtime capture)
+- **Statistics:** 17 files audited, ~3,500 lines analyzed, 100% evidence-based
+- **Key Findings:**
+  - ✅ Notifications + SMS fully operational
+  - ❌ Email is UI stub only (SourceType enum has APP & SMS only)
+  - ✅ Sources operate independently (per-source config verified)
+  - ✅ Concurrent processing safe (SupervisorJob + local state)
+  - ⚠️ Minor file lock delays (10-50ms, acceptable vs 200-1000ms network latency)
+  - ✅ Firebase ingest debug-only (100% isolated from production)
+  - Priority fixes (P0, P1, P2 with effort estimates)
+- **Critical Finding:** Duplicate notification delivery (MEDIUM-HIGH severity)
+
+### **14. Sequence Diagrams** 📈
+- **File:** [`SEQUENCE_DIAGRAMS.md`](SEQUENCE_DIAGRAMS.md)
+- **Purpose:** Visual Mermaid diagrams for all workflows
+- **Contents:**
+  - Notification Capture → Delivery (full participant flow)
+  - SMS Capture → Delivery (converges at DataPipeline.process)
+  - Lab Card Create/Edit → Pipeline Effects (atomic writes, eventual consistency)
+  - Firestore Ingest Pipeline (SQLite WAL → Cloud Function → Firestore)
+  - Dashboard Card Lifecycle (lazy loading, auto-refresh)
+  - Convergence point analysis (single choke point at DataPipeline.process)
 
 ---
 

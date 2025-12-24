@@ -78,7 +78,8 @@
                         android:layout_height="match_parent"
                         android:orientation="vertical"
                         android:gravity="center"
-                        android:padding="8dp">
+                        android:padding="8dp"
+                        android:background="@android:color/transparent">
 
                         <ImageView
                             android:layout_width="48dp"
@@ -118,7 +119,8 @@
                         android:layout_height="match_parent"
                         android:orientation="vertical"
                         android:gravity="center"
-                        android:padding="8dp">
+                        android:padding="8dp"
+                        android:background="@android:color/transparent">
 
                         <ImageView
                             android:layout_width="48dp"
@@ -173,7 +175,8 @@
                         android:layout_height="match_parent"
                         android:orientation="vertical"
                         android:gravity="center"
-                        android:padding="8dp">
+                        android:padding="8dp"
+                        android:background="@android:color/transparent">
 
                         <ImageView
                             android:layout_width="48dp"

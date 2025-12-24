@@ -1,118 +1,29 @@
 {
-  "timestamp": "2025-12-24_13-26-12",
-  "commit": "291cdc3bcd1bb0734954490c7c7e31725c782a26",
-  "message": "FIX: Use programmatic colors for Lab/Logs tiles (drawable caching issue)
-
-ISSUE:
-Drawable resources (bg_tile_orange.xml, bg_tile_blue.xml) not rendering
-Device appeared to cache old dark gray backgrounds
-Permissions tile worked because it uses setBackgroundColor() directly
-
-ROOT CAUSE:
-Android resource system may cache drawable resources across reinstalls
-Programmatic color setting is immediate and bypasses resource cache
-
-FIX:
-Set tile background colors directly in setupPermanentCards():
-- Lab: 0xFFF97316 (bright orange)
-- Logs: 0xFF2563EB (bright blue)
-- Permissions: Already dynamic (green/red in updateStatus())
-
-This matches the exact same approach that works for Permissions tile.
-
-VERIFICATION:
-Build successful, APK installed
-App should now show orange/green/blue tiles on launch",
+  "timestamp": "2025-12-24_13-30-56",
+  "commit": "8f0570b3d6744594f5774a8bea0e4f8840a1c7e9",
+  "message": "CRITICAL FIX: Make inner LinearLayouts transparent to show tile colors",
   "files_changed": [
     ".ai-context/changes/2025-12-24.json",
     "android/.gradle/8.7/executionHistory/executionHistory.bin",
     "android/.gradle/8.7/executionHistory/executionHistory.lock",
     "android/.gradle/8.7/fileHashes/fileHashes.bin",
     "android/.gradle/8.7/fileHashes/fileHashes.lock",
-    "android/.gradle/8.7/fileHashes/resourceHashesCache.bin",
     "android/.gradle/buildOutputCleanup/buildOutputCleanup.lock",
     "android/.gradle/file-system.probe",
-    "android/app/build/intermediates/dex/debug/mergeProjectDexDebug/3/classes.dex",
+    "android/app/build/intermediates/data_binding_base_class_log_artifact/debug/out/com.example.alertsheets-binding_classes.json",
+    "android/app/build/intermediates/data_binding_layout_info_type_merge/debug/out/activity_main_dashboard-layout.xml",
+    "android/app/build/intermediates/data_binding_layout_info_type_package/debug/out/activity_main_dashboard-layout.xml",
+    "android/app/build/intermediates/incremental/dataBindingGenBaseClassesDebug/base_builder_log.json",
     "android/app/build/intermediates/incremental/debug/mergeDebugResources/compile-file-map.properties",
-    "android/app/build/intermediates/incremental/debug/mergeDebugResources/merger.xml",
     "android/app/build/intermediates/incremental/debug/packageDebugResources/compile-file-map.properties",
-    "android/app/build/intermediates/incremental/debug/packageDebugResources/merger.xml",
     "android/app/build/intermediates/incremental/packageDebug/tmp/debug/dex-renamer-state.txt",
-    "android/app/build/intermediates/merged_res/debug/values_values.arsc.flat",
-    "android/app/build/intermediates/merged_res_blame_folder/debug/out/multi-v2/debug.json",
-    "android/app/build/intermediates/merged_res_blame_folder/debug/out/multi-v2/values.json",
+    "android/app/build/intermediates/incremental/packageDebug/tmp/debug/zip-cache/androidResources",
+    "android/app/build/intermediates/merged_res/debug/layout_activity_main_dashboard.xml.flat",
     "android/app/build/intermediates/merged_res_blame_folder/debug/out/single/debug.json",
     "android/app/build/intermediates/merged_res_blame_folder/debug/out/single/layout.json",
-    "android/app/build/intermediates/project_dex_archive/debug/out/com/example/alertsheets/ui/MainActivity.dex",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/inputs/source-to-output.tab",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/inputs/source-to-output.tab.keystream",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/inputs/source-to-output.tab.values.at",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/inputs/source-to-output.tab_i",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/class-attributes.tab",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/class-attributes.tab.keystream",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/class-attributes.tab.keystream.len",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/class-attributes.tab.len",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/class-attributes.tab.values.at",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/class-attributes.tab_i",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/class-fq-name-to-source.tab",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/class-fq-name-to-source.tab.keystream",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/class-fq-name-to-source.tab.keystream.len",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/class-fq-name-to-source.tab.len",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/class-fq-name-to-source.tab.values.at",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/class-fq-name-to-source.tab_i",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/constants.tab",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/constants.tab.values.at",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/internal-name-to-source.tab",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/internal-name-to-source.tab.keystream",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/internal-name-to-source.tab.values.at",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/internal-name-to-source.tab_i",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/proto.tab",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/proto.tab.keystream",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/proto.tab.values",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/proto.tab.values.at",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/proto.tab.values.s",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/proto.tab_i",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/source-to-classes.tab",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/source-to-classes.tab.keystream",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/source-to-classes.tab.keystream.len",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/source-to-classes.tab.len",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/source-to-classes.tab.values.at",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/source-to-classes.tab_i",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/subtypes.tab",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/subtypes.tab.keystream",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/subtypes.tab.keystream.len",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/subtypes.tab.len",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/subtypes.tab.values.at",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/subtypes.tab_i",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/supertypes.tab",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/supertypes.tab.keystream",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/supertypes.tab.keystream.len",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/supertypes.tab.len",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/supertypes.tab.values.at",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/supertypes.tab_i",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/lookups/counters.tab",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/lookups/file-to-id.tab",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/lookups/file-to-id.tab.keystream",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/lookups/file-to-id.tab.values.at",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/lookups/file-to-id.tab_i",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/lookups/id-to-file.tab",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/lookups/id-to-file.tab.keystream",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/lookups/id-to-file.tab.keystream.len",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/lookups/id-to-file.tab.len",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/lookups/id-to-file.tab.values.at",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/lookups/id-to-file.tab_i",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/lookups/lookups.tab",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/lookups/lookups.tab.keystream",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/lookups/lookups.tab.keystream.len",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/lookups/lookups.tab.len",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/lookups/lookups.tab.values",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/lookups/lookups.tab.values.at",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/lookups/lookups.tab.values.s",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/lookups/lookups.tab_i",
-    "android/app/build/kotlin/compileDebugKotlin/cacheable/last-build.bin",
-    "android/app/build/kotlin/compileDebugKotlin/local-state/build-history.bin",
+    "android/app/build/intermediates/packaged_res/debug/layout/activity_main_dashboard.xml",
+    "android/app/build/intermediates/processed_res/debug/out/resources-debug.ap_",
     "android/app/build/outputs/apk/debug/app-debug.apk",
-    "android/app/build/tmp/kotlin-classes/debug/com/example/alertsheets/ui/MainActivity.class",
-    "android/app/src/main/java/com/example/alertsheets/ui/MainActivity.kt"
+    "android/app/src/main/res/layout/activity_main_dashboard.xml"
   ]
 }

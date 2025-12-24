@@ -2,16 +2,26 @@
  * AlertsToSheets Cloud Functions
  * 
  * Milestone 1: Ingestion endpoint with idempotent writes
+ * Phase 3: CRM Foundation - Alert enrichment and property creation
  * 
  * Functions:
  * - ingest: Accept events from Android client, deduplicate, store in Firestore
  * - deliverEvent: (Future) Trigger on new event, fan-out to endpoints
+ * - enrichAlert: (NEW) Enrich alerts with normalized address, link to property
+ * - enrichProperty: (NEW) Trigger property enrichment (ATTOM, etc.)
  */
 
 import * as functions from 'firebase-functions';
 import * as admin from 'firebase-admin';
+import { getFeatureFlag, initializeFeatureFlags, getAllFeatureFlags } from './utils/featureFlags';
 
 admin.initializeApp();
+
+// ============================================================================
+// EXPORT ENRICHMENT FUNCTIONS
+// ============================================================================
+
+export { enrichAlert, enrichProperty } from './enrichment';
 
 // ============================================================================
 // TYPES
@@ -40,16 +50,18 @@ interface IngestResponse {
 /**
  * POST /ingest
  * 
- * Accept event from client, validate, deduplicate, store in Firestore
+ * Accept alert from client, validate, deduplicate, store in Firestore /alerts collection
  * 
- * Idempotency: If event with same UUID exists, return 200 (no-op)
+ * Idempotency: If alert with same UUID exists, return 200 (no-op)
  * Security: Requires Firebase Auth token in Authorization header
+ * 
+ * CRM Integration: Alert is written to /alerts, which triggers enrichAlert function
  * 
  * Request body:
  * {
  *   "uuid": "550e8400-e29b-41d4-a716-446655440000",
  *   "sourceId": "bnn-app",
- *   "payload": "{...}",
+ *   "payload": "{...}",  // Must contain 'address' or 'text' field with address
  *   "timestamp": "2025-12-23T10:00:00.000Z",
  *   "deviceId": "android-12345",
  *   "appVersion": "2.0.1"
@@ -58,12 +70,36 @@ interface IngestResponse {
  * Response:
  * {
  *   "status": "ok",
- *   "message": "Event ingested",
+ *   "message": "Alert ingested",
  *   "uuid": "550e8400-...",
  *   "isDuplicate": false
  * }
  */
 export const ingest = functions.https.onRequest(async (req, res) => {
+  // ========================================
+  // STEP 0: Check feature flags
+  // ========================================
+  
+  // Check maintenance mode
+  const maintenanceMode = await getFeatureFlag('maintenanceMode');
+  if (maintenanceMode) {
+    res.status(503).json({
+      status: 'error',
+      message: 'Service temporarily unavailable (maintenance mode)'
+    });
+    return;
+  }
+  
+  // Check Firestore ingest enabled
+  const firestoreIngestEnabled = await getFeatureFlag('firestoreIngest');
+  if (!firestoreIngestEnabled) {
+    res.status(503).json({
+      status: 'error',
+      message: 'Firestore ingest temporarily disabled'
+    });
+    return;
+  }
+  
   // ========================================
   // STEP 1: Validate request
   // ========================================
@@ -153,15 +189,15 @@ export const ingest = functions.https.onRequest(async (req, res) => {
   // STEP 3: Check for duplicate (idempotency)
   // ========================================
   
-  const eventRef = admin.firestore().collection('events').doc(body.uuid);
-  const existingEvent = await eventRef.get();
+  const alertRef = admin.firestore().collection('alerts').doc(body.uuid);
+  const existingAlert = await alertRef.get();
   
-  if (existingEvent.exists) {
-    // Event already ingested, return success (idempotent)
-    console.log(`[INGEST] Duplicate event: ${body.uuid} (userId: ${userId})`);
+  if (existingAlert.exists) {
+    // Alert already ingested, return success (idempotent)
+    console.log(`[INGEST] Duplicate alert: ${body.uuid} (userId: ${userId})`);
     res.status(200).json({
       status: 'ok',
-      message: 'Event already ingested (duplicate)',
+      message: 'Alert already ingested (duplicate)',
       uuid: body.uuid,
       isDuplicate: true
     } as IngestResponse);
@@ -169,37 +205,50 @@ export const ingest = functions.https.onRequest(async (req, res) => {
   }
   
   // ========================================
-  // STEP 4: Write to Firestore
+  // STEP 4: Write to Firestore /alerts
   // ========================================
   
   try {
-    await eventRef.set({
-      // Event data
-      uuid: body.uuid,
+    // Parse payload to extract address
+    const parsedPayload = JSON.parse(body.payload);
+    const rawAddress = parsedPayload.address || parsedPayload.location || null;
+    
+    if (!rawAddress) {
+      console.warn(`[INGEST] No address found in payload for alert ${body.uuid}`);
+    }
+    
+    await alertRef.set({
+      // Identity
+      alertId: body.uuid,
       sourceId: body.sourceId,
-      payload: body.payload,
-      timestamp: admin.firestore.Timestamp.fromDate(timestamp),
+      eventTimestamp: timestamp.getTime(),
+      ingestedAt: Date.now(),
+      
+      // Raw Data
+      rawAddress: rawAddress || '',
+      rawPayload: parsedPayload,
+      
+      // Derived (enriched by enrichAlert function)
+      propertyId: null,
+      normalizedAddress: null,
+      
+      // Geo (enriched by enrichAlert function)
+      lat: null,
+      lng: null,
+      geocodeProvider: null,
+      geocodeConfidence: null,
       
       // Metadata
-      userId: userId,
-      deviceId: body.deviceId || 'unknown',
-      appVersion: body.appVersion || 'unknown',
-      
-      // Status tracking
-      ingestionStatus: 'INGESTED',
-      ingestedAt: admin.firestore.FieldValue.serverTimestamp(),
-      deliveryStatus: 'PENDING',
-      deliveredAt: null,
-      
-      // Raw data (for debugging)
-      raw: null // Will be populated by client in future version
+      clientAppVersion: body.appVersion || 'unknown',
+      clientDeviceId: body.deviceId || 'unknown',
+      clientUserId: userId
     });
     
-    console.log(`[INGEST] Event ingested: ${body.uuid} (userId: ${userId}, sourceId: ${body.sourceId})`);
+    console.log(`[INGEST] Alert ingested: ${body.uuid} (userId: ${userId}, sourceId: ${body.sourceId}, hasAddress: ${!!rawAddress})`);
     
     res.status(200).json({
       status: 'ok',
-      message: 'Event ingested successfully',
+      message: 'Alert ingested successfully',
       uuid: body.uuid,
       isDuplicate: false
     } as IngestResponse);
@@ -208,7 +257,7 @@ export const ingest = functions.https.onRequest(async (req, res) => {
     console.error('[INGEST] Firestore write failed:', error);
     res.status(500).json({
       status: 'error',
-      message: 'Internal server error. Failed to write event.'
+      message: 'Internal server error. Failed to write alert.'
     });
   }
 });
@@ -257,5 +306,88 @@ export const health = functions.https.onRequest((req, res) => {
     service: 'AlertsToSheets Cloud Functions',
     version: '1.0.0-milestone1'
   });
+});
+
+// ============================================================================
+// FEATURE FLAG MANAGEMENT
+// ============================================================================
+
+/**
+ * POST /initConfig
+ * 
+ * Initialize feature flags in Firestore with defaults
+ * Run once after deployment
+ */
+export const initConfig = functions.https.onRequest(async (req, res) => {
+  try {
+    // Check authentication
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      res.status(401).json({
+        status: 'error',
+        message: 'Unauthorized. Missing or invalid Authorization header.'
+      });
+      return;
+    }
+    
+    const idToken = authHeader.split('Bearer ')[1];
+    await admin.auth().verifyIdToken(idToken);
+    
+    // Initialize feature flags
+    await initializeFeatureFlags();
+    
+    // Get all flags
+    const flags = await getAllFeatureFlags();
+    
+    res.status(200).json({
+      status: 'ok',
+      message: 'Feature flags initialized',
+      flags
+    });
+    
+  } catch (error) {
+    console.error('[INIT_CONFIG] Error:', error);
+    res.status(500).json({
+      status: 'error',
+      message: error instanceof Error ? error.message : 'Internal server error'
+    });
+  }
+});
+
+/**
+ * GET /config
+ * 
+ * Get all feature flags
+ */
+export const getConfig = functions.https.onRequest(async (req, res) => {
+  try {
+    // Check authentication
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      res.status(401).json({
+        status: 'error',
+        message: 'Unauthorized. Missing or invalid Authorization header.'
+      });
+      return;
+    }
+    
+    const idToken = authHeader.split('Bearer ')[1];
+    await admin.auth().verifyIdToken(idToken);
+    
+    // Get all flags
+    const flags = await getAllFeatureFlags();
+    
+    res.status(200).json({
+      status: 'ok',
+      flags
+    });
+    
+  } catch (error) {
+    console.error('[GET_CONFIG] Error:', error);
+    res.status(500).json({
+      status: 'error',
+      message: error instanceof Error ? error.message : 'Internal server error'
+    });
+  }
 });
 

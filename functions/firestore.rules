@@ -3,170 +3,240 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
-    // ============================================================================
+    // ============================================
     // HELPER FUNCTIONS
-    // ============================================================================
+    // ============================================
     
+    // Check if request is from authenticated client
     function isAuthenticated() {
       return request.auth != null;
     }
     
+    // Check if request is from server (Cloud Function with admin token)
+    function isServer() {
+      return request.auth != null && request.auth.token.admin == true;
+    }
+    
+    // Check if user owns this resource
     function isOwner(userId) {
       return isAuthenticated() && request.auth.uid == userId;
     }
     
-    function isValidTimestamp(ts) {
-      return ts is timestamp;
+    // Validate timestamp is reasonable (within 24 hours of server time)
+    function isValidTimestamp(timestampValue) {
+      return timestampValue is number 
+        && timestampValue > 0 
+        && timestampValue < (request.time.toMillis() + 86400000); // +24h tolerance
     }
     
-    function isValidUUID(uuid) {
-      // Basic UUID format validation (8-4-4-4-12 hex characters)
-      return uuid is string && uuid.matches('^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$');
-    }
+    // ============================================
+    // COLLECTION 1: /alerts/{alertId}
+    // CLIENT WRITES (APPEND-ONLY), SERVER ENRICHES
+    // ============================================
     
-    // ============================================================================
-    // EVENTS COLLECTION (CANONICAL DATA)
-    // ============================================================================
-    
-    match /events/{eventId} {
-      // Allow CREATE: User can write their own events
-      allow create: if isAuthenticated() 
-                    && isValidUUID(eventId)
-                    && request.resource.data.userId == request.auth.uid
-                    && request.resource.data.uuid == eventId
-                    && request.resource.data.keys().hasAll(['uuid', 'sourceId', 'payload', 'timestamp', 'userId'])
-                    && request.resource.data.deliveryStatus == 'PENDING';
+    match /alerts/{alertId} {
       
-      // Allow READ: User can read their own events
+      // CLIENT: Can CREATE alerts (append-only, never update/delete)
+      allow create: if isAuthenticated()
+                    && request.resource.data.alertId == alertId
+                    && request.resource.data.sourceId is string
+                    && request.resource.data.sourceId.size() > 0
+                    && request.resource.data.rawAddress is string
+                    && request.resource.data.rawPayload is map
+                    && request.resource.data.eventTimestamp is number
+                    && isValidTimestamp(request.resource.data.eventTimestamp)
+                    && request.resource.data.ingestedAt == request.time.toMillis()
+                    && (!('propertyId' in request.resource.data) || request.resource.data.propertyId == null)
+                    && (!('normalizedAddress' in request.resource.data) || request.resource.data.normalizedAddress == null);
+      
+      // CLIENT: Can READ own alerts
       allow read: if isAuthenticated() 
-                  && resource.data.userId == request.auth.uid;
+                  && (resource.data.clientUserId == request.auth.uid || isServer());
       
-      // DENY UPDATE: Events are immutable after creation
-      allow update: if false;
+      // SERVER: Can UPDATE to enrich with propertyId, normalizedAddress, geocode
+      allow update: if isServer()
+                    && request.resource.data.alertId == resource.data.alertId
+                    && request.resource.data.sourceId == resource.data.sourceId
+                    && request.resource.data.rawAddress == resource.data.rawAddress
+                    && request.resource.data.rawPayload == resource.data.rawPayload
+                    && request.resource.data.eventTimestamp == resource.data.eventTimestamp
+                    && request.resource.data.ingestedAt == resource.data.ingestedAt;
       
-      // DENY DELETE: Events are never deleted (soft delete only via admin)
+      // DELETE: Never allowed (audit trail)
+      allow delete: if false;
+    }
+    
+    // ============================================
+    // COLLECTION 2: /properties/{propertyId}
+    // SERVER-ONLY (CRM CANONICAL DATA)
+    // ============================================
+    
+    match /properties/{propertyId} {
+      
+      // READ: Authenticated users can read properties
+      allow read: if isAuthenticated();
+      
+      // WRITE: Server-only
+      allow create: if isServer()
+                    && request.resource.data.propertyId == propertyId
+                    && request.resource.data.normalizedAddress is string
+                    && request.resource.data.lat is number
+                    && request.resource.data.lng is number
+                    && request.resource.data.firstAlertAt is number
+                    && request.resource.data.lastAlertAt is number
+                    && request.resource.data.totalAlerts is number
+                    && request.resource.data.enrichmentStatus in ['pending', 'partial', 'complete', 'failed']
+                    && request.resource.data.createdAt == request.time.toMillis()
+                    && request.resource.data.updatedAt == request.time.toMillis();
+      
+      allow update: if isServer()
+                    && request.resource.data.propertyId == resource.data.propertyId
+                    && request.resource.data.normalizedAddress == resource.data.normalizedAddress
+                    && request.resource.data.updatedAt == request.time.toMillis();
+      
+      // DELETE: Never allowed (canonical data)
       allow delete: if false;
       
-      // ============================================================================
-      // DELIVERY RECEIPTS SUBCOLLECTION (APPEND-ONLY)
-      // ============================================================================
-      
-      match /deliveryReceipts/{receiptId} {
-        // Allow CREATE: Server-only (Cloud Function with service account)
-        // Client CANNOT write delivery receipts
-        allow create: if false;
-        
-        // Allow READ: User can read their event's receipts
-        allow read: if isAuthenticated() 
-                    && get(/databases/$(database)/documents/events/$(eventId)).data.userId == request.auth.uid;
-        
-        // DENY UPDATE: Receipts are immutable
-        allow update: if false;
-        
-        // DENY DELETE: Receipts are permanent audit trail
+      // Enrichments subcollection
+      match /enrichments/{runId} {
+        allow read: if isAuthenticated();
+        allow create: if isServer()
+                      && request.resource.data.runId == runId
+                      && request.resource.data.propertyId == propertyId
+                      && request.resource.data.provider is string
+                      && request.resource.data.requestedAt is number
+                      && request.resource.data.status in ['success', 'partial', 'failed'];
+        allow update: if isServer();
         allow delete: if false;
       }
     }
     
-    // ============================================================================
-    // SOURCES COLLECTION (USER CONFIGURATION)
-    // ============================================================================
+    // ============================================
+    // COLLECTION 3: /people/{personId}
+    // SERVER-ONLY (ENRICHMENT DATA)
+    // ============================================
     
-    match /sources/{sourceId} {
-      // Allow CREATE: User can create their own sources
-      allow create: if isAuthenticated()
-                    && request.resource.data.userId == request.auth.uid
-                    && request.resource.data.keys().hasAll(['userId', 'name', 'sourceType', 'enabled']);
-      
-      // Allow READ: User can read their own sources
-      allow read: if isAuthenticated() 
-                  && resource.data.userId == request.auth.uid;
-      
-      // Allow UPDATE: User can update their own sources
-      allow update: if isAuthenticated()
-                    && resource.data.userId == request.auth.uid
-                    && request.resource.data.userId == request.auth.uid;
-      
-      // Allow DELETE: User can delete their own sources
-      allow delete: if isAuthenticated()
-                    && resource.data.userId == request.auth.uid;
+    match /people/{personId} {
+      allow read: if isAuthenticated();
+      allow create: if isServer()
+                    && request.resource.data.personId == personId
+                    && request.resource.data.firstName is string
+                    && request.resource.data.lastName is string
+                    && request.resource.data.createdAt == request.time.toMillis()
+                    && request.resource.data.updatedAt == request.time.toMillis();
+      allow update: if isServer()
+                    && request.resource.data.personId == resource.data.personId
+                    && request.resource.data.updatedAt == request.time.toMillis();
+      allow delete: if false;
     }
     
-    // ============================================================================
-    // ENDPOINTS COLLECTION (USER CONFIGURATION)
-    // ============================================================================
+    // ============================================
+    // COLLECTION 4: /contacts/{contactId}
+    // SERVER-ONLY (PHONE/EMAIL DATA)
+    // ============================================
     
-    match /endpoints/{endpointId} {
-      // Allow CREATE: User can create their own endpoints
-      allow create: if isAuthenticated()
-                    && request.resource.data.userId == request.auth.uid
-                    && request.resource.data.keys().hasAll(['userId', 'name', 'url', 'enabled']);
-      
-      // Allow READ: User can read their own endpoints
-      allow read: if isAuthenticated() 
-                  && resource.data.userId == request.auth.uid;
-      
-      // Allow UPDATE: User can update their own endpoints
-      // BUT: Stats can only be updated by server (atomic increment)
-      allow update: if isAuthenticated()
-                    && resource.data.userId == request.auth.uid
-                    && request.resource.data.userId == request.auth.uid;
-      
-      // Allow DELETE: User can delete their own endpoints
-      allow delete: if isAuthenticated()
-                    && resource.data.userId == request.auth.uid;
+    match /contacts/{contactId} {
+      allow read: if isAuthenticated();
+      allow create: if isServer()
+                    && request.resource.data.contactId == contactId
+                    && request.resource.data.type in ['phone', 'email']
+                    && request.resource.data.value is string
+                    && request.resource.data.personId is string
+                    && request.resource.data.optInStatus in ['opted-in', 'opted-out', 'unknown']
+                    && request.resource.data.doNotContact is bool
+                    && request.resource.data.verified is bool
+                    && request.resource.data.source is string
+                    && request.resource.data.createdAt == request.time.toMillis()
+                    && request.resource.data.updatedAt == request.time.toMillis();
+      allow update: if isServer()
+                    && request.resource.data.contactId == resource.data.contactId
+                    && request.resource.data.updatedAt == request.time.toMillis();
+      allow delete: if false;
     }
     
-    // ============================================================================
-    // TEMPLATES COLLECTION (USER CONFIGURATION)
-    // ============================================================================
+    // ============================================
+    // COLLECTION 5: /households/{householdId}
+    // SERVER-ONLY (PROPERTY-PEOPLE LINKAGE)
+    // ============================================
     
-    match /templates/{templateId} {
-      // Allow CREATE: User can create their own templates
-      allow create: if isAuthenticated()
-                    && request.resource.data.userId == request.auth.uid
-                    && request.resource.data.keys().hasAll(['userId', 'name', 'json']);
-      
-      // Allow READ: User can read their own templates
-      allow read: if isAuthenticated() 
-                  && resource.data.userId == request.auth.uid;
-      
-      // Allow UPDATE: User can update their own templates
-      allow update: if isAuthenticated()
-                    && resource.data.userId == request.auth.uid
-                    && request.resource.data.userId == request.auth.uid;
-      
-      // Allow DELETE: User can delete their own templates
-      allow delete: if isAuthenticated()
-                    && resource.data.userId == request.auth.uid;
+    match /households/{householdId} {
+      allow read: if isAuthenticated();
+      allow create: if isServer()
+                    && request.resource.data.householdId == householdId
+                    && request.resource.data.propertyId is string
+                    && request.resource.data.memberIds is list
+                    && request.resource.data.createdAt == request.time.toMillis()
+                    && request.resource.data.updatedAt == request.time.toMillis();
+      allow update: if isServer()
+                    && request.resource.data.householdId == resource.data.householdId
+                    && request.resource.data.updatedAt == request.time.toMillis();
+      allow delete: if false;
     }
     
-    // ============================================================================
-    // FANOUT RULES COLLECTION (ADMIN-ONLY)
-    // ============================================================================
+    // ============================================
+    // COLLECTION 6: /outreaches/{outreachId}
+    // SERVER-ONLY (CAMPAIGN INSTANCES)
+    // ============================================
     
-    match /fanoutRules/{ruleId} {
-      // DENY ALL CLIENT ACCESS: Admin-only (managed via Firebase Console)
-      allow read, write: if false;
+    match /outreaches/{outreachId} {
+      allow read: if isAuthenticated();
+      allow create: if isServer()
+                    && request.resource.data.outreachId == outreachId
+                    && request.resource.data.propertyId is string
+                    && request.resource.data.personId is string
+                    && request.resource.data.contactId is string
+                    && request.resource.data.messageType in ['sms', 'email']
+                    && request.resource.data.status in ['queued', 'sent', 'delivered', 'failed', 'bounced']
+                    && request.resource.data.queuedAt is number
+                    && request.resource.data.createdAt == request.time.toMillis()
+                    && request.resource.data.updatedAt == request.time.toMillis();
+      allow update: if isServer()
+                    && request.resource.data.outreachId == resource.data.outreachId
+                    && request.resource.data.updatedAt == request.time.toMillis();
+      allow delete: if false;
     }
     
-    // ============================================================================
-    // SYSTEM CONFIGURATION (ADMIN-ONLY)
-    // ============================================================================
+    // ============================================
+    // COLLECTION 7: /messages/{messageId}
+    // SERVER-ONLY (COMMUNICATION LOGS)
+    // ============================================
     
-    match /_system/{document=**} {
-      // DENY ALL CLIENT ACCESS: Admin-only
-      allow read, write: if false;
+    match /messages/{messageId} {
+      allow read: if isAuthenticated();
+      allow create: if isServer()
+                    && request.resource.data.messageId == messageId
+                    && request.resource.data.outreachId is string
+                    && request.resource.data.direction in ['outbound', 'inbound']
+                    && request.resource.data.messageType in ['sms', 'email']
+                    && request.resource.data.from is string
+                    && request.resource.data.to is string
+                    && request.resource.data.body is string
+                    && request.resource.data.provider is string
+                    && request.resource.data.providerMessageId is string
+                    && request.resource.data.createdAt == request.time.toMillis()
+                    && request.resource.data.updatedAt == request.time.toMillis();
+      allow update: if isServer()
+                    && request.resource.data.messageId == resource.data.messageId
+                    && request.resource.data.updatedAt == request.time.toMillis();
+      allow delete: if false;
     }
     
-    // ============================================================================
-    // DEFAULT DENY
-    // ============================================================================
+    // ============================================
+    // COLLECTION 8: /config (OPTIONAL)
+    // FEATURE FLAGS & SYSTEM CONFIG
+    // ============================================
     
-    // Deny all other paths
+    match /config/{configKey} {
+      allow read: if isAuthenticated();
+      allow write: if isServer();
+    }
+    
+    // ============================================
+    // DEFAULT: DENY ALL
+    // ============================================
+    
     match /{document=**} {
       allow read, write: if false;
     }
   }
 }
-

@@ -3,14 +3,14 @@
     <!-- Subtle glow effect -->
     <item android:bottom="2dp" android:right="2dp">
         <shape>
-            <solid android:color="#0AFFFFFF"/>
+            <solid android:color="#20FFFFFF"/>
             <corners android:radius="20dp"/>
         </shape>
     </item>
-    <!-- Main card -->
+    <!-- Main card - lighter gray for better contrast -->
     <item>
         <shape>
-            <solid android:color="@color/oneui_card_elevated"/>
+            <solid android:color="#3A3A3C"/>
             <corners android:radius="20dp"/>
         </shape>
     </item>

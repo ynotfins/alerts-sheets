@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Outer glow -->
+    <item android:bottom="4dp" android:right="4dp">
+        <shape>
+            <solid android:color="#40A855F7"/>
+            <corners android:radius="20dp"/>
+        </shape>
+    </item>
+    <!-- Main card with gradient -->
+    <item>
+        <shape>
+            <gradient
+                android:startColor="#A78BFA"
+                android:endColor="#8B5CF6"
+                android:angle="135"/>
+            <corners android:radius="20dp"/>
+        </shape>
+    </item>
+</layer-list>
+

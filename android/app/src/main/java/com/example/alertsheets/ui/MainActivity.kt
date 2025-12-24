@@ -18,6 +18,7 @@ import com.example.alertsheets.LogStatus
 import com.example.alertsheets.data.repositories.EndpointRepository
 import com.example.alertsheets.domain.SourceManager
 import com.example.alertsheets.domain.models.Source
+import com.example.alertsheets.domain.models.SourceType
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -125,6 +126,7 @@ class MainActivity : AppCompatActivity() {
                 
                 val icon = card.findViewById<ImageView>(R.id.source_icon)
                 val name = card.findViewById<TextView>(R.id.source_name)
+                val subtitle = card.findViewById<TextView>(R.id.source_subtitle)
                 val dot = card.findViewById<ImageView>(R.id.source_status_dot)
                 
                 // Set icon
@@ -144,6 +146,13 @@ class MainActivity : AppCompatActivity() {
                 icon.setColorFilter(source.cardColor)
                 
                 name.text = source.name
+                
+                // Set subtitle with source type and endpoint count
+                val sourceTypeText = when (source.type) {
+                    SourceType.APP -> "App"
+                    SourceType.SMS -> "SMS"
+                }
+                subtitle.text = "$sourceTypeText • ${source.endpointIds.size} endpoint(s)"
                 
                 // Status dot
                 val isConfigured = source.endpointIds.isNotEmpty() && source.templateJson.isNotEmpty()

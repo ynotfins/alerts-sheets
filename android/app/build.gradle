@@ -22,6 +22,7 @@ android {
             // Debug uses production Cloud Functions (for real testing)
             buildConfigField "String", "INGEST_ENDPOINT", '"https://us-central1-alerts-sheets-bb09c.cloudfunctions.net/ingest"'
             buildConfigField "String", "ENVIRONMENT", '"debug"'
+            buildConfigField "boolean", "ENABLE_FIRESTORE_INGEST", "false"  // ✅ OFF by default
             
             // Uncomment to use local emulator:
             // buildConfigField "String", "INGEST_ENDPOINT", '"http://10.0.2.2:5001/alerts-sheets-bb09c/us-central1/ingest"'
@@ -30,6 +31,7 @@ android {
         release {
             buildConfigField "String", "INGEST_ENDPOINT", '"https://us-central1-alerts-sheets-bb09c.cloudfunctions.net/ingest"'
             buildConfigField "String", "ENVIRONMENT", '"release"'
+            buildConfigField "boolean", "ENABLE_FIRESTORE_INGEST", "false"  // ✅ OFF by default (safety)
             
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'

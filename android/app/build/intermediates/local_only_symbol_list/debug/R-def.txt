@@ -70,9 +70,12 @@ dimen text_small
 dimen text_tiny
 dimen text_title
 drawable bg_card
+drawable bg_card_blue
 drawable bg_card_dark
 drawable bg_card_elevated
 drawable bg_card_modern
+drawable bg_card_orange
+drawable bg_card_purple
 drawable bg_edit_text_dark
 drawable bg_header_gradient
 drawable bg_spinner_dark

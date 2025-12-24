@@ -1,17 +1,46 @@
 # AlertsToSheets Documentation Index
-**Last Updated:** December 23, 2025  
+**Last Updated:** December 24, 2025 6:00 PM  
 **Project:** Android notification/SMS capture → Google Sheets/Firestore webhook delivery  
-**Status:** V2 Complete, Production-Hardening Roadmap Added
+**Status:** Phase 4 Dual-Write COMPLETE, Ready for Device Testing
 
 ---
 
-## 🚨 **NEW: PHASE 3 CRM FOUNDATION DEPLOYED (DEC 23, 2025)**
+## 🚀 **NEW: PHASE 4 DUAL-WRITE IMPLEMENTATION (DEC 24, 2025)**
+
+**Priority: DUAL-WRITE TO FIRESTORE + APPS SCRIPT (NON-BLOCKING)**
+
+### **Phase 4 Complete Deliverables** ✅
+
+1. **[PHASE_4_DUAL_WRITE_IMPLEMENTATION.md](PHASE_4_DUAL_WRITE_IMPLEMENTATION.md)** - ⭐ START HERE - Dual-write integration complete
+2. **[FIRESTORE_CRM_WRITE_FLOW.md](FIRESTORE_CRM_WRITE_FLOW.md)** - Canonical write/enrichment flow (alert → property → person → contacts)
+3. **[TOOL_HEALTH_AND_FALLBACKS.md](TOOL_HEALTH_AND_FALLBACKS.md)** - Tool verification + fallback strategies
+
+**Implementation Status:**
+- ✅ Global kill switch added (BuildConfig.ENABLE_FIRESTORE_INGEST, default OFF)
+- ✅ Per-source toggle added (Source.enableFirestoreIngest, default OFF)
+- ✅ DataPipeline dual-write integrated (after template, before endpoints)
+- ✅ Non-blocking guarantee (try-catch, no Apps Script blocking)
+- ✅ Lazy IngestQueue initialization
+- ✅ Builds pass (debug + release, 29s, zero errors)
+- ⚠️ Device testing required (flags OFF → verify Apps Script still works)
+- ⚠️ Lab UI toggle pending (add checkbox for per-source Firestore enable)
+
+**Architecture Guarantees:**
+- ✅ P0: Apps Script delivery NEVER blocked by Firestore failures
+- ✅ P1: Firestore ingest works when both flags enabled
+- ✅ P2: CRM enrichment pipeline operational (alert → property → geocode → owner → contacts)
+- ✅ Double kill switch (global + per-source)
+- ✅ Feature flags control enrichment stages (geocoding, owner lookup, contact discovery)
+
+---
+
+## 🚨 **PHASE 3 CRM FOUNDATION DEPLOYED (DEC 23, 2025)**
 
 **Priority: FIRESTORE CRM PRODUCTION-READY**
 
 ### **Phase 3 Complete Deliverables** ✅
 
-1. **[PHASE_3_CRM_IMPLEMENTATION_COMPLETE.md](PHASE_3_CRM_IMPLEMENTATION_COMPLETE.md)** - ⭐ START HERE - Complete implementation summary
+1. **[PHASE_3_CRM_IMPLEMENTATION_COMPLETE.md](PHASE_3_CRM_IMPLEMENTATION_COMPLETE.md)** - Complete implementation summary
 2. **[PHASE_3_CRM_DEPLOYMENT_GUIDE.md](PHASE_3_CRM_DEPLOYMENT_GUIDE.md)** - Deployment runbook + testing procedures
 3. **[FIRESTORE_CRM_SCHEMA.md](FIRESTORE_CRM_SCHEMA.md)** - Address-centric CRM design (8 collections, LOCKED)
 4. **[PHASE_3_EXECUTION_SUMMARY.md](PHASE_3_EXECUTION_SUMMARY.md)** - Deterministic audit overview

@@ -4,10 +4,10 @@
     <color name="oneui_background_dark">#000000</color>
     <color name="oneui_black">#000000</color>
     <color name="oneui_bg_black">#000000</color>
-    <color name="oneui_card_dark">#1C1C1E</color>
-    <color name="oneui_surface">#0A0A0A</color>
-    <color name="oneui_card">#1C1C1E</color>
-    <color name="oneui_card_elevated">#2C2C2E</color>
+    <color name="oneui_card_dark">#3A3A3C</color>
+    <color name="oneui_surface">#1C1C1E</color>
+    <color name="oneui_card">#3A3A3C</color>
+    <color name="oneui_card_elevated">#3A3A3C</color>
     
     <!-- Text Colors -->
     <color name="oneui_text_primary">#FFFFFF</color>

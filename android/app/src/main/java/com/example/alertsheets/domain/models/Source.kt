@@ -19,6 +19,7 @@ data class Source(
     val parserId: String = "generic",         // "bnn", "generic", or "sms"
     val endpointIds: List<String>,            // ✅ FAN-OUT: List of Endpoint IDs for delivery
     @Deprecated("Use endpointIds instead") val endpointId: String = "", // MIGRATION COMPAT
+    val enableFirestoreIngest: Boolean = false, // ✅ Per-source Firestore toggle (default OFF)
     val iconColor: Int = 0xFF4A9EFF.toInt(), // For UI display
     val iconName: String = "notification",    // ✅ Icon for card (fire, sms, email, etc)
     val cardColor: Int = 0xFF4A9EFF.toInt(), // ✅ Card background color

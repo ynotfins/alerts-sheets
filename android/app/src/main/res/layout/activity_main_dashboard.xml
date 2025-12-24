@@ -68,7 +68,7 @@
                     android:layout_height="100dp"
                     android:layout_weight="1"
                     android:layout_margin="4dp"
-                    android:background="@drawable/bg_card_elevated"
+                    android:background="@drawable/bg_card_blue"
                     android:clickable="true"
                     android:focusable="true"
                     android:foreground="@drawable/ripple_card">
@@ -81,18 +81,22 @@
                         android:padding="8dp">
 
                         <ImageView
-                            android:layout_width="40dp"
-                            android:layout_height="40dp"
+                            android:layout_width="48dp"
+                            android:layout_height="48dp"
                             android:src="@drawable/ic_dashboard"
-                            android:tint="@color/oneui_accent_blue" />
+                            android:tint="#FFFFFF" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Lab"
-                            android:textColor="@color/oneui_text_primary"
-                            android:textSize="12sp"
+                            android:textColor="#FFFFFF"
+                            android:textSize="14sp"
                             android:textStyle="bold"
+                            android:shadowColor="#000000"
+                            android:shadowDx="0"
+                            android:shadowDy="2"
+                            android:shadowRadius="4"
                             android:layout_marginTop="4dp" />
                     </LinearLayout>
                 </FrameLayout>
@@ -104,7 +108,7 @@
                     android:layout_height="100dp"
                     android:layout_weight="1"
                     android:layout_margin="4dp"
-                    android:background="@drawable/bg_card_elevated"
+                    android:background="@drawable/bg_card_orange"
                     android:clickable="true"
                     android:focusable="true"
                     android:foreground="@drawable/ripple_card">
@@ -117,18 +121,22 @@
                         android:padding="8dp">
 
                         <ImageView
-                            android:layout_width="40dp"
-                            android:layout_height="40dp"
+                            android:layout_width="48dp"
+                            android:layout_height="48dp"
                             android:src="@drawable/ic_security"
-                            android:tint="@color/oneui_accent_orange" />
+                            android:tint="#FFFFFF" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Perms"
-                            android:textColor="@color/oneui_text_primary"
-                            android:textSize="12sp"
+                            android:textColor="#FFFFFF"
+                            android:textSize="14sp"
                             android:textStyle="bold"
+                            android:shadowColor="#000000"
+                            android:shadowDx="0"
+                            android:shadowDy="2"
+                            android:shadowRadius="4"
                             android:layout_marginTop="4dp" />
 
                         <ImageView
@@ -147,7 +155,7 @@
                     android:layout_height="100dp"
                     android:layout_weight="1"
                     android:layout_margin="4dp"
-                    android:background="@drawable/bg_card_elevated"
+                    android:background="@drawable/bg_card_purple"
                     android:clickable="true"
                     android:focusable="true"
                     android:foreground="@drawable/ripple_card">
@@ -160,18 +168,22 @@
                         android:padding="8dp">
 
                         <ImageView
-                            android:layout_width="40dp"
-                            android:layout_height="40dp"
+                            android:layout_width="48dp"
+                            android:layout_height="48dp"
                             android:src="@drawable/ic_alert"
-                            android:tint="@color/oneui_accent_purple" />
+                            android:tint="#FFFFFF" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Logs"
-                            android:textColor="@color/oneui_text_primary"
-                            android:textSize="12sp"
+                            android:textColor="#FFFFFF"
+                            android:textSize="14sp"
                             android:textStyle="bold"
+                            android:shadowColor="#000000"
+                            android:shadowDx="0"
+                            android:shadowDy="2"
+                            android:shadowRadius="4"
                             android:layout_marginTop="4dp" />
 
                         <ImageView

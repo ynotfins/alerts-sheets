@@ -2,6 +2,8 @@ package com.example.alertsheets.domain
 
 import android.content.Context
 import android.util.Log
+import com.example.alertsheets.BuildConfig
+import com.example.alertsheets.data.IngestQueue
 import com.example.alertsheets.data.repositories.EndpointRepository
 import com.example.alertsheets.data.repositories.TemplateRepository
 import com.example.alertsheets.domain.models.ParsedData
@@ -20,6 +22,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
+import java.time.Instant
 
 /**
  * Clean Data Pipeline for V2
@@ -44,6 +47,7 @@ class DataPipeline(private val context: Context) {
     private val endpointRepo = EndpointRepository(context)
     private val httpClient = HttpClient()
     private val logger = Logger(context)
+    private val ingestQueue by lazy { IngestQueue(context) }  // ✅ Lazy init for Firestore ingest
     
     private val TAG = "DataPipeline"
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
@@ -103,6 +107,31 @@ class DataPipeline(private val context: Context) {
                 // Step 5: Apply template (with per-source auto-clean!)
                 val json = TemplateEngine.apply(templateContent, parsedWithTimestamp, source)
                 logger.log("✓ Template applied (autoClean=${source.autoClean})")
+                
+                // Step 5.5: Enqueue to Firestore (DUAL-WRITE, NON-BLOCKING)
+                // ⚠️ CRITICAL: This MUST NOT block Apps Script delivery
+                if (BuildConfig.ENABLE_FIRESTORE_INGEST && source.enableFirestoreIngest) {
+                    try {
+                        val timestamp = try {
+                            Instant.now().toString()
+                        } catch (e: Exception) {
+                            // Fallback if Instant not available (older Android)
+                            System.currentTimeMillis().toString()
+                        }
+                        
+                        ingestQueue.enqueue(
+                            sourceId = source.id,
+                            payload = json,
+                            timestamp = timestamp
+                        )
+                        logger.log("📤 Enqueued to Firestore: ${source.name}")
+                        Log.d(TAG, "✅ Firestore enqueue success for ${source.id}")
+                    } catch (e: Exception) {
+                        // ❌ CRITICAL: Firestore failure MUST NOT block delivery
+                        logger.error("⚠️ Firestore enqueue failed (non-fatal): ${e.message}")
+                        Log.w(TAG, "⚠️ Firestore enqueue failed (continuing with Apps Script)", e)
+                    }
+                }
                 
                 // Step 6: Get ALL endpoints for this source (fan-out delivery)
                 val endpoints = source.endpointIds

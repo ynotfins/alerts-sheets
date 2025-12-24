@@ -1,0 +1,74 @@
+{
+  "timestamp": "2025-12-23_23-28-39",
+  "commit": "779c713b73b05179df1a911cf66b935a612e2880",
+  "message": "feat: Phase 3 CRM Foundation - Firestore production deployment
+
+DEPLOYED TO PRODUCTION (alerts-sheets-bb09c)
+
+## Firestore CRM Schema (LOCKED)
+- 8 collections: alerts, properties, people, contacts, households, enrichments, outreaches, messages
+- 280-line security rules (client writes alerts, server enriches CRM)
+- 20 composite indexes for address-centric queries
+- Schema version 1.0 (immutable per requirements)
+
+## Cloud Functions (7 deployed)
+- enrichAlert: Alert → normalized address → property linkage
+- enrichProperty: Placeholder for ATTOM/owner enrichment
+- ingest: Updated to write /alerts (not /events)
+- initConfig: Feature flag initialization endpoint
+- getConfig: Feature flag query endpoint
+- health: Service status check
+- deliverEvent: Legacy placeholder (not used)
+
+## Address Normalization Pipeline
+- addressUtils.ts: Deterministic property ID generation (SHA-256)
+- Basic USPS-style address normalization
+- Provider-agnostic geocoding interface (not implemented yet)
+- Address extraction heuristics for BNN/SMS alerts
+
+## Feature Flag / Kill Switch System
+- featureFlags.ts: Lazy Firestore initialization (no module-load errors)
+- 9 flags: firestoreIngest, alertEnrichment, propertyEnrichment, geocoding, etc.
+- maintenanceMode: Emergency 503 for all endpoints
+- Zero-downtime control (toggle without redeploy)
+
+## Non-Blocking Architecture (CRITICAL)
+- ✅ Apps Script delivery path UNTOUCHED
+- ✅ Zero changes to DataPipeline.kt, HttpClient.kt, IngestQueue.kt
+- ✅ Enrichment runs async, failures never block client writes
+- ✅ Feature flags provide instant rollback
+
+## Documentation
+- PHASE_3_CRM_IMPLEMENTATION_COMPLETE.md: 650 lines, complete status
+- PHASE_3_CRM_DEPLOYMENT_GUIDE.md: 450 lines, deployment runbook
+- DOC_INDEX.md: Updated with Phase 3 section
+
+## Manual Steps Required
+- [ ] Initialize /config/featureFlags in Firestore Console
+- [ ] Test Alert → Property creation via IngestTestActivity
+- [ ] Verify duplicate alert idempotency
+- [ ] Verify alert without address (graceful failure)
+
+## Next: Phase 4 Integration
+- Integrate into DataPipeline (dual-write)
+- Geocoding API (Google Maps / Mapbox)
+- ATTOM API for owner lookup
+- Contact discovery APIs
+
+Functions deployed:
+- ingest: https://us-central1-alerts-sheets-bb09c.cloudfunctions.net/ingest
+- health: https://us-central1-alerts-sheets-bb09c.cloudfunctions.net/health
+- initConfig: https://us-central1-alerts-sheets-bb09c.cloudfunctions.net/initConfig
+- getConfig: https://us-central1-alerts-sheets-bb09c.cloudfunctions.net/getConfig",
+  "files_changed": [
+    "DOC_INDEX.md",
+    "PHASE_3_CRM_DEPLOYMENT_GUIDE.md",
+    "PHASE_3_CRM_IMPLEMENTATION_COMPLETE.md",
+    "functions/firestore.indexes.json",
+    "functions/firestore.rules",
+    "functions/src/enrichment.ts",
+    "functions/src/index.ts",
+    "functions/src/utils/addressUtils.ts",
+    "functions/src/utils/featureFlags.ts"
+  ]
+}

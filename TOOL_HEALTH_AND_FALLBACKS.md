@@ -278,7 +278,7 @@ Error: Not logged in. Please run 'firebase login' to authenticate.
 **Fix:**
 ```powershell
 firebase login
-# Opens browser, sign in with ynotfins@gmail.com
+# Opens browser, sign in with your Google account
 ```
 
 ---

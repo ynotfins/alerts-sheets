@@ -64,7 +64,7 @@ After building and installing the app:
 
 | Component | Status | Action Required |
 |-----------|--------|-----------------|
-| **Firebase Console Login** | ✅ Signed in (`ynotfins@gmail.com`) | None |
+| **Firebase Console Login** | ✅ Signed in | None |
 | **Anonymous Auth Provider** | ⚠️ Needs enabling | Enable in console (see above) |
 | **App Auto-Sign-In Code** | ✅ Implemented | None |
 | **Cloud Function Auth Check** | ✅ Validates tokens | None |

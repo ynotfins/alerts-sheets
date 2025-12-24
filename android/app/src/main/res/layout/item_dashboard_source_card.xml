@@ -18,12 +18,12 @@
         android:padding="20dp">
 
         <!-- Status Dot -->
-        <View
+        <ImageView
             android:id="@+id/source_status_dot"
             android:layout_width="12dp"
             android:layout_height="12dp"
             android:layout_gravity="top|end"
-            android:background="@drawable/bg_status_dot_green" />
+            android:src="@drawable/bg_status_dot_green" />
 
         <!-- Content -->
         <LinearLayout

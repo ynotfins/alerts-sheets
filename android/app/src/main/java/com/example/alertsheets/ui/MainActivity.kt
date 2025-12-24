@@ -72,18 +72,22 @@ class MainActivity : AppCompatActivity() {
     }
     
     private fun setupPermanentCards() {
-        // Lab card
-        findViewById<FrameLayout>(R.id.card_lab).setOnClickListener {
+        // Lab card - ORANGE
+        val cardLab = findViewById<FrameLayout>(R.id.card_lab)
+        cardLab.setBackgroundColor(0xFFF97316.toInt()) // Orange
+        cardLab.setOnClickListener {
             startActivity(Intent(this, LabActivity::class.java))
         }
         
-        // Permissions card
+        // Permissions card - Dynamic (updated in updateStatus)
         findViewById<FrameLayout>(R.id.card_permissions).setOnClickListener {
             startActivity(Intent(this, PermissionsActivity::class.java))
         }
         
-        // Logs card
-        findViewById<FrameLayout>(R.id.card_logs).setOnClickListener {
+        // Logs card - BLUE
+        val cardLogs = findViewById<FrameLayout>(R.id.card_logs)
+        cardLogs.setBackgroundColor(0xFF2563EB.toInt()) // Blue
+        cardLogs.setOnClickListener {
             startActivity(Intent(this, LogActivity::class.java))
         }
         

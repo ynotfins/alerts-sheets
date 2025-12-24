@@ -1,7 +1,22 @@
 {
-  "timestamp": "2025-12-24_13-30-56",
-  "commit": "8f0570b3d6744594f5774a8bea0e4f8840a1c7e9",
-  "message": "CRITICAL FIX: Make inner LinearLayouts transparent to show tile colors",
+  "timestamp": "2025-12-24_13-32-29",
+  "commit": "d8198768017dbc43914fa1894ac04ca3bbd1fe59",
+  "message": "THE FIX: Remove solid drawable from ripple_card foreground
+
+ROOT CAUSE FINALLY IDENTIFIED:
+android:foreground=ripple_card was rendering bg_card_modern
+bg_card_modern = solid oneui_card color (dark gray)
+This was layered ON TOP of the colored backgrounds
+
+The ripple foreground was literally painting over everything!
+
+FIX:
+Removed <item android:drawable=bg_card_modern/> from ripple_card.xml
+Ripple effect still works, but no longer obscures parent background
+
+RESULT:
+Colors will now be fully visible across entire tile surface
+Ripple touch effect preserved (overlay_light_20 on tap)",
   "files_changed": [
     ".ai-context/changes/2025-12-24.json",
     "android/.gradle/8.7/executionHistory/executionHistory.bin",
@@ -10,20 +25,13 @@
     "android/.gradle/8.7/fileHashes/fileHashes.lock",
     "android/.gradle/buildOutputCleanup/buildOutputCleanup.lock",
     "android/.gradle/file-system.probe",
-    "android/app/build/intermediates/data_binding_base_class_log_artifact/debug/out/com.example.alertsheets-binding_classes.json",
-    "android/app/build/intermediates/data_binding_layout_info_type_merge/debug/out/activity_main_dashboard-layout.xml",
-    "android/app/build/intermediates/data_binding_layout_info_type_package/debug/out/activity_main_dashboard-layout.xml",
-    "android/app/build/intermediates/incremental/dataBindingGenBaseClassesDebug/base_builder_log.json",
     "android/app/build/intermediates/incremental/debug/mergeDebugResources/compile-file-map.properties",
     "android/app/build/intermediates/incremental/debug/packageDebugResources/compile-file-map.properties",
     "android/app/build/intermediates/incremental/packageDebug/tmp/debug/dex-renamer-state.txt",
     "android/app/build/intermediates/incremental/packageDebug/tmp/debug/zip-cache/androidResources",
-    "android/app/build/intermediates/merged_res/debug/layout_activity_main_dashboard.xml.flat",
     "android/app/build/intermediates/merged_res_blame_folder/debug/out/single/debug.json",
-    "android/app/build/intermediates/merged_res_blame_folder/debug/out/single/layout.json",
-    "android/app/build/intermediates/packaged_res/debug/layout/activity_main_dashboard.xml",
     "android/app/build/intermediates/processed_res/debug/out/resources-debug.ap_",
     "android/app/build/outputs/apk/debug/app-debug.apk",
-    "android/app/src/main/res/layout/activity_main_dashboard.xml"
+    "android/app/src/main/res/drawable/ripple_card.xml"
   ]
 }

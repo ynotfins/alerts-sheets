@@ -84,6 +84,8 @@ drawable bg_spinner_dark
 drawable bg_status_badge
 drawable bg_status_dot_green
 drawable bg_status_dot_red
+drawable bg_tile_blue
+drawable bg_tile_orange
 drawable ic_activity_logs_card
 drawable ic_alert
 drawable ic_apps_card

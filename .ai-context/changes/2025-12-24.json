@@ -1,8 +1,79 @@
 {
-  "timestamp": "2025-12-24_01-06-26",
-  "commit": "be03929cbbc1953af78b03a60d17062f21c3c7e8",
-  "message": "Sync AI tracking",
+  "timestamp": "2025-12-24_13-18-55",
+  "commit": "619ed841ba6125a3e8682ab3d07bff189b64c31b",
+  "message": "CRITICAL FIX: Resolve app crash on launch
+
+CRASH:
+ClassCastException: android.view.View cannot be cast to ImageView
+at MainActivity.kt:135 (source_status_dot)
+
+ROOT CAUSE:
+item_dashboard_source_card.xml defined source_status_dot as <View>
+but MainActivity.kt line 135 casts it as ImageView
+
+FIX:
+Changed <View> to <ImageView> in layout XML
+Changed android:background to android:src for proper ImageView usage
+
+VERIFICATION:
+- Build successful (16s, 38 tasks)
+- APK installed successfully
+- Ready for device testing
+
+File changed: item_dashboard_source_card.xml (lines 21-26)",
   "files_changed": [
-    ".ai-context/changes/2025-12-24.json"
+    ".ai-context/changes/2025-12-24.json",
+    "android/.gradle/8.7/executionHistory/executionHistory.bin",
+    "android/.gradle/8.7/executionHistory/executionHistory.lock",
+    "android/.gradle/8.7/fileHashes/fileHashes.bin",
+    "android/.gradle/8.7/fileHashes/fileHashes.lock",
+    "android/.gradle/8.7/fileHashes/resourceHashesCache.bin",
+    "android/.gradle/buildOutputCleanup/buildOutputCleanup.lock",
+    "android/.gradle/file-system.probe",
+    "android/app/build/intermediates/data_binding_base_class_log_artifact/debug/out/com.example.alertsheets-binding_classes.json",
+    "android/app/build/intermediates/dex/debug/mergeProjectDexDebug/5/classes.dex",
+    "android/app/build/intermediates/incremental/dataBindingGenBaseClassesDebug/base_builder_log.json",
+    "android/app/build/intermediates/incremental/debug/mergeDebugResources/compile-file-map.properties",
+    "android/app/build/intermediates/incremental/debug/packageDebugResources/compile-file-map.properties",
+    "android/app/build/intermediates/incremental/packageDebug/tmp/debug/dex-renamer-state.txt",
+    "android/app/build/intermediates/incremental/packageDebug/tmp/debug/zip-cache/androidResources",
+    "android/app/build/intermediates/merged_res_blame_folder/debug/out/single/debug.json",
+    "android/app/build/intermediates/merged_res_blame_folder/debug/out/single/layout.json",
+    "android/app/build/intermediates/processed_res/debug/out/resources-debug.ap_",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/class-attributes.tab",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/class-attributes.tab.keystream",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/class-attributes.tab.keystream.len",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/class-attributes.tab.len",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/class-attributes.tab.values.at",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/class-attributes.tab_i",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/class-fq-name-to-source.tab",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/class-fq-name-to-source.tab.keystream",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/class-fq-name-to-source.tab.keystream.len",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/class-fq-name-to-source.tab.len",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/class-fq-name-to-source.tab.values.at",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/class-fq-name-to-source.tab_i",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/proto.tab",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/proto.tab.values.at",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/source-to-classes.tab",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/source-to-classes.tab.keystream",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/source-to-classes.tab.keystream.len",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/source-to-classes.tab.len",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/source-to-classes.tab.values.at",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/source-to-classes.tab_i",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/subtypes.tab",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/subtypes.tab.values.at",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/supertypes.tab",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/supertypes.tab.keystream",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/supertypes.tab.keystream.len",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/supertypes.tab.len",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/supertypes.tab.values.at",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/caches-jvm/jvm/kotlin/supertypes.tab_i",
+    "android/app/build/kotlin/compileDebugKotlin/cacheable/last-build.bin",
+    "android/app/build/kotlin/compileDebugKotlin/local-state/build-history.bin",
+    "android/app/build/outputs/apk/debug/app-debug.apk",
+    "android/app/build/tmp/compileDebugJavaWithJavac/previous-compilation-data.bin",
+    "android/app/src/main/res/layout/item_dashboard_source_card.xml",
+    "android/ui-dashboard.xml",
+    "android/ui.xml"
   ]
 }

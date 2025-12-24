@@ -19,6 +19,7 @@ import com.example.alertsheets.data.repositories.EndpointRepository
 import com.example.alertsheets.domain.SourceManager
 import com.example.alertsheets.domain.models.Source
 import com.example.alertsheets.domain.models.SourceType
+import com.example.alertsheets.utils.PermissionsUtil
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -36,7 +37,9 @@ class MainActivity : AppCompatActivity() {
     private lateinit var endpointRepo: EndpointRepository
     
     private lateinit var gridCards: GridLayout
-    private lateinit var dotPermissions: ImageView
+    private lateinit var cardPermissions: FrameLayout
+    private lateinit var textPermissionsTitle: TextView
+    private lateinit var textPermissionsSubtitle: TextView
     private lateinit var dotLogs: ImageView
     private lateinit var textStats: TextView
     private lateinit var textSourcesHeader: TextView
@@ -51,7 +54,9 @@ class MainActivity : AppCompatActivity() {
         
         // Initialize UI
         gridCards = findViewById(R.id.grid_cards)
-        dotPermissions = findViewById(R.id.dot_permissions)
+        cardPermissions = findViewById(R.id.card_permissions)
+        textPermissionsTitle = findViewById(R.id.text_permissions_title)
+        textPermissionsSubtitle = findViewById(R.id.text_permissions_subtitle)
         dotLogs = findViewById(R.id.dot_logs)
         textStats = findViewById(R.id.text_stats)
         textSourcesHeader = findViewById(R.id.text_sources_header)
@@ -184,13 +189,8 @@ class MainActivity : AppCompatActivity() {
     
     private fun updateStatus() {
         scope.launch(Dispatchers.IO) {
-            // Check permissions
-            val hasNotificationAccess = try {
-                val enabled = getSystemService(android.content.Context.NOTIFICATION_SERVICE) as android.app.NotificationManager
-                enabled.isNotificationListenerAccessGranted(android.content.ComponentName(this@MainActivity, com.example.alertsheets.services.AlertsNotificationListener::class.java))
-            } catch (e: Exception) {
-                false
-            }
+            // Check permissions using centralized utility
+            val permissionStatus = PermissionsUtil.checkAllPermissions(this@MainActivity)
             
             // Calculate today's stats
             val today = System.currentTimeMillis() - 24 * 60 * 60 * 1000
@@ -203,11 +203,16 @@ class MainActivity : AppCompatActivity() {
                 // Update stats text
                 textStats.text = "Today: $totalToday events • $sentToday sent • $failedToday failed"
                 
-                // Update permission dot
-                dotPermissions.setImageResource(
-                    if (hasNotificationAccess) R.drawable.bg_status_dot_green
-                    else R.drawable.bg_status_dot_red
-                )
+                // Update permission tile dynamically (green if OK, red if not)
+                if (permissionStatus.allGranted) {
+                    cardPermissions.setBackgroundColor(ContextCompat.getColor(this@MainActivity, R.color.tile_bg_green))
+                    textPermissionsTitle.text = "Perms"
+                    textPermissionsSubtitle.text = "All granted"
+                } else {
+                    cardPermissions.setBackgroundColor(ContextCompat.getColor(this@MainActivity, R.color.tile_bg_red))
+                    textPermissionsTitle.text = "Perms"
+                    textPermissionsSubtitle.text = PermissionsUtil.formatMissingList(permissionStatus.missing)
+                }
                 
                 // Update log dot (show green if recent activity)
                 val recentLogs = todayLogs.take(5)

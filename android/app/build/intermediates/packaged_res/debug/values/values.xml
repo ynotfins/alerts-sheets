@@ -36,6 +36,8 @@
     <color name="text_primary">#FFFFFF</color>
     <color name="text_secondary">#8E8E93</color>
     <color name="text_tertiary">#636366</color>
+    <color name="tile_bg_green">#1F8B3A</color>
+    <color name="tile_bg_red">#C41E3A</color>
     <color name="vibrant_blue">#0A84FF</color>
     <color name="vibrant_green">#32D74B</color>
     <color name="vibrant_orange">#FF9F0A</color>

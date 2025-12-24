@@ -68,7 +68,7 @@
                     android:layout_height="100dp"
                     android:layout_weight="1"
                     android:layout_margin="4dp"
-                    android:background="@drawable/bg_card_blue"
+                    android:background="@drawable/bg_card_orange"
                     android:clickable="true"
                     android:focusable="true"
                     android:foreground="@drawable/ripple_card">
@@ -108,7 +108,7 @@
                     android:layout_height="100dp"
                     android:layout_weight="1"
                     android:layout_margin="4dp"
-                    android:background="@drawable/bg_card_orange"
+                    android:background="@color/tile_bg_red"
                     android:clickable="true"
                     android:focusable="true"
                     android:foreground="@drawable/ripple_card">
@@ -127,6 +127,7 @@
                             android:tint="#FFFFFF" />
 
                         <TextView
+                            android:id="@+id/text_permissions_title"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Perms"
@@ -139,12 +140,19 @@
                             android:shadowRadius="4"
                             android:layout_marginTop="4dp" />
 
-                        <ImageView
-                            android:id="@+id/dot_permissions"
-                            android:layout_width="8dp"
-                            android:layout_height="8dp"
-                            android:src="@drawable/bg_status_dot_red"
-                            android:layout_marginTop="4dp" />
+                        <TextView
+                            android:id="@+id/text_permissions_subtitle"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Checking..."
+                            android:textColor="#FFFFFF"
+                            android:textSize="10sp"
+                            android:shadowColor="#000000"
+                            android:shadowDx="0"
+                            android:shadowDy="1"
+                            android:shadowRadius="2"
+                            android:gravity="center"
+                            android:layout_marginTop="2dp" />
                     </LinearLayout>
                 </FrameLayout>
 
@@ -155,7 +163,7 @@
                     android:layout_height="100dp"
                     android:layout_weight="1"
                     android:layout_margin="4dp"
-                    android:background="@drawable/bg_card_purple"
+                    android:background="@drawable/bg_card_blue"
                     android:clickable="true"
                     android:focusable="true"
                     android:foreground="@drawable/ripple_card">

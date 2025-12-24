@@ -2148,6 +2148,8 @@ color teal_700
 color text_primary
 color text_secondary
 color text_tertiary
+color tile_bg_green
+color tile_bg_red
 color tooltip_background_dark
 color tooltip_background_light
 color vibrant_blue
@@ -3420,7 +3422,6 @@ id disablePostScroll
 id disableScroll
 id disjoint
 id dot_logs
-id dot_permissions
 id dragAnticlockwise
 id dragClockwise
 id dragDown
@@ -3781,6 +3782,8 @@ id text_name
 id text_number
 id text_package_name
 id text_parser
+id text_permissions_subtitle
+id text_permissions_title
 id text_queue_count
 id text_results
 id text_source

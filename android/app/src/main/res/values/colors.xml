@@ -32,6 +32,10 @@
     <color name="vibrant_teal">#64D2FF</color>
     <color name="vibrant_red">#FF453A</color>
     
+    <!-- Dashboard Tile Backgrounds (for dynamic permission state) -->
+    <color name="tile_bg_green">#1F8B3A</color>
+    <color name="tile_bg_red">#C41E3A</color>
+    
     <!-- System Colors -->
     <color name="success_green">#30D158</color>
     <color name="warning_amber">#FF9F0A</color>

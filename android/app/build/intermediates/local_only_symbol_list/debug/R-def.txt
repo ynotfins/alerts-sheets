@@ -38,6 +38,8 @@ color teal_700
 color text_primary
 color text_secondary
 color text_tertiary
+color tile_bg_green
+color tile_bg_red
 color vibrant_blue
 color vibrant_green
 color vibrant_orange
@@ -137,7 +139,6 @@ id check_case
 id check_show_system
 id checkbox_app
 id dot_logs
-id dot_permissions
 id edit_search
 id empty_state
 id endpoints_checkboxes
@@ -202,6 +203,8 @@ id text_name
 id text_number
 id text_package_name
 id text_parser
+id text_permissions_subtitle
+id text_permissions_title
 id text_queue_count
 id text_results
 id text_source

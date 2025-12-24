@@ -35,13 +35,16 @@ public final class ActivityMainDashboardBinding implements ViewBinding {
   public final ImageView dotLogs;
 
   @NonNull
-  public final ImageView dotPermissions;
-
-  @NonNull
   public final LinearLayout emptyState;
 
   @NonNull
   public final GridLayout gridCards;
+
+  @NonNull
+  public final TextView textPermissionsSubtitle;
+
+  @NonNull
+  public final TextView textPermissionsTitle;
 
   @NonNull
   public final TextView textSourcesHeader;
@@ -51,17 +54,18 @@ public final class ActivityMainDashboardBinding implements ViewBinding {
 
   private ActivityMainDashboardBinding(@NonNull LinearLayout rootView, @NonNull FrameLayout cardLab,
       @NonNull FrameLayout cardLogs, @NonNull FrameLayout cardPermissions,
-      @NonNull ImageView dotLogs, @NonNull ImageView dotPermissions,
-      @NonNull LinearLayout emptyState, @NonNull GridLayout gridCards,
+      @NonNull ImageView dotLogs, @NonNull LinearLayout emptyState, @NonNull GridLayout gridCards,
+      @NonNull TextView textPermissionsSubtitle, @NonNull TextView textPermissionsTitle,
       @NonNull TextView textSourcesHeader, @NonNull TextView textStats) {
     this.rootView = rootView;
     this.cardLab = cardLab;
     this.cardLogs = cardLogs;
     this.cardPermissions = cardPermissions;
     this.dotLogs = dotLogs;
-    this.dotPermissions = dotPermissions;
     this.emptyState = emptyState;
     this.gridCards = gridCards;
+    this.textPermissionsSubtitle = textPermissionsSubtitle;
+    this.textPermissionsTitle = textPermissionsTitle;
     this.textSourcesHeader = textSourcesHeader;
     this.textStats = textStats;
   }
@@ -117,12 +121,6 @@ public final class ActivityMainDashboardBinding implements ViewBinding {
         break missingId;
       }
 
-      id = R.id.dot_permissions;
-      ImageView dotPermissions = ViewBindings.findChildViewById(rootView, id);
-      if (dotPermissions == null) {
-        break missingId;
-      }
-
       id = R.id.empty_state;
       LinearLayout emptyState = ViewBindings.findChildViewById(rootView, id);
       if (emptyState == null) {
@@ -132,6 +130,18 @@ public final class ActivityMainDashboardBinding implements ViewBinding {
       id = R.id.grid_cards;
       GridLayout gridCards = ViewBindings.findChildViewById(rootView, id);
       if (gridCards == null) {
+        break missingId;
+      }
+
+      id = R.id.text_permissions_subtitle;
+      TextView textPermissionsSubtitle = ViewBindings.findChildViewById(rootView, id);
+      if (textPermissionsSubtitle == null) {
+        break missingId;
+      }
+
+      id = R.id.text_permissions_title;
+      TextView textPermissionsTitle = ViewBindings.findChildViewById(rootView, id);
+      if (textPermissionsTitle == null) {
         break missingId;
       }
 
@@ -148,8 +158,8 @@ public final class ActivityMainDashboardBinding implements ViewBinding {
       }
 
       return new ActivityMainDashboardBinding((LinearLayout) rootView, cardLab, cardLogs,
-          cardPermissions, dotLogs, dotPermissions, emptyState, gridCards, textSourcesHeader,
-          textStats);
+          cardPermissions, dotLogs, emptyState, gridCards, textPermissionsSubtitle,
+          textPermissionsTitle, textSourcesHeader, textStats);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

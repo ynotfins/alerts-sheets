@@ -61,3 +61,11 @@ local.properties
 build/
 dist/
 *.log
+
+# ========================================
+# AI CONTEXT & TRACKING (DO NOT COMMIT)
+# ========================================
+.ai-context/
+**/.ai-context/
+ai-context.json
+**/ai-context.json

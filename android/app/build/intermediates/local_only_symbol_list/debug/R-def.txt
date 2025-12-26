@@ -254,6 +254,7 @@ string activity_sms_config
 string activity_source_config
 string app_name
 string cancel
+string com.google.firebase.crashlytics.mapping_file_id
 string delete
 string dev_mode_disabled
 string dev_mode_enabled

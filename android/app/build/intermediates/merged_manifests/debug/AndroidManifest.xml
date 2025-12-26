@@ -27,7 +27,9 @@
     <uses-permission android:name="android.permission.READ_CONTACTS" /> <!-- FOREGROUND SERVICE (PREVENT ANDROID FROM KILLING US) -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
-    <uses-permission android:name="android.permission.WAKE_LOCK" /> <!-- BATTERY OPTIMIZATION BYPASS (CRITICAL) -->
+    <uses-permission
+        android:name="android.permission.WAKE_LOCK"
+        android:maxSdkVersion="25" /> <!-- BATTERY OPTIMIZATION BYPASS (CRITICAL) -->
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" /> <!-- BOOT & RESTART -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" /> <!-- OVERLAYS & ALERTS -->
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
@@ -39,6 +41,15 @@
     <!-- Required to enumerate installed apps on Android 11+ (API 30+) -->
     <!-- This is a sideload/dev permission; for Play Store use <queries> instead -->
     <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" />
+
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.CREATE_DOCUMENT" />
+
+            <data android:mimeType="*/*" />
+        </intent>
+    </queries>
+
     <uses-permission android:name="com.google.android.gms.permission.AD_ID" />
     <uses-permission android:name="android.permission.ACCESS_ADSERVICES_ATTRIBUTION" />
     <uses-permission android:name="android.permission.ACCESS_ADSERVICES_AD_ID" />
@@ -48,7 +59,9 @@
         android:name="com.example.alertsheets.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
         android:protectionLevel="signature" />
 
-    <uses-permission android:name="com.example.alertsheets.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" /> <!-- DEBUG-ONLY: Ingest Test Harness Activity -->
+    <uses-permission android:name="com.example.alertsheets.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" /> <!-- To store the heap dumps and leak analysis results. -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" /> <!-- DEBUG-ONLY: Ingest Test Harness Activity -->
     <application
         android:name="com.example.alertsheets.AlertsApplication"
         android:allowBackup="false"
@@ -195,19 +208,34 @@
             </intent-filter>
         </receiver>
 
+        <activity
+            android:name="com.chuckerteam.chucker.internal.ui.MainActivity"
+            android:label="@string/chucker_name"
+            android:launchMode="singleTask"
+            android:taskAffinity="com.chuckerteam.chucker.task"
+            android:theme="@style/Chucker.Theme" />
+        <activity
+            android:name="com.chuckerteam.chucker.internal.ui.transaction.TransactionActivity"
+            android:parentActivityName="com.chuckerteam.chucker.internal.ui.MainActivity"
+            android:theme="@style/Chucker.Theme" />
+
+        <service
+            android:name="com.chuckerteam.chucker.internal.support.ClearDatabaseService"
+            android:exported="false"
+            android:permission="android.permission.BIND_JOB_SERVICE" />
+
+        <receiver
+            android:name="com.chuckerteam.chucker.internal.support.ClearDatabaseJobIntentServiceReceiver"
+            android:exported="false" />
+
         <provider
-            android:name="androidx.startup.InitializationProvider"
-            android:authorities="com.example.alertsheets.androidx-startup"
-            android:exported="false" >
+            android:name="com.chuckerteam.chucker.internal.support.ChuckerFileProvider"
+            android:authorities="com.example.alertsheets.com.chuckerteam.chucker.provider"
+            android:exported="false"
+            android:grantUriPermissions="true" >
             <meta-data
-                android:name="androidx.emoji2.text.EmojiCompatInitializer"
-                android:value="androidx.startup" />
-            <meta-data
-                android:name="androidx.lifecycle.ProcessLifecycleInitializer"
-                android:value="androidx.startup" />
-            <meta-data
-                android:name="androidx.profileinstaller.ProfileInstallerInitializer"
-                android:value="androidx.startup" />
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/chucker_provider_paths" />
         </provider>
 
         <service
@@ -215,10 +243,22 @@
             android:directBootAware="true"
             android:exported="false" >
             <meta-data
+                android:name="com.google.firebase.components:com.google.firebase.perf.ktx.FirebasePerfLegacyRegistrar"
+                android:value="com.google.firebase.components.ComponentRegistrar" />
+            <meta-data
+                android:name="com.google.firebase.components:com.google.firebase.perf.FirebasePerfKtxRegistrar"
+                android:value="com.google.firebase.components.ComponentRegistrar" />
+            <meta-data
+                android:name="com.google.firebase.components:com.google.firebase.perf.FirebasePerfRegistrar"
+                android:value="com.google.firebase.components.ComponentRegistrar" />
+            <meta-data
                 android:name="com.google.firebase.components:com.google.firebase.auth.ktx.FirebaseAuthLegacyRegistrar"
                 android:value="com.google.firebase.components.ComponentRegistrar" />
             <meta-data
                 android:name="com.google.firebase.components:com.google.firebase.auth.FirebaseAuthRegistrar"
+                android:value="com.google.firebase.components.ComponentRegistrar" />
+            <meta-data
+                android:name="com.google.firebase.components:com.google.firebase.crashlytics.ktx.FirebaseCrashlyticsKtxRegistrar"
                 android:value="com.google.firebase.components.ComponentRegistrar" />
             <meta-data
                 android:name="com.google.firebase.components:com.google.firebase.analytics.ktx.FirebaseAnalyticsLegacyRegistrar"
@@ -227,10 +267,25 @@
                 android:name="com.google.firebase.components:com.google.firebase.firestore.ktx.FirebaseFirestoreLegacyRegistrar"
                 android:value="com.google.firebase.components.ComponentRegistrar" />
             <meta-data
+                android:name="com.google.firebase.components:com.google.firebase.crashlytics.FirebaseCrashlyticsKtxRegistrar"
+                android:value="com.google.firebase.components.ComponentRegistrar" />
+            <meta-data
+                android:name="com.google.firebase.components:com.google.firebase.crashlytics.CrashlyticsRegistrar"
+                android:value="com.google.firebase.components.ComponentRegistrar" />
+            <meta-data
                 android:name="com.google.firebase.components:com.google.firebase.firestore.FirebaseFirestoreKtxRegistrar"
                 android:value="com.google.firebase.components.ComponentRegistrar" />
             <meta-data
                 android:name="com.google.firebase.components:com.google.firebase.firestore.FirestoreRegistrar"
+                android:value="com.google.firebase.components.ComponentRegistrar" />
+            <meta-data
+                android:name="com.google.firebase.components:com.google.firebase.sessions.FirebaseSessionsRegistrar"
+                android:value="com.google.firebase.components.ComponentRegistrar" />
+            <meta-data
+                android:name="com.google.firebase.components:com.google.firebase.remoteconfig.FirebaseRemoteConfigKtxRegistrar"
+                android:value="com.google.firebase.components.ComponentRegistrar" />
+            <meta-data
+                android:name="com.google.firebase.components:com.google.firebase.remoteconfig.RemoteConfigRegistrar"
                 android:value="com.google.firebase.components.ComponentRegistrar" />
             <meta-data
                 android:name="com.google.firebase.components:com.google.firebase.analytics.connector.internal.AnalyticsConnectorRegistrar"
@@ -246,6 +301,12 @@
                 android:value="com.google.firebase.components.ComponentRegistrar" />
             <meta-data
                 android:name="com.google.firebase.components:com.google.firebase.FirebaseCommonKtxRegistrar"
+                android:value="com.google.firebase.components.ComponentRegistrar" />
+            <meta-data
+                android:name="com.google.firebase.components:com.google.firebase.abt.component.AbtRegistrar"
+                android:value="com.google.firebase.components.ComponentRegistrar" />
+            <meta-data
+                android:name="com.google.firebase.components:com.google.firebase.datatransport.TransportRegistrar"
                 android:value="com.google.firebase.components.ComponentRegistrar" />
         </service>
 
@@ -286,6 +347,11 @@
             </intent-filter>
         </activity>
 
+        <service
+            android:name="com.google.firebase.sessions.SessionLifecycleService"
+            android:enabled="true"
+            android:exported="false" />
+
         <property
             android:name="android.adservices.AD_SERVICES_CONFIG"
             android:resource="@xml/ga_ad_services_config" />
@@ -295,7 +361,30 @@
             android:authorities="com.example.alertsheets.firebaseinitprovider"
             android:directBootAware="true"
             android:exported="false"
-            android:initOrder="100" />
+            android:initOrder="100" /> <!-- 'android:authorities' must be unique in the device, across all apps -->
+        <provider
+            android:name="io.sentry.android.core.SentryInitProvider"
+            android:authorities="com.example.alertsheets.SentryInitProvider"
+            android:exported="false" />
+        <provider
+            android:name="io.sentry.android.core.SentryPerformanceProvider"
+            android:authorities="com.example.alertsheets.SentryPerformanceProvider"
+            android:exported="false"
+            android:initOrder="200" />
+        <provider
+            android:name="androidx.startup.InitializationProvider"
+            android:authorities="com.example.alertsheets.androidx-startup"
+            android:exported="false" >
+            <meta-data
+                android:name="androidx.emoji2.text.EmojiCompatInitializer"
+                android:value="androidx.startup" />
+            <meta-data
+                android:name="androidx.lifecycle.ProcessLifecycleInitializer"
+                android:value="androidx.startup" />
+            <meta-data
+                android:name="androidx.profileinstaller.ProfileInstallerInitializer"
+                android:value="androidx.startup" />
+        </provider>
 
         <receiver
             android:name="com.google.android.gms.measurement.AppMeasurementReceiver"
@@ -313,18 +402,113 @@
             android:exported="false"
             android:permission="android.permission.BIND_JOB_SERVICE" />
 
-        <uses-library
-            android:name="android.ext.adservices"
-            android:required="false" />
-
         <activity
             android:name="com.google.android.gms.common.api.GoogleApiActivity"
             android:exported="false"
             android:theme="@android:style/Theme.Translucent.NoTitleBar" />
 
+        <uses-library
+            android:name="android.ext.adservices"
+            android:required="false" />
+
         <meta-data
             android:name="com.google.android.gms.version"
             android:value="@integer/google_play_services_version" />
+
+        <provider
+            android:name="leakcanary.internal.LeakCanaryFileProvider"
+            android:authorities="com.squareup.leakcanary.fileprovider.com.example.alertsheets"
+            android:exported="false"
+            android:grantUriPermissions="true" >
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/leak_canary_file_paths" />
+        </provider>
+
+        <activity
+            android:name="leakcanary.internal.activity.LeakActivity"
+            android:exported="true"
+            android:icon="@mipmap/leak_canary_icon"
+            android:label="@string/leak_canary_display_activity_label"
+            android:taskAffinity="com.squareup.leakcanary.com.example.alertsheets"
+            android:theme="@style/leak_canary_LeakCanary.Base" >
+            <intent-filter android:label="@string/leak_canary_import_hprof_file" >
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data android:scheme="file" />
+                <data android:scheme="content" />
+                <data android:mimeType="*/*" />
+                <data android:host="*" />
+                <data android:pathPattern=".*\\.hprof" />
+                <data android:pathPattern=".*\\..*\\.hprof" />
+                <data android:pathPattern=".*\\..*\\..*\\.hprof" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\.hprof" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\.hprof" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\..*\\.hprof" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\..*\\..*\\.hprof" />
+                <!--
+            Since hprof isn't a standard MIME type, we have to declare such patterns.
+            Most file providers will generate URIs including their own package name,
+            which contains `.` characters that must be explicitly escaped in pathPattern.
+            @see https://stackoverflow.com/a/31028507/703646
+                -->
+            </intent-filter>
+        </activity>
+
+        <activity-alias
+            android:name="leakcanary.internal.activity.LeakLauncherActivity"
+            android:banner="@drawable/leak_canary_tv_icon"
+            android:enabled="@bool/leak_canary_add_launcher_icon"
+            android:exported="true"
+            android:icon="@mipmap/leak_canary_icon"
+            android:label="@string/leak_canary_display_activity_label"
+            android:targetActivity="leakcanary.internal.activity.LeakActivity"
+            android:taskAffinity="com.squareup.leakcanary.com.example.alertsheets"
+            android:theme="@style/leak_canary_LeakCanary.Base" >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+                <!-- Android TV launcher intent -->
+                <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+
+        <activity
+            android:name="leakcanary.internal.RequestPermissionActivity"
+            android:excludeFromRecents="true"
+            android:icon="@mipmap/leak_canary_icon"
+            android:label="@string/leak_canary_storage_permission_activity_label"
+            android:taskAffinity="com.squareup.leakcanary.com.example.alertsheets"
+            android:theme="@style/leak_canary_Theme.Transparent" />
+
+        <receiver android:name="leakcanary.internal.NotificationReceiver" />
+
+        <provider
+            android:name="leakcanary.internal.MainProcessAppWatcherInstaller"
+            android:authorities="com.example.alertsheets.leakcanary-installer"
+            android:enabled="@bool/leak_canary_watcher_auto_install"
+            android:exported="false" />
+        <provider
+            android:name="leakcanary.internal.PlumberInstaller"
+            android:authorities="com.example.alertsheets.plumber-installer"
+            android:enabled="@bool/leak_canary_plumber_auto_install"
+            android:exported="false" />
+
+        <service
+            android:name="androidx.room.MultiInstanceInvalidationService"
+            android:directBootAware="true"
+            android:exported="false" />
+        <service
+            android:name="com.google.android.datatransport.runtime.backends.TransportBackendDiscovery"
+            android:exported="false" >
+            <meta-data
+                android:name="backend:com.google.android.datatransport.cct.CctBackendFactory"
+                android:value="cct" />
+        </service>
 
         <receiver
             android:name="androidx.profileinstaller.ProfileInstallReceiver"
@@ -345,6 +529,16 @@
                 <action android:name="androidx.profileinstaller.action.BENCHMARK_OPERATION" />
             </intent-filter>
         </receiver>
+
+        <service
+            android:name="com.google.android.datatransport.runtime.scheduling.jobscheduling.JobInfoSchedulerService"
+            android:exported="false"
+            android:permission="android.permission.BIND_JOB_SERVICE" >
+        </service>
+
+        <receiver
+            android:name="com.google.android.datatransport.runtime.scheduling.jobscheduling.AlarmManagerSchedulerBroadcastReceiver"
+            android:exported="false" />
     </application>
 
 </manifest>

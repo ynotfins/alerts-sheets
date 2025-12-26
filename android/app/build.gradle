@@ -1,7 +1,11 @@
 apply plugin: 'com.android.application'
 apply plugin: 'org.jetbrains.kotlin.android'
 apply plugin: 'com.google.gms.google-services'
-// apply plugin: 'kotlin-kapt'
+apply plugin: 'com.google.firebase.crashlytics'
+apply plugin: 'com.google.firebase.firebase-perf'
+// NOTE: Sentry Gradle plugin omitted - we'll use SDK-only initialization for now
+apply plugin: 'io.gitlab.arturbosch.detekt'
+apply plugin: 'org.jlleitschuh.gradle.ktlint'
 
 android {
     namespace 'com.example.alertsheets'
@@ -15,6 +19,12 @@ android {
         versionName "1.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        
+        // Sentry configuration (loaded from local.properties or env)
+        // Do NOT hardcode DSN here - use local.properties:
+        // sentryDsn=https://your-key@o0.ingest.sentry.io/0
+        def sentryDsn = project.findProperty("sentryDsn") ?: System.getenv("SENTRY_DSN") ?: ""
+        buildConfigField "String", "SENTRY_DSN", "\"${sentryDsn}\""
     }
 
     buildTypes {
@@ -23,6 +33,7 @@ android {
             buildConfigField "String", "INGEST_ENDPOINT", '"https://us-central1-alerts-sheets-bb09c.cloudfunctions.net/ingest"'
             buildConfigField "String", "ENVIRONMENT", '"debug"'
             buildConfigField "boolean", "ENABLE_FIRESTORE_INGEST", "false"  // ✅ OFF by default
+            buildConfigField "boolean", "ENABLE_SENTRY", "false"  // ✅ OFF in debug (use Crashlytics)
             
             // Uncomment to use local emulator:
             // buildConfigField "String", "INGEST_ENDPOINT", '"http://10.0.2.2:5001/alerts-sheets-bb09c/us-central1/ingest"'
@@ -32,55 +43,132 @@ android {
             buildConfigField "String", "INGEST_ENDPOINT", '"https://us-central1-alerts-sheets-bb09c.cloudfunctions.net/ingest"'
             buildConfigField "String", "ENVIRONMENT", '"release"'
             buildConfigField "boolean", "ENABLE_FIRESTORE_INGEST", "false"  // ✅ OFF by default (safety)
+            buildConfigField "boolean", "ENABLE_SENTRY", "true"  // ✅ ON in release
+            
+            // Enable Crashlytics mapping file upload
+            firebaseCrashlytics {
+                mappingFileUploadEnabled true
+            }
             
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
+    
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
         targetCompatibility JavaVersion.VERSION_17
     }
+    
     kotlinOptions {
         jvmTarget = '17'
     }
+    
     buildFeatures {
         viewBinding true
         buildConfig true
     }
 }
 
+// ========================================
+// SENTRY CONFIGURATION (SDK-only, no Gradle plugin)
+// ========================================
+// NOTE: Without the Gradle plugin, you lose automatic:
+// - ProGuard mapping upload
+// - Source context upload
+// - Native symbol upload
+// These can be added later when the correct Sentry Gradle plugin version is identified.
+// For now, Sentry will work but without full symbolication in release builds.
+
+// ========================================
+// DETEKT CONFIGURATION
+// ========================================
+detekt {
+    buildUponDefaultConfig = true
+    allRules = false
+    config.setFrom(files("$rootDir/../config/detekt/detekt.yml"))
+    baseline = file("$rootDir/../config/detekt/baseline.xml")
+    parallel = true
+}
+
+// ========================================
+// KTLINT CONFIGURATION
+// ========================================
+ktlint {
+    version = "1.0.1"
+    android = true
+    ignoreFailures = false
+    reporters {
+        reporter "plain"
+        reporter "checkstyle"
+        reporter "sarif"
+    }
+    filter {
+        exclude("**/generated/**")
+        exclude("**/build/**")
+    }
+}
+
 dependencies {
-    // Firebase
-    implementation platform('com.google.firebase:firebase-bom:32.7.0')
+    // ========================================
+    // FIREBASE (using BoM for version management)
+    // ========================================
+    implementation platform('com.google.firebase:firebase-bom:32.7.0')  // ✅ Compatible with SDK 34
     implementation 'com.google.firebase:firebase-auth-ktx'
     implementation 'com.google.firebase:firebase-firestore-ktx'
     implementation 'com.google.firebase:firebase-analytics-ktx'
+    implementation 'com.google.firebase:firebase-crashlytics-ktx'
+    implementation 'com.google.firebase:firebase-perf-ktx'
     
-    implementation 'androidx.core:core-ktx:1.12.0'
+    // ========================================
+    // SENTRY (Error Tracking + Performance)
+    // ========================================
+    implementation 'io.sentry:sentry-android:7.18.1'  // ✅ Latest stable
+    
+    // ========================================
+    // LEAKCANARY (Debug-only memory leak detection)
+    // ========================================
+    debugImplementation 'com.squareup.leakcanary:leakcanary-android:2.14'  // ✅ Last known stable
+    
+    // ========================================
+    // CHUCKER (Debug-only network inspection)
+    // ========================================
+    debugImplementation 'com.github.chuckerteam.chucker:library:4.0.0'
+    releaseImplementation 'com.github.chuckerteam.chucker:library-no-op:4.0.0'
+    
+    // ========================================
+    // ANDROID X & UI
+    // ========================================
+    implementation 'androidx.core:core-ktx:1.12.0'  // ✅ Compatible with SDK 34
     implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'com.google.android.material:material:1.11.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
     
-    // HTTP Client
+    // ========================================
+    // HTTP CLIENT (OkHttp with logging)
+    // ========================================
     implementation 'com.squareup.okhttp3:okhttp:4.12.0'
-    implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
+    debugImplementation 'com.squareup.okhttp3:logging-interceptor:4.12.0'
     
-    // Coroutines
-    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3'
+    // ========================================
+    // COROUTINES
+    // ========================================
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0'
     
-    // Gson
-    implementation 'com.google.code.gson:gson:2.10.1'
+    // ========================================
+    // JSON SERIALIZATION
+    // ========================================
+    implementation 'com.google.code.gson:gson:2.11.0'
 
-    // Room Removed - Switching to SQLiteOpenHelper due to persistent build config issues
-    // implementation 'androidx.room:room-runtime:2.6.1'
-    // implementation 'androidx.room:room-ktx:2.6.1'
-    // kapt 'androidx.room:room-compiler:2.6.1'
+    // ========================================
+    // LIFECYCLE
+    // ========================================
+    implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.8.7'
 
-    // Lifecycle (for ViewModel/LiveData if needed, mainly for lifecycleScope)
-    implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.6.2'
-
+    // ========================================
+    // TESTING
+    // ========================================
     testImplementation 'junit:junit:4.13.2'
-    androidTestImplementation 'androidx.test.ext:junit:1.1.5'
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
+    androidTestImplementation 'androidx.test.ext:junit:1.2.1'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.6.1'
 }

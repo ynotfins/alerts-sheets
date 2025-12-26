@@ -1,37 +1,10 @@
 {
-  "timestamp": "2025-12-24_13-32-29",
-  "commit": "d8198768017dbc43914fa1894ac04ca3bbd1fe59",
-  "message": "THE FIX: Remove solid drawable from ripple_card foreground
-
-ROOT CAUSE FINALLY IDENTIFIED:
-android:foreground=ripple_card was rendering bg_card_modern
-bg_card_modern = solid oneui_card color (dark gray)
-This was layered ON TOP of the colored backgrounds
-
-The ripple foreground was literally painting over everything!
-
-FIX:
-Removed <item android:drawable=bg_card_modern/> from ripple_card.xml
-Ripple effect still works, but no longer obscures parent background
-
-RESULT:
-Colors will now be fully visible across entire tile surface
-Ripple touch effect preserved (overlay_light_20 on tap)",
+  "timestamp": "2025-12-24_23-31-20",
+  "commit": "ee23f30e81b3d534fa8f70eaf2a1562725bbdb8b",
+  "message": "EVIDENCE: Phase 0 UI fix proof with UIAutomator dump and screenshot",
   "files_changed": [
-    ".ai-context/changes/2025-12-24.json",
-    "android/.gradle/8.7/executionHistory/executionHistory.bin",
-    "android/.gradle/8.7/executionHistory/executionHistory.lock",
-    "android/.gradle/8.7/fileHashes/fileHashes.bin",
-    "android/.gradle/8.7/fileHashes/fileHashes.lock",
-    "android/.gradle/buildOutputCleanup/buildOutputCleanup.lock",
-    "android/.gradle/file-system.probe",
-    "android/app/build/intermediates/incremental/debug/mergeDebugResources/compile-file-map.properties",
-    "android/app/build/intermediates/incremental/debug/packageDebugResources/compile-file-map.properties",
-    "android/app/build/intermediates/incremental/packageDebug/tmp/debug/dex-renamer-state.txt",
-    "android/app/build/intermediates/incremental/packageDebug/tmp/debug/zip-cache/androidResources",
-    "android/app/build/intermediates/merged_res_blame_folder/debug/out/single/debug.json",
-    "android/app/build/intermediates/processed_res/debug/out/resources-debug.ap_",
-    "android/app/build/outputs/apk/debug/app-debug.apk",
-    "android/app/src/main/res/drawable/ripple_card.xml"
+    "PHASE_0_EVIDENCE_PROOF.md",
+    "android/dashboard-final-proof.png",
+    "android/ui-final-proof.xml"
   ]
 }

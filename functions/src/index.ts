@@ -113,31 +113,39 @@ export const ingest = functions.https.onRequest(async (req, res) => {
     return;
   }
   
-  // Check authentication
+  // Check authentication - Shared Secret
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     res.status(401).json({
       status: 'error',
-      message: 'Unauthorized. Missing or invalid Authorization header.'
+      message: 'Unauthorized. Missing Authorization header. Expected: Authorization: Bearer <secret>'
     });
     return;
   }
   
-  const idToken = authHeader.split('Bearer ')[1];
-  let decodedToken;
+  const providedSecret = authHeader.split('Bearer ')[1];
+  const expectedSecret = process.env.INGEST_SHARED_SECRET || process.env.BNN_SHARED_SECRET;
   
-  try {
-    decodedToken = await admin.auth().verifyIdToken(idToken);
-  } catch (error) {
-    console.error('Token verification failed:', error);
+  if (!expectedSecret) {
+    console.error('FATAL: INGEST_SHARED_SECRET not configured in environment');
+    res.status(500).json({
+      status: 'error',
+      message: 'Server configuration error'
+    });
+    return;
+  }
+  
+  if (providedSecret !== expectedSecret) {
+    console.warn('Authentication failed: Invalid secret provided');
     res.status(401).json({
       status: 'error',
-      message: 'Unauthorized. Invalid token.'
+      message: 'Unauthorized. Invalid secret.'
     });
     return;
   }
   
-  const userId = decodedToken.uid;
+  // ✅ Authentication successful
+  console.log('✅ Authentication successful (shared secret)');
   
   // ========================================
   // STEP 2: Validate payload
@@ -194,7 +202,7 @@ export const ingest = functions.https.onRequest(async (req, res) => {
   
   if (existingAlert.exists) {
     // Alert already ingested, return success (idempotent)
-    console.log(`[INGEST] Duplicate alert: ${body.uuid} (userId: ${userId})`);
+    console.log(`[INGEST] Duplicate alert: ${body.uuid}`);
     res.status(200).json({
       status: 'ok',
       message: 'Alert already ingested (duplicate)',
@@ -241,10 +249,10 @@ export const ingest = functions.https.onRequest(async (req, res) => {
       // Metadata
       clientAppVersion: body.appVersion || 'unknown',
       clientDeviceId: body.deviceId || 'unknown',
-      clientUserId: userId
+      clientUserId: 'authenticated' // Shared secret auth (no user ID)
     });
     
-    console.log(`[INGEST] Alert ingested: ${body.uuid} (userId: ${userId}, sourceId: ${body.sourceId}, hasAddress: ${!!rawAddress})`);
+    console.log(`[INGEST] Alert ingested: ${body.uuid} (sourceId: ${body.sourceId}, hasAddress: ${!!rawAddress})`);
     
     res.status(200).json({
       status: 'ok',

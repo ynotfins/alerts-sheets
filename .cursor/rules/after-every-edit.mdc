@@ -1,0 +1,4 @@
+---
+alwaysApply: true
+---
+After every meaningful change (code/config/docs), Agent must update docs/ai/STATE.md in the same commit (or at minimum before ending the session), including checklist, evidence, and what’s still broken.

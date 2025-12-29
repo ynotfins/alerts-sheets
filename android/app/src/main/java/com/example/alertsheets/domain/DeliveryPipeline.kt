@@ -258,19 +258,21 @@ object DeliveryPipeline {
             // Step 5: Prepare headers (including auth if needed)
             val headers = endpoint.headers.toMutableMap()
             
-            // ✅ Add Firebase ID token if endpoint is Firestore ingest (URL-based detection)
+            // ✅ Add shared secret Authorization header for Firestore ingest endpoints
+            // Detection: URL contains "cloudfunctions.net/ingest" OR name contains "Firestore Ingest"
+            // Only add if Authorization not already present (endpoint-level override wins)
             val needsAuth = endpoint.url.contains("cloudfunctions.net/ingest", ignoreCase = true) ||
                            endpoint.name.contains("Firestore Ingest", ignoreCase = true)
             
-            if (needsAuth) {
-                Log.d(TAG, "Endpoint requires Firebase auth (URL/name match), fetching token...")
-                val token = com.example.alertsheets.data.AuthTokenProvider.getFirebaseIdToken()
+            if (needsAuth && !headers.containsKey("Authorization")) {
+                val secret = com.example.alertsheets.BuildConfig.INGEST_SHARED_SECRET
                 
-                if (token != null) {
-                    headers["Authorization"] = "Bearer $token"
-                    Log.d(TAG, "✓ Authorization header added (token length=${token.length})")
+                if (secret.isNotEmpty()) {
+                    headers["Authorization"] = "Bearer $secret"
+                    Log.d(TAG, "✓ Authorization header added for ingest endpoint (secret length=${secret.length})")
                 } else {
-                    Log.e(TAG, "❌ Failed to get Firebase ID token for auth-required endpoint")
+                    // ❌ Secret missing - fail early with clear error
+                    Log.e(TAG, "❌ INGEST_SHARED_SECRET is empty! Cannot authenticate to Firestore ingest endpoint.")
                     
                     StructuredLogger.logEvent(
                         level = "ERROR",
@@ -278,10 +280,9 @@ object DeliveryPipeline {
                         endpointId = endpoint.id,
                         alertId = alertId,
                         event = "auth_missing",
-                        details = "Failed to obtain Firebase ID token for ${endpoint.name}"
+                        details = "INGEST_SHARED_SECRET not configured in local.properties"
                     )
                     
-                    // ❌ Fail the request early
                     DeliveryLogBuffer.append(
                         DeliveryLogBuffer.DeliveryLogEntry(
                             timestamp = System.currentTimeMillis(),
@@ -291,13 +292,15 @@ object DeliveryPipeline {
                             event = "auth_missing",
                             httpCode = null,
                             latencyMs = null,
-                            errorClass = "AuthError",
-                            errorMessage = "Firebase ID token unavailable",
-                            details = "Endpoint requires auth but token fetch failed"
+                            errorClass = "ConfigError",
+                            errorMessage = "INGEST_SHARED_SECRET not configured",
+                            details = "Add INGEST_SHARED_SECRET to android/local.properties"
                         )
                     )
                     return@launch
                 }
+            } else if (needsAuth && headers.containsKey("Authorization")) {
+                Log.d(TAG, "ℹ️ Endpoint already has Authorization header (endpoint-level override)")
             } else {
                 Log.d(TAG, "Endpoint does not require auth (Apps Script or other)")
             }
@@ -544,22 +547,23 @@ object DeliveryPipeline {
         // ✅ Prepare headers (including auth if needed)
         val headers = endpoint.headers.toMutableMap()
         
-        // ✅ Add Firebase ID token if endpoint is Firestore ingest (URL-based detection)
+        // ✅ Add shared secret Authorization header for Firestore ingest endpoints
         val needsAuth = endpoint.url.contains("cloudfunctions.net/ingest", ignoreCase = true) ||
                        endpoint.name.contains("Firestore Ingest", ignoreCase = true)
         
-        if (needsAuth) {
-            Log.d(TAG, "Test endpoint requires Firebase auth (URL/name match), fetching token...")
-            val token = com.example.alertsheets.data.AuthTokenProvider.getFirebaseIdToken()
+        if (needsAuth && !headers.containsKey("Authorization")) {
+            val secret = com.example.alertsheets.BuildConfig.INGEST_SHARED_SECRET
             
-            if (token != null) {
-                headers["Authorization"] = "Bearer $token"
-                Log.d(TAG, "✓ Authorization header added for test (token length=${token.length})")
+            if (secret.isNotEmpty()) {
+                headers["Authorization"] = "Bearer $secret"
+                Log.d(TAG, "✓ Test: Authorization header added (secret length=${secret.length})")
             } else {
-                Log.e(TAG, "❌ Failed to get Firebase ID token for test, sending without auth")
+                Log.e(TAG, "❌ Test: INGEST_SHARED_SECRET is empty! Cannot authenticate.")
             }
+        } else if (needsAuth && headers.containsKey("Authorization")) {
+            Log.d(TAG, "ℹ️ Test: Endpoint already has Authorization header (override)")
         } else {
-            Log.d(TAG, "Test endpoint does not require auth (Apps Script or other)")
+            Log.d(TAG, "Test: Endpoint does not require auth")
         }
         
         val result = ReliableHttpSender.postJson(

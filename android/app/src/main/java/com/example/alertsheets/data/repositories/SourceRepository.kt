@@ -79,9 +79,22 @@ class SourceRepository(private val context: Context) {
     
     /**
      * Find source by SMS sender
+     * Uses normalized matching and falls back to last-10-digits if exact match fails
      */
     fun findBySender(sender: String): Source? {
-        return getAll().firstOrNull { it.matchesSender(sender) }
+        val smsSources = getAll().filter { it.type == SourceType.SMS }
+        
+        // Try exact normalized match first
+        val exactMatch = smsSources.firstOrNull { it.matchesSender(sender) }
+        if (exactMatch != null) return exactMatch
+        
+        // Fallback: Try last 10 digits (only if unambiguous)
+        return com.example.alertsheets.utils.SmsSenderNormalizer.findBySuffix(
+            candidates = smsSources,
+            targetSender = sender,
+            suffixLength = 10,
+            getId = { it.id }
+        )
     }
     
     /**

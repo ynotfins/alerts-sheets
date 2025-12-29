@@ -26,6 +26,12 @@ android {
         def sentryDsn = project.findProperty("sentryDsn") ?: System.getenv("SENTRY_DSN") ?: ""
         buildConfigField "String", "SENTRY_DSN", "\"${sentryDsn}\""
         
+        // ✅ INGEST_SHARED_SECRET: Static token for Firestore Cloud Function auth
+        // Add to local.properties: INGEST_SHARED_SECRET=your-secret-here
+        // DO NOT commit this value to git
+        def ingestSecret = project.findProperty("INGEST_SHARED_SECRET") ?: System.getenv("INGEST_SHARED_SECRET") ?: ""
+        buildConfigField "String", "INGEST_SHARED_SECRET", "\"${ingestSecret}\""
+        
         // ✅ BUILD ID: Git SHA + Build Time
         def gitSha = "unknown"
         try {

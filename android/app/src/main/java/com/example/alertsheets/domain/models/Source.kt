@@ -1,5 +1,7 @@
 package com.example.alertsheets.domain.models
 
+import com.example.alertsheets.utils.SmsSenderNormalizer
+
 /**
  * Represents a notification or SMS source that can be monitored.
  * Each source has its own configuration, template, and settings.
@@ -49,9 +51,16 @@ data class Source(
     
     /**
      * Check if this source matches an SMS sender
+     * Uses digit-only normalization to handle formatting differences
      */
     fun matchesSender(sender: String): Boolean {
-        return type == SourceType.SMS && id == "sms:$sender"
+        if (type != SourceType.SMS) return false
+        
+        // Normalize both source ID and incoming sender to digits only
+        val sourceDigits = SmsSenderNormalizer.normalize(id)
+        val senderDigits = SmsSenderNormalizer.normalize(sender)
+        
+        return sourceDigits == senderDigits
     }
 }
 

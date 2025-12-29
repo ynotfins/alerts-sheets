@@ -13,6 +13,8 @@ import com.example.alertsheets.domain.parsers.ParserRegistry
 import com.example.alertsheets.utils.TemplateEngine
 import com.example.alertsheets.utils.HttpClient
 import com.example.alertsheets.utils.Logger
+import com.example.alertsheets.utils.StructuredLogger
+import com.example.alertsheets.utils.SmsSenderNormalizer
 import com.example.alertsheets.LogRepository
 import com.example.alertsheets.LogEntry
 import com.example.alertsheets.LogStatus
@@ -126,11 +128,39 @@ class DataPipeline(private val context: Context) {
                         )
                         logger.log("📤 Enqueued to Firestore: ${source.name}")
                         Log.d(TAG, "✅ Firestore enqueue success for ${source.id}")
+                        StructuredLogger.logIngestQueued(
+                            sourceId = source.id,
+                            alertId = logEntry.id,
+                            details = "uuid=pending"
+                        )
                     } catch (e: Exception) {
                         // ❌ CRITICAL: Firestore failure MUST NOT block delivery
                         logger.error("⚠️ Firestore enqueue failed (non-fatal): ${e.message}")
                         Log.w(TAG, "⚠️ Firestore enqueue failed (continuing with Apps Script)", e)
+                        StructuredLogger.logEvent(
+                            level = "ERROR",
+                            sourceId = source.id,
+                            endpointId = "firestore_ingest",
+                            alertId = logEntry.id,
+                            event = "ingest_enqueue_failed",
+                            details = "error=${e.message}"
+                        )
                     }
+                } else {
+                    // Log why Firestore ingest was skipped
+                    val reason = when {
+                        !BuildConfig.ENABLE_FIRESTORE_INGEST -> "global_flag_off"
+                        !source.enableFirestoreIngest -> "per_source_off"
+                        else -> "unknown"
+                    }
+                    StructuredLogger.logEvent(
+                        level = "INFO",
+                        sourceId = source.id,
+                        endpointId = "firestore_ingest",
+                        alertId = logEntry.id,
+                        event = "firestore_ingest_skipped",
+                        details = "reason=$reason"
+                    )
                 }
                 
                 // Step 6: Get ALL endpoints for this source (fan-out delivery)
@@ -153,6 +183,13 @@ class DataPipeline(private val context: Context) {
                 
                 for (endpoint in endpoints) {
                     try {
+                        StructuredLogger.logAttemptStarted(
+                            sourceId = source.id,
+                            endpointId = endpoint.id,
+                            alertId = logEntry.id,
+                            details = "endpointName=${endpoint.name}"
+                        )
+                        
                         val startTime = System.currentTimeMillis()
                         val response = httpClient.post(
                             url = endpoint.url,
@@ -166,15 +203,37 @@ class DataPipeline(private val context: Context) {
                             logger.log("✓ Sent to ${endpoint.name}: ${response.code}")
                             endpointRepo.updateStats(endpoint.id, success = true, responseTime)
                             anySuccess = true
+                            StructuredLogger.logHttpOk(
+                                sourceId = source.id,
+                                endpointId = endpoint.id,
+                                alertId = logEntry.id,
+                                httpCode = response.code,
+                                latency = responseTime
+                            )
                         } else {
                             logger.error("❌ Failed ${endpoint.name}: ${response.code} - ${response.message}")
                             endpointRepo.updateStats(endpoint.id, success = false, responseTime)
                             allSuccess = false
+                            StructuredLogger.logHttpFail(
+                                sourceId = source.id,
+                                endpointId = endpoint.id,
+                                alertId = logEntry.id,
+                                httpCode = response.code,
+                                error = response.message
+                            )
                         }
                     } catch (e: Exception) {
                         logger.error("❌ Exception ${endpoint.name}: ${e.message}")
                         endpointRepo.updateStats(endpoint.id, success = false, 0L)
                         allSuccess = false
+                        StructuredLogger.logEvent(
+                            level = "ERROR",
+                            sourceId = source.id,
+                            endpointId = endpoint.id,
+                            alertId = logEntry.id,
+                            event = "http_exception",
+                            details = "error=${e.message}"
+                        )
                     }
                 }
                 
@@ -211,6 +270,17 @@ class DataPipeline(private val context: Context) {
         } else {
             logger.log("⚠️ No source for: $packageName")
             Log.v("Pipe", "No source configured for $packageName, ignoring")
+            
+            // Log structured event for debugging
+            StructuredLogger.logEvent(
+                level = "INFO",
+                sourceId = null,
+                endpointId = null,
+                alertId = null,
+                event = "app_ignored",
+                details = "reason=no_matching_source package=$packageName"
+            )
+            
             // Log as IGNORED
             LogRepository.addLog(LogEntry(
                 packageName = packageName,
@@ -224,25 +294,18 @@ class DataPipeline(private val context: Context) {
     
     /**
      * Process SMS message
+     * ✅ GOLDEN PATH: Routes to new DeliveryPipeline
      */
     fun processSms(sender: String, raw: RawNotification) {
-        val source = sourceManager.findSourceForSms(sender)
-        if (source != null) {
-            logger.log("💬 SMS: ${source.name}")
-            Log.v("Pipe", "SMS from $sender -> source ${source.name}")
-            process(source, raw)
-        } else {
-            logger.log("⚠️ No source for SMS: $sender")
-            Log.v("Pipe", "No source configured for SMS from $sender, ignoring")
-            // Log as IGNORED
-            LogRepository.addLog(LogEntry(
-                packageName = "SMS",
-                title = "SMS Ignored",
-                content = "No source configured for sender: $sender",
-                status = LogStatus.IGNORED,
-                rawJson = PayloadSerializer.toJson(raw)
-            ))
-        }
+        Log.d(TAG, "📩 processSms() routing to DeliveryPipeline | sender=$sender")
+        
+        // Route to Golden Path delivery pipeline
+        DeliveryPipeline.deliverSmsEvent(
+            context = context,
+            senderRaw = sender,
+            message = raw.text,
+            timestamp = System.currentTimeMillis()
+        )
     }
     
     /**

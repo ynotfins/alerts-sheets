@@ -1,0 +1,215 @@
+<?xml version="1.0" ?>
+<SmellBaseline>
+  <ManuallySuppressedIssues/>
+  <CurrentIssues>
+    <ID>CollapsibleIfStatements:DeDuplicator.kt$DeDuplicator$if (lastSeen != null) { if (now - lastSeen &lt; DEBOUNCE_TIME_MS) { // Too soon, ignore duplicate return false } }</ID>
+    <ID>CyclomaticComplexMethod:AppConfigActivity.kt$AppConfigActivity$override fun onCreate(savedInstanceState: Bundle?)</ID>
+    <ID>CyclomaticComplexMethod:AppConfigActivity.kt$AppConfigActivity$private fun sendTestPayload(json: String, isUpdate: Boolean, silent: Boolean)</ID>
+    <ID>CyclomaticComplexMethod:BnnParser.kt$BnnParser$override fun parse(raw: RawNotification): ParsedData?</ID>
+    <ID>CyclomaticComplexMethod:DataPipeline.kt$DataPipeline$fun process(source: Source, raw: RawNotification)</ID>
+    <ID>CyclomaticComplexMethod:IngestQueue.kt$IngestQueue$private suspend fun ingestEvent(event: IngestQueueEntry): IngestResult</ID>
+    <ID>CyclomaticComplexMethod:LabActivity.kt$LabActivity$private fun showTestDialog(json: String, testType: String)</ID>
+    <ID>CyclomaticComplexMethod:MainActivity.kt$MainActivity$private fun loadDynamicCards()</ID>
+    <ID>EmptyFunctionBlock:AppConfigActivity.kt$AppConfigActivity.&lt;no name provided&gt;${}</ID>
+    <ID>EmptyFunctionBlock:AppsListActivity.kt$AppsListActivity.&lt;no name provided&gt;${}</ID>
+    <ID>EmptyFunctionBlock:LabActivity.kt$LabActivity.&lt;no name provided&gt;${}</ID>
+    <ID>LargeClass:AppConfigActivity.kt$AppConfigActivity : AppCompatActivity</ID>
+    <ID>LargeClass:LabActivity.kt$LabActivity : AppCompatActivity</ID>
+    <ID>LongMethod:AppConfigActivity.kt$AppConfigActivity$override fun onCreate(savedInstanceState: Bundle?)</ID>
+    <ID>LongMethod:AppConfigActivity.kt$AppConfigActivity$private fun performTest(isUpdate: Boolean = false, silent: Boolean = false)</ID>
+    <ID>LongMethod:AppConfigActivity.kt$AppConfigActivity$private fun sendTestPayload(json: String, isUpdate: Boolean, silent: Boolean)</ID>
+    <ID>LongMethod:AppsListActivity.kt$AppsListActivity$override fun onCreate(savedInstanceState: Bundle?)</ID>
+    <ID>LongMethod:BnnParser.kt$BnnParser$override fun parse(raw: RawNotification): ParsedData?</ID>
+    <ID>LongMethod:DataPipeline.kt$DataPipeline$fun process(source: Source, raw: RawNotification)</ID>
+    <ID>LongMethod:IngestQueue.kt$IngestQueue$private suspend fun ingestEvent(event: IngestQueueEntry): IngestResult</ID>
+    <ID>LongMethod:LabActivity.kt$LabActivity$private fun showTestDialog(json: String, testType: String)</ID>
+    <ID>LongMethod:MainActivity.kt$MainActivity$private fun loadDynamicCards()</ID>
+    <ID>LongMethod:SmsConfigActivity.kt$SmsConfigActivity$private fun showAddEditDialog(source: Source?)</ID>
+    <ID>LongMethod:SourceConfigActivity.kt$SourceConfigActivity$private fun showCreateSourceDialog()</ID>
+    <ID>LongMethod:Template.kt$RockSolidTemplates$fun getAll(): List&lt;Template&gt;</ID>
+    <ID>LongParameterList:IngestQueueDb.kt$IngestQueueDb$( uuid: String, sourceId: String, payload: String, timestamp: String, deviceId: String = "unknown", appVersion: String = "unknown" )</ID>
+    <ID>LoopWithTooManyJumpStatements:AppsListActivity.kt$AppsListActivity$for</ID>
+    <ID>LoopWithTooManyJumpStatements:BnnParser.kt$BnnParser$for</ID>
+    <ID>LoopWithTooManyJumpStatements:QueueProcessor.kt$QueueProcessor$while</ID>
+    <ID>MaxLineLength:AccDataExtractor.kt$AccDataExtractor$// For now, map most text fields to the main content since we can't easily distinguish title/body in AccEvent</ID>
+    <ID>MaxLineLength:AppConfigActivity.kt$AppConfigActivity$"$statusPrefix NJ | Test County | Test City | $randomAddress | TEST-TYPE | Testing $testType - Columns should fill. | &lt;C&gt; BNN | E-1/L-1 | nj312/njn751/nyl785/pa547 | $incidentId"</ID>
+    <ID>MaxLineLength:AppConfigActivity.kt$AppConfigActivity$"time" to android.text.format.DateFormat.format("MM/dd/yyyy h:mm a", System.currentTimeMillis()).toString()</ID>
+    <ID>MaxLineLength:AppConfigActivity.kt$AppConfigActivity$.</ID>
+    <ID>MaxLineLength:AppConfigActivity.kt$AppConfigActivity$Toast.makeText(this, "Cannot use 🪨 - reserved for Rock Solid templates", Toast.LENGTH_SHORT).show()</ID>
+    <ID>MaxLineLength:AppConfigActivity.kt$AppConfigActivity$val message = "✓ Test SUCCESS (HTTP $statusCode)\n$responseData\n\nResponse: $responseBody"</ID>
+    <ID>MaxLineLength:AppConfigActivity.kt$AppConfigActivity$val testMessage = "ALERT: Fire reported at 123 Main St. Units responding. This is a test SMS message with more realistic content to verify full text appears in spreadsheet."</ID>
+    <ID>MaxLineLength:AppConfigActivity.kt$AppConfigActivity.&lt;no name provided&gt;$override</ID>
+    <ID>MaxLineLength:AppsListActivity.kt$AppsListActivity$Log.v("AppsList", "Filter applied (includeSystem=$showSystemApps, search='$searchQuery'): $addedApps apps shown (skipped: $skippedSystemApps system)")</ID>
+    <ID>MaxLineLength:AppsListActivity.kt$AppsListActivity$Log.w("AppsList", "⚠️ BNN hidden by filter! flags: system=$isSystem, updated=$isUpdated, includeSystem=$showSystemApps")</ID>
+    <ID>MaxLineLength:AppsListActivity.kt$AppsListActivity$val</ID>
+    <ID>MaxLineLength:EndpointRepository.kt$EndpointRepository$avgResponseTime = ((endpoint.stats.avgResponseTime * endpoint.stats.totalRequests) + responseTime) / (endpoint.stats.totalRequests + 1)</ID>
+    <ID>MaxLineLength:IngestQueue.kt$IngestQueue$Log.i(TAG, "✅ IngestQueue initialized (pending: ${db.getPendingCount()}, endpoint: ${BuildConfig.INGEST_ENDPOINT}, env: ${BuildConfig.ENVIRONMENT})")</ID>
+    <ID>MaxLineLength:IngestQueue.kt$IngestQueue$Log.w(TAG, "⚠️ Retry scheduled (${event.retryCount + 1}): ${event.uuid} - ${result.error} (backoff: ${backoff}ms)")</ID>
+    <ID>MaxLineLength:LabActivity.kt$LabActivity$previewIcon.setImageResource(icons.find { (name, _) -&gt; name == selectedIcon }?.second ?: R.drawable.ic_notification)</ID>
+    <ID>MaxLineLength:LabActivity.kt$LabActivity$val mode = if (type == SourceType.APP) com.example.alertsheets.TemplateMode.APP else com.example.alertsheets.TemplateMode.SMS</ID>
+    <ID>MaxLineLength:LabActivity.kt$LabActivity.&lt;no name provided&gt;$override</ID>
+    <ID>MaxLineLength:MigrationManager.kt$MigrationManager$Log.i(TAG, "✓ V2.2 migration complete: $migratedCount sources migrated, ${endpointIdMap.size} endpoints re-UUIDed")</ID>
+    <ID>MaxLineLength:PermissionsActivity.kt$PermissionsActivity$Log.d(TAG, "checkSmsPermission() = $result (isDefaultSms=$isDefaultSms, hasPermission=$hasPermission, defaultPkg=$defaultSmsPackage)")</ID>
+    <ID>MaxLineLength:PrefsManager.kt$PrefsManager$fun deleteUserTemplate(context: Context, templateName: String)</ID>
+    <ID>MaxLineLength:SourceConfigActivity.kt$SourceConfigActivity$Toast.makeText(this@SourceConfigActivity, "Name and ID are required", Toast.LENGTH_SHORT).show()</ID>
+    <ID>MaxLineLength:SourceConfigActivity.kt$SourceConfigActivity$Toast.makeText(this@SourceConfigActivity, "Source created: $name", Toast.LENGTH_SHORT).show()</ID>
+    <ID>MaxLineLength:SourceConfigActivity.kt$SourceConfigActivity$endpointSpinner.setSelection(endpoints.indexOfFirst { it.id == source.getPrimaryEndpointId() }.coerceAtLeast(0))</ID>
+    <ID>MaxLineLength:SourceConfigActivity.kt$SourceConfigActivity$findViewById&lt;com.google.android.material.floatingactionbutton.FloatingActionButton&gt;(R.id.fab_add_source)</ID>
+    <ID>MaxLineLength:SourceConfigActivity.kt$SourceConfigActivity$iconColor = if (type == com.example.alertsheets.domain.models.SourceType.APP) 0xFF4A9EFF.toInt() else 0xFF00D980.toInt()</ID>
+    <ID>MaxLineLength:SourceConfigActivity.kt$SourceConfigActivity$spinnerEndpoint.adapter</ID>
+    <ID>MaxLineLength:SourceConfigActivity.kt$SourceConfigActivity$val endpointAdapter = ArrayAdapter(this@SourceConfigActivity, android.R.layout.simple_spinner_item, endpointNames)</ID>
+    <ID>MaxLineLength:SourceConfigActivity.kt$SourceConfigActivity$val templateAdapter = ArrayAdapter(this@SourceConfigActivity, android.R.layout.simple_spinner_item, templateNames)</ID>
+    <ID>MaxLineLength:SourceConfigActivity.kt$SourceConfigActivity$val type = if (spinnerType.selectedItemPosition == 0) com.example.alertsheets.domain.models.SourceType.APP else com.example.alertsheets.domain.models.SourceType.SMS</ID>
+    <ID>MayBeConst:NetworkClient.kt$NetworkClient$private val TAG = "NetworkClient"</ID>
+    <ID>NestedBlockDepth:BnnParser.kt$BnnParser$override fun parse(raw: RawNotification): ParsedData?</ID>
+    <ID>NestedBlockDepth:IngestQueue.kt$IngestQueue$private suspend fun ingestEvent(event: IngestQueueEntry): IngestResult</ID>
+    <ID>NestedBlockDepth:IngestQueue.kt$IngestQueue$private suspend fun processQueueInternal()</ID>
+    <ID>NestedBlockDepth:LabActivity.kt$LabActivity$override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?)</ID>
+    <ID>PrintStackTrace:LogRepository.kt$LogRepository$e</ID>
+    <ID>ReturnCount:BnnParser.kt$BnnParser$override fun parse(raw: RawNotification): ParsedData?</ID>
+    <ID>ReturnCount:NetworkClient.kt$NetworkClient$fun sendSynchronous(url: String, jsonPayload: String): Boolean</ID>
+    <ID>SpacingBetweenPackageAndImports:SourceRepositoryTest.kt$ </ID>
+    <ID>TooGenericExceptionCaught:AlertsNotificationListener.kt$AlertsNotificationListener$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:AlertsSmsReceiver.kt$AlertsSmsReceiver$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:AppConfigActivity.kt$AppConfigActivity$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:AppsAdapter.kt$AppsAdapter$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:AppsListActivity.kt$AppsListActivity$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:BnnParser.kt$BnnParser$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:BootReceiver.kt$BootReceiver$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:DataPipeline.kt$DataPipeline$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:EndpointRepository.kt$EndpointRepository$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:HttpClient.kt$HttpClient$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:IngestQueue.kt$IngestQueue$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:IngestQueueDb.kt$IngestQueueDb$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:JsonStorage.kt$JsonStorage$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:LogRepository.kt$LogRepository$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:Logger.kt$Logger$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:MainActivity.kt$MainActivity$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:MigrationManager.kt$MigrationManager$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:NetworkClient.kt$NetworkClient$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:PayloadSerializer.kt$PayloadSerializer$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:PermissionsActivity.kt$PermissionsActivity$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:PermissionsUtil.kt$PermissionsUtil$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:QueueProcessor.kt$QueueProcessor$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:SourceRepository.kt$SourceRepository$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:TemplateEngine.kt$TemplateEngine$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:TemplateRepository.kt$TemplateRepository$e: Exception</ID>
+    <ID>TooGenericExceptionThrown:AppConfigActivity.kt$AppConfigActivity$throw Exception("Must start with {")</ID>
+    <ID>TooManyFunctions:AppConfigActivity.kt$AppConfigActivity : AppCompatActivity</ID>
+    <ID>TooManyFunctions:LabActivity.kt$LabActivity : AppCompatActivity</ID>
+    <ID>TooManyFunctions:PrefsManager.kt$PrefsManager</ID>
+    <ID>TooManyFunctions:SourceManager.kt$SourceManager</ID>
+    <ID>TooManyFunctions:TemplateRepository.kt$TemplateRepository</ID>
+    <ID>TrailingWhitespace:AccDataExtractor.kt$com.example.alertsheets.AccDataExtractor.kt</ID>
+    <ID>TrailingWhitespace:AlertsApplication.kt$com.example.alertsheets.AlertsApplication.kt</ID>
+    <ID>TrailingWhitespace:AlertsNotificationListener.kt$com.example.alertsheets.services.AlertsNotificationListener.kt</ID>
+    <ID>TrailingWhitespace:AlertsSmsReceiver.kt$com.example.alertsheets.services.AlertsSmsReceiver.kt</ID>
+    <ID>TrailingWhitespace:AppConfig.kt$com.example.alertsheets.AppConfig.kt</ID>
+    <ID>TrailingWhitespace:AppConfigActivity.kt$com.example.alertsheets.AppConfigActivity.kt</ID>
+    <ID>TrailingWhitespace:AppConstants.kt$com.example.alertsheets.utils.AppConstants.kt</ID>
+    <ID>TrailingWhitespace:AppsAdapter.kt$com.example.alertsheets.AppsAdapter.kt</ID>
+    <ID>TrailingWhitespace:AppsListActivity.kt$com.example.alertsheets.AppsListActivity.kt</ID>
+    <ID>TrailingWhitespace:BnnParser.kt$com.example.alertsheets.domain.parsers.BnnParser.kt</ID>
+    <ID>TrailingWhitespace:BootReceiver.kt$com.example.alertsheets.services.BootReceiver.kt</ID>
+    <ID>TrailingWhitespace:DataPipeline.kt$com.example.alertsheets.domain.DataPipeline.kt</ID>
+    <ID>TrailingWhitespace:DeDuplicator.kt$com.example.alertsheets.DeDuplicator.kt</ID>
+    <ID>TrailingWhitespace:Endpoint.kt$com.example.alertsheets.domain.models.Endpoint.kt</ID>
+    <ID>TrailingWhitespace:EndpointActivity.kt$com.example.alertsheets.EndpointActivity.kt</ID>
+    <ID>TrailingWhitespace:EndpointRepository.kt$com.example.alertsheets.data.repositories.EndpointRepository.kt</ID>
+    <ID>TrailingWhitespace:EndpointsAdapter.kt$com.example.alertsheets.EndpointsAdapter.kt</ID>
+    <ID>TrailingWhitespace:GenericAppParser.kt$com.example.alertsheets.domain.parsers.GenericAppParser.kt</ID>
+    <ID>TrailingWhitespace:HttpClient.kt$com.example.alertsheets.utils.HttpClient.kt</ID>
+    <ID>TrailingWhitespace:IngestQueue.kt$com.example.alertsheets.data.IngestQueue.kt</ID>
+    <ID>TrailingWhitespace:IngestQueueDb.kt$com.example.alertsheets.data.IngestQueueDb.kt</ID>
+    <ID>TrailingWhitespace:JsonStorage.kt$com.example.alertsheets.data.storage.JsonStorage.kt</ID>
+    <ID>TrailingWhitespace:JsonTemplate.kt$com.example.alertsheets.JsonTemplate.kt</ID>
+    <ID>TrailingWhitespace:LabActivity.kt$com.example.alertsheets.LabActivity.kt</ID>
+    <ID>TrailingWhitespace:LogActivity.kt$com.example.alertsheets.LogActivity.kt</ID>
+    <ID>TrailingWhitespace:LogEntry.kt$com.example.alertsheets.LogEntry.kt</ID>
+    <ID>TrailingWhitespace:LogRepository.kt$com.example.alertsheets.LogRepository.kt</ID>
+    <ID>TrailingWhitespace:Logger.kt$com.example.alertsheets.utils.Logger.kt</ID>
+    <ID>TrailingWhitespace:MainActivity.kt$com.example.alertsheets.ui.MainActivity.kt</ID>
+    <ID>TrailingWhitespace:MigrationManager.kt$com.example.alertsheets.MigrationManager.kt</ID>
+    <ID>TrailingWhitespace:NetworkClient.kt$com.example.alertsheets.NetworkClient.kt</ID>
+    <ID>TrailingWhitespace:ParsedData.kt$com.example.alertsheets.domain.models.ParsedData.kt</ID>
+    <ID>TrailingWhitespace:Parser.kt$com.example.alertsheets.domain.parsers.Parser.kt</ID>
+    <ID>TrailingWhitespace:PayloadSerializer.kt$com.example.alertsheets.utils.PayloadSerializer.kt</ID>
+    <ID>TrailingWhitespace:PermissionsActivity.kt$com.example.alertsheets.PermissionsActivity.kt</ID>
+    <ID>TrailingWhitespace:PermissionsUtil.kt$com.example.alertsheets.utils.PermissionsUtil.kt</ID>
+    <ID>TrailingWhitespace:PrefsManager.kt$com.example.alertsheets.PrefsManager.kt</ID>
+    <ID>TrailingWhitespace:RawNotification.kt$com.example.alertsheets.domain.models.RawNotification.kt</ID>
+    <ID>TrailingWhitespace:SamsungTheme.kt$com.example.alertsheets.SamsungTheme.kt</ID>
+    <ID>TrailingWhitespace:SerializationTest.kt$com.example.alertsheets.SerializationTest.kt</ID>
+    <ID>TrailingWhitespace:SmsConfigActivity.kt$com.example.alertsheets.SmsConfigActivity.kt</ID>
+    <ID>TrailingWhitespace:SmsParser.kt$com.example.alertsheets.domain.parsers.SmsParser.kt</ID>
+    <ID>TrailingWhitespace:SmsRoleManager.kt$com.example.alertsheets.utils.SmsRoleManager.kt</ID>
+    <ID>TrailingWhitespace:SmsSourceAdapter.kt$com.example.alertsheets.SmsSourceAdapter.kt</ID>
+    <ID>TrailingWhitespace:SmsTarget.kt$com.example.alertsheets.SmsTarget.kt</ID>
+    <ID>TrailingWhitespace:SmsTargetAdapter.kt$com.example.alertsheets.SmsTargetAdapter.kt</ID>
+    <ID>TrailingWhitespace:Source.kt$com.example.alertsheets.domain.models.Source.kt</ID>
+    <ID>TrailingWhitespace:SourceConfigActivity.kt$com.example.alertsheets.SourceConfigActivity.kt</ID>
+    <ID>TrailingWhitespace:SourceConfigAdapter.kt$com.example.alertsheets.SourceConfigAdapter.kt</ID>
+    <ID>TrailingWhitespace:SourceManager.kt$com.example.alertsheets.domain.SourceManager.kt</ID>
+    <ID>TrailingWhitespace:SourceRepository.kt$com.example.alertsheets.data.repositories.SourceRepository.kt</ID>
+    <ID>TrailingWhitespace:SourceRepositoryTest.kt$com.example.alertsheets.data.repositories.SourceRepositoryTest.kt</ID>
+    <ID>TrailingWhitespace:Template.kt$com.example.alertsheets.domain.models.Template.kt</ID>
+    <ID>TrailingWhitespace:TemplateEngine.kt$com.example.alertsheets.utils.TemplateEngine.kt</ID>
+    <ID>TrailingWhitespace:TemplateRepository.kt$com.example.alertsheets.data.repositories.TemplateRepository.kt</ID>
+    <ID>UnnecessaryParentheses:AppConfigActivity.kt$AppConfigActivity$(checkedId == R.id.radio_app)</ID>
+    <ID>UnnecessaryParentheses:AppConfigActivity.kt$AppConfigActivity$(lastMode == "APP")</ID>
+    <ID>UnnecessaryParentheses:AppConfigActivity.kt$AppConfigActivity$(radioGroupMode.checkedRadioButtonId == R.id.radio_app)</ID>
+    <ID>UnnecessaryParentheses:AppsListActivity.kt$AppsListActivity$(PackageManager.GET_META_DATA.toLong())</ID>
+    <ID>UnnecessaryParentheses:AppsListActivity.kt$AppsListActivity$(app.flags and ApplicationInfo.FLAG_SYSTEM)</ID>
+    <ID>UnnecessaryParentheses:AppsListActivity.kt$AppsListActivity$(app.flags and ApplicationInfo.FLAG_UPDATED_SYSTEM_APP)</ID>
+    <ID>UnnecessaryParentheses:AppsListActivity.kt$AppsListActivity$(bnnApp.flags and ApplicationInfo.FLAG_SYSTEM)</ID>
+    <ID>UnnecessaryParentheses:AppsListActivity.kt$AppsListActivity$(bnnApp.flags and ApplicationInfo.FLAG_UPDATED_SYSTEM_APP)</ID>
+    <ID>UnnecessaryParentheses:AppsListActivity.kt$AppsListActivity$(it.flags and ApplicationInfo.FLAG_SYSTEM)</ID>
+    <ID>UnnecessaryParentheses:BnnParser.kt$BnnParser$(hasDigitStart &amp;&amp; !isCode)</ID>
+    <ID>UnnecessaryParentheses:BnnParser.kt$BnnParser$(hasDigitStart &amp;&amp; hasSuffix)</ID>
+    <ID>UnnecessaryParentheses:Endpoint.kt$EndpointStats$(totalSuccess.toFloat() / totalRequests.toFloat())</ID>
+    <ID>UnnecessaryParentheses:EndpointRepository.kt$EndpointRepository$(endpoint.stats.avgResponseTime * endpoint.stats.totalRequests)</ID>
+    <ID>UnnecessaryParentheses:IngestQueueDb.kt$IngestQueueDb$(MAX_AGE_DAYS * 24 * 60 * 60 * 1000L)</ID>
+    <ID>UnnecessaryParentheses:Source.kt$SourceStats$(totalSent.toFloat() / totalProcessed.toFloat())</ID>
+    <ID>UnnecessaryParentheses:TemplateEngine.kt$TemplateEngine$(trimmed.startsWith("[") &amp;&amp; trimmed.endsWith("]"))</ID>
+    <ID>UnnecessaryParentheses:TemplateEngine.kt$TemplateEngine$(trimmed.startsWith("{") &amp;&amp; trimmed.endsWith("}"))</ID>
+    <ID>UnusedImports:AccDataExtractor.kt$import android.content.Context</ID>
+    <ID>UnusedImports:AppConfigActivity.kt$import android.widget.RadioButton</ID>
+    <ID>UnusedImports:DataExtractor.kt$import android.os.Bundle</ID>
+    <ID>UnusedImports:DataPipeline.kt$import com.example.alertsheets.domain.models.ParsedData</ID>
+    <ID>UnusedImports:LabActivity.kt$import android.net.Uri</ID>
+    <ID>UnusedImports:LabActivity.kt$import android.view.LayoutInflater</ID>
+    <ID>UnusedImports:LabActivity.kt$import androidx.cardview.widget.CardView</ID>
+    <ID>UnusedImports:LogActivity.kt$import android.widget.TextView</ID>
+    <ID>UnusedImports:MainActivity.kt$import android.graphics.Color</ID>
+    <ID>UnusedImports:MainActivity.kt$import com.example.alertsheets.LogEntry</ID>
+    <ID>UnusedImports:MainActivity.kt$import com.example.alertsheets.domain.models.Source</ID>
+    <ID>UnusedImports:PermissionsActivity.kt$import android.text.TextUtils</ID>
+    <ID>UnusedImports:SourceConfigActivity.kt$import android.util.Log</ID>
+    <ID>UnusedImports:SourceConfigActivity.kt$import com.example.alertsheets.domain.models.Endpoint</ID>
+    <ID>UnusedImports:SourceRepository.kt$import com.example.alertsheets.domain.models.SourceType</ID>
+    <ID>UnusedImports:TemplateEngine.kt$import com.example.alertsheets.domain.models.Template</ID>
+    <ID>UnusedParameter:AppConfigActivity.kt$AppConfigActivity$isUpdate: Boolean</ID>
+    <ID>UnusedParameter:AppConfigActivity.kt$AppConfigActivity$silent: Boolean</ID>
+    <ID>UnusedParameter:DataExtractor.kt$DataExtractor$context: Context</ID>
+    <ID>UnusedParameter:LabActivity.kt$LabActivity$json: String</ID>
+    <ID>UnusedPrivateMember:AppConfigActivity.kt$AppConfigActivity$private fun getBnnTemplate(): String</ID>
+    <ID>UnusedPrivateMember:PermissionsActivity.kt$PermissionsActivity$private fun checkAccessibility(): Boolean</ID>
+    <ID>UnusedPrivateProperty:AppsListActivity.kt$AppsListActivity$var skippedUserApps = 0</ID>
+    <ID>UnusedPrivateProperty:DataPipeline.kt$DataPipeline$private val templateRepo = TemplateRepository(context)</ID>
+    <ID>UnusedPrivateProperty:ParserTest.kt$ParserTest$val input = """ Update 9/15/25 U/D NJ| Bergen| Rutherford| Car Vs Building| 510 Union Ave| CMD reports no structural damage.| &lt;C&gt; BNN | BNNDESK/njvx6/nj7ue | #1825178 """.trimIndent()</ID>
+    <ID>VariableNaming:AlertsApplication.kt$AlertsApplication$private val TAG = "AlertsApp"</ID>
+    <ID>VariableNaming:AlertsNotificationListener.kt$AlertsNotificationListener$private val TAG = "NotificationListener"</ID>
+    <ID>VariableNaming:AlertsSmsReceiver.kt$AlertsSmsReceiver$private val TAG = "SmsReceiver"</ID>
+    <ID>VariableNaming:AppsListActivity.kt$AppsListActivity$val BNN_PACKAGE = "us.bnn.newsapp"</ID>
+    <ID>VariableNaming:BnnParser.kt$BnnParser$private val TAG = "BnnParser"</ID>
+    <ID>VariableNaming:BootReceiver.kt$BootReceiver$private val TAG = "BootReceiver"</ID>
+    <ID>VariableNaming:DataPipeline.kt$DataPipeline$private val TAG = "DataPipeline"</ID>
+    <ID>VariableNaming:EndpointRepository.kt$EndpointRepository$private val TAG = "EndpointRepository"</ID>
+    <ID>VariableNaming:HttpClient.kt$HttpClient$private val TAG = "HttpClient"</ID>
+    <ID>VariableNaming:JsonStorage.kt$JsonStorage$private val TAG = "JsonStorage"</ID>
+    <ID>VariableNaming:Logger.kt$Logger$private val TAG = "Logger"</ID>
+    <ID>VariableNaming:PermissionsActivity.kt$PermissionsActivity$private val TAG = "PermissionsActivity"</ID>
+    <ID>VariableNaming:SourceRepository.kt$SourceRepository$private val TAG = "SourceRepository"</ID>
+    <ID>VariableNaming:TemplateRepository.kt$TemplateRepository$private val TAG = "TemplateRepository"</ID>
+  </CurrentIssues>
+</SmellBaseline>

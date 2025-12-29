@@ -5,6 +5,7 @@ import android.util.Log
 import com.example.alertsheets.data.repositories.EndpointRepository
 import com.example.alertsheets.domain.models.Endpoint
 import com.example.alertsheets.utils.AppConstants
+import com.example.alertsheets.utils.StructuredLogger
 import com.google.gson.Gson
 import com.google.gson.JsonSyntaxException
 import kotlinx.coroutines.Dispatchers
@@ -103,15 +104,38 @@ object NetworkClient {
         body: okhttp3.RequestBody,
         jsonPreview: String
     ): Boolean {
+        val alertId = "alert_${System.currentTimeMillis()}" // Temporary ID generation
+        val startTime = System.currentTimeMillis()
+        
         return try {
+            // Log attempt started
+            StructuredLogger.logAttemptStarted(
+                sourceId = "network_client",
+                endpointId = endpoint.id,
+                alertId = alertId,
+                details = "endpoint=${endpoint.name}"
+            )
+            
             val request = Request.Builder()
                 .url(endpoint.url)
                 .post(body)
                 .build()
 
             client.newCall(request).execute().use { response ->
+                val latency = System.currentTimeMillis() - startTime
+                
                 if (!response.isSuccessful) {
                     val errorBody = response.body?.string()?.take(200) ?: "No error body"
+                    
+                    // Log HTTP failure
+                    StructuredLogger.logHttpFail(
+                        sourceId = "network_client",
+                        endpointId = endpoint.id,
+                        alertId = alertId,
+                        httpCode = response.code,
+                        error = errorBody
+                    )
+                    
                     Log.e(
                         TAG,
                         "Failed sending to ${endpoint.name}: HTTP ${response.code}\n" +
@@ -120,28 +144,72 @@ object NetworkClient {
                     )
                     false
                 } else {
+                    // Log HTTP success
+                    StructuredLogger.logHttpOk(
+                        sourceId = "network_client",
+                        endpointId = endpoint.id,
+                        alertId = alertId,
+                        httpCode = response.code,
+                        latency = latency
+                    )
+                    
                     Log.d(TAG, "${AppConstants.Success.NETWORK_SEND_SUCCESS} to ${endpoint.name}")
                     true
                 }
             }
             
         } catch (e: UnknownHostException) {
+            StructuredLogger.logHttpFail(
+                sourceId = "network_client",
+                endpointId = endpoint.id,
+                alertId = alertId,
+                httpCode = 0,
+                error = "DNS resolution failed: ${e.message}"
+            )
             Log.e(TAG, "DNS resolution failed for ${endpoint.name}: ${endpoint.url}", e)
             false
             
         } catch (e: SocketTimeoutException) {
+            StructuredLogger.logHttpFail(
+                sourceId = "network_client",
+                endpointId = endpoint.id,
+                alertId = alertId,
+                httpCode = 0,
+                error = "Timeout (15s)"
+            )
             Log.e(TAG, "Timeout sending to ${endpoint.name} (waited 15s)", e)
             false
             
         } catch (e: IOException) {
+            StructuredLogger.logHttpFail(
+                sourceId = "network_client",
+                endpointId = endpoint.id,
+                alertId = alertId,
+                httpCode = 0,
+                error = "IO error: ${e.message}"
+            )
             Log.e(TAG, "Network error sending to ${endpoint.name}", e)
             false
             
         } catch (e: IllegalArgumentException) {
+            StructuredLogger.logHttpFail(
+                sourceId = "network_client",
+                endpointId = endpoint.id,
+                alertId = alertId,
+                httpCode = 0,
+                error = "Invalid URL: ${endpoint.url}"
+            )
             Log.e(TAG, "Invalid URL for ${endpoint.name}: ${endpoint.url}", e)
             false
             
         } catch (e: Exception) {
+            StructuredLogger.logHttpFail(
+                sourceId = "network_client",
+                endpointId = endpoint.id,
+                alertId = alertId,
+                httpCode = 0,
+                error = "Unexpected: ${e.message}"
+            )
             Log.e(TAG, "${AppConstants.Errors.NETWORK_SEND_FAILED} to ${endpoint.name}", e)
             false
         }

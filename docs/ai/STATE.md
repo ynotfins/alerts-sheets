@@ -1,397 +1,542 @@
 # PROJECT STATE - Single Source of Truth
 
-**Last Updated:** 2025-12-28 (Session 5 FINAL: URL-Based Auth Detection)  
+**Last Updated:** 2025-12-29 00:35 UTC (Session 7: End-to-End Shared Secret Auth)  
 **Branch:** `fix/wiring-sources-endpoints`  
-**Status:** 🟡 Auth Implementation Complete - Firebase Console Configuration Required
+**Status:** 🟡 Auth Implemented - Secret Configuration Required (Both Android + Cloud Functions)
 
 ---
 
-## 🚀 SESSION 5 FINAL CHANGES: URL-Based Auth Detection
+## 🎯 SESSION 7 SUMMARY: Complete Shared Secret Auth
 
-### Implementation Summary
-✅ **Automatic auth detection** - No manual configuration required
-✅ **URL-based matching** - Checks endpoint URL and name for "cloudfunctions.net/ingest" or "Firestore Ingest"
-✅ **Apps Script protected** - Only Firebase Cloud Functions get auth headers
-✅ **No token logging** - Security preserved
-✅ **Masked phone numbers** - SMS sources show ***XX in UI
+### What Was Done
+✅ **Android:** Shared secret loaded from `local.properties` → added to Authorization header for ingest URLs
+✅ **Cloud Functions:** Replaced Firebase ID token validation with shared secret validation
+✅ **Evidence Capture:** Documented current config state (sources pointing to wrong endpoints)
+✅ **Build Verification:** Both Android APK and Cloud Functions build successfully
 
-### Key Change from Previous Approach
-- ❌ **REMOVED:** `authType` field requirement (was too manual)
-- ✅ **ADDED:** Automatic URL/name-based detection
-- ✅ **RESULT:** Zero configuration needed - auth added automatically for Firestore endpoints
+### Critical Discovery from Phase 0 Evidence
+**Problem:** SMS sources configured to point to **disabled** Apps Script endpoint!
+- SMS source `+1 888-660-1455`: → Apps Script endpoint (disabled)
+- SMS source `+1 561-419-3784`: → Apps Script endpoint (disabled)
+- BNN app source: → Firestore ingest endpoint (enabled)
+- **Result:** SMS not being delivered because endpoint is disabled
 
----
-
-## 📦 FILES CHANGED (Session 5 Final)
-
-### Modified Files (3):
-
-1. **android/app/src/main/java/com/example/alertsheets/AlertsApplication.kt**
-   - Enhanced Firebase Auth initialization logging
-   - Logs: `auth_ready=true/false`, `uid_present=true/false`, `uid_masked=XXX***XXX`
-   - Anonymous sign-in on app start if no user
-
-2. **android/app/src/main/java/com/example/alertsheets/domain/DeliveryPipeline.kt**
-   - **Changed auth condition from `authType` field to URL/name detection:**
-     ```kotlin
-     val needsAuth = endpoint.url.contains("cloudfunctions.net/ingest", ignoreCase = true) ||
-                    endpoint.name.contains("Firestore Ingest", ignoreCase = true)
-     ```
-   - **Real SMS path (deliverSmsEvent):** Checks URL, adds Authorization header automatically
-   - **Test button path (deliverTestEventWithAuth):** Same URL-based logic
-   - **Fail early if token missing:** Logs `auth_missing` event and aborts request
-
-3. **android/app/src/main/java/com/example/alertsheets/SmsSourceAdapter.kt**
-   - Masks phone numbers: `***67` instead of full number
-   - Contact names still displayed in full
-
-### Unchanged from Session 5 (Already Implemented):
-- `AuthTokenProvider.kt` - Token retrieval logic
-- `Endpoint.kt` - AuthType enum (still exists but not used)
-- `AppConfigActivity.kt` - Test button wiring
-- `ReliableHttpSender.kt` - Response body capture
+### What's Needed Before Testing
+1. ✅ Code complete (Android + Cloud Functions)
+2. ⏳ **Configure `INGEST_SHARED_SECRET` in android/local.properties**
+3. ⏳ **Configure `INGEST_SHARED_SECRET` in functions/.env.local** (or Firebase config)
+4. ⏳ **Deploy updated Cloud Functions**
+5. ⏳ **Fix SMS source endpoint assignments** (point to Firestore ingest)
 
 ---
 
-## ⚠️ FIREBASE CONFIGURATION ISSUE DETECTED
+## 📊 PHASE 0 EVIDENCE (Captured 2025-12-29 00:30 UTC)
 
-### Current Status
+### App Files Directory Listing
 ```bash
-# Logcat output from app start:
-12-28 21:48:46.345 I AlertsApp: 🔐 Firebase Auth: No user found, signing in anonymously...
-12-28 21:48:46.651 E AlertsApp: ❌ Firebase Auth: auth_ready=false error=An internal error has occurred. [ CONFIGURATION_NOT_FOUND ]
+$ adb shell run-as com.example.alertsheets ls -la files
+
+total 46
+drwxrwx--x 6 u0_a696 u0_a696 3452 2025-12-28 23:52 .
+drwx------ 7 u0_a696 u0_a696 3452 2025-12-24 13:29 ..
+-rw------- 1 u0_a696 u0_a696  751 2025-12-28 17:45 endpoints.json
+-rw------- 1 u0_a696 u0_a696 1239 2025-12-28 23:52 logs.json
+-rw------- 1 u0_a696 u0_a696 2690 2025-12-28 20:51 sources.json
+drwx------ 2 u0_a696 u0_a696 3452 2025-12-29 00:29 datastore
 ```
 
-### Root Cause
-Firebase Auth is **not enabled** in Firebase Console OR `google-services.json` is misconfigured.
+### Current Source Configuration
+```json
+[
+  {
+    "id": "sms:+1 888-660-1455",
+    "name": "SMS Adjust Leads Firestore Database",
+    "type": "SMS",
+    "enabled": true,
+    "endpointIds": ["b0040999-d963-4b57-aaf4-f6d2301bad72"],  // ❌ Apps Script (disabled!)
+    "templateJson": "{ ... }"
+  },
+  {
+    "id": "us.bnn.newsapp",
+    "name": "BNN",
+    "type": "APP",
+    "enabled": true,
+    "endpointIds": ["endpoint-1766609309063"],  // ✅ Firestore ingest (enabled)
+    "parserId": "bnn"
+  },
+  {
+    "id": "sms:+1 561-419-3784",
+    "name": "SMS 3784",
+    "type": "SMS",
+    "enabled": true,
+    "endpointIds": ["b0040999-d963-4b57-aaf4-f6d2301bad72"],  // ❌ Apps Script (disabled!)
+    "templateJson": "{ ... }"
+  }
+]
+```
 
-### Fix Required (User Action)
-1. **Enable Firebase Authentication:**
-   - Go to: https://console.firebase.google.com/project/alerts-sheets-bb09c/authentication
-   - Enable "Anonymous" sign-in method
-   - Click "Save"
+**Analysis:**
+- ❌ **2 SMS sources** pointing to disabled Apps Script endpoint
+- ✅ **1 APP source** (BNN) pointing to enabled Firestore ingest
+- **Consequence:** Real SMS will match source but fail delivery (disabled endpoint)
 
-2. **Verify google-services.json:**
-   ```bash
-   # Check if file exists
-   ls android/app/google-services.json
-   
-   # Verify project_id matches
-   cat android/app/google-services.json | findstr "project_id"
-   # Should show: "project_id": "alerts-sheets-bb09c"
-   ```
+### Current Endpoint Configuration
+```json
+[
+  {
+    "id": "b0040999-d963-4b57-aaf4-f6d2301bad72",
+    "name": "Google Apps Script",
+    "enabled": false,  // ❌ DISABLED
+    "url": "https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec",
+    "stats": {
+      "totalRequests": 0,
+      "totalSuccess": 0,
+      "totalFailed": 0
+    }
+  },
+  {
+    "id": "endpoint-1766609309063",
+    "name": "Firestore Ingest Function",
+    "enabled": true,  // ✅ ENABLED
+    "url": "https://us-central1-alerts-sheets-bb09c.cloudfunctions.net/ingest",
+    "stats": {
+      "totalRequests": 18,
+      "totalSuccess": 0,
+      "totalFailed": 18,  // ❌ All 18 requests failed (401 auth errors)
+      "avgResponseTime": 1747,
+      "lastActivity": 1766961951364
+    }
+  }
+]
+```
 
-3. **Rebuild after enabling Auth:**
-   ```bash
-   cd android
-   .\gradlew.bat clean
-   .\gradlew.bat :app:assembleDebug
-   adb install -r .\app\build\outputs\apk\debug\app-debug.apk
-   ```
+**Analysis:**
+- Firestore ingest: **18 requests, 0 success, 18 failed**
+- All failures due to 401 authentication errors (before shared secret implementation)
+- Apps Script endpoint disabled (no recent activity)
 
 ---
 
-## ✅ BUILD EVIDENCE (Session 5 Final)
+## 📦 FILES CHANGED (Session 7)
+
+### Android (2 files - Already Complete from Session 6)
+1. **`android/app/build.gradle`** (+6 lines)
+   - Added `INGEST_SHARED_SECRET` BuildConfig field
+   - Loads from `local.properties` or environment variable
+
+2. **`android/app/src/main/java/com/example/alertsheets/domain/DeliveryPipeline.kt`** (~35 lines)
+   - URL-based detection for ingest endpoints
+   - Adds `Authorization: Bearer <secret>` header automatically
+   - Logs secret length (never value)
+   - Fails early with `auth_missing` event if secret not configured
+
+### Cloud Functions (1 file - NEW)
+3. **`functions/src/index.ts`** (~30 lines changed)
+   - **Replaced Firebase ID token validation with shared secret validation**
+   - Checks `Authorization: Bearer <secret>` header
+   - Validates against `process.env.INGEST_SHARED_SECRET` or `BNN_SHARED_SECRET`
+   - Returns clear error messages:
+     - 401: "Missing Authorization header" (if no header)
+     - 401: "Invalid secret" (if wrong secret)
+     - 500: "Server configuration error" (if secret not configured on server)
+   - Removed `userId` references (no longer using Firebase Auth)
+
+---
+
+## 🔧 REQUIRED CONFIGURATION
+
+### Step 1: Generate Shared Secret
 
 ```bash
-# Command
+# Generate a secure random secret (32 bytes = 64 hex characters)
+openssl rand -hex 32
+
+# Example output:
+# a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1f2
+
+# Copy this value - you'll need it for both Android and Cloud Functions
+```
+
+### Step 2: Configure Android
+
+**Edit `android/local.properties`:**
+```properties
+# SDK path (existing)
+sdk.dir=C:\\Users\\ynotf\\AppData\\Local\\Android\\Sdk
+
+# Sentry DSN (existing, optional)
+sentryDsn=https://your-key@o0.ingest.sentry.io/0
+
+# ✅ ADD THIS LINE:
+INGEST_SHARED_SECRET=a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1f2
+```
+
+**Important:**
+- Use the SAME secret value generated in Step 1
+- `local.properties` is gitignored (safe for secrets)
+- Must rebuild Android app after adding secret
+
+### Step 3: Configure Cloud Functions
+
+**Option A: Using `.env.local` (Recommended for local testing)**
+
+Create/edit `functions/.env.local`:
+```bash
+# Firestore Ingest Shared Secret
+# Must match INGEST_SHARED_SECRET in android/local.properties
+INGEST_SHARED_SECRET=a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1f2
+
+# OR use legacy name (code checks both):
+BNN_SHARED_SECRET=a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1f2
+```
+
+**Option B: Using Firebase Functions Config (For production deployment)**
+
+```bash
+cd functions
+
+# Set secret in Firebase
+firebase functions:config:set ingest.shared_secret="a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1f2"
+
+# Verify it was set
+firebase functions:config:get
+
+# Deploy
+firebase deploy --only functions
+```
+
+**Note:** Cloud Functions code checks both `INGEST_SHARED_SECRET` and `BNN_SHARED_SECRET` env vars (backward compatibility).
+
+### Step 4: Deploy Cloud Functions
+
+```bash
+cd D:\github\alerts-sheets\functions
+
+# Build
+npm run build
+
+# Deploy
+firebase deploy --only functions:ingest
+
+# Expected output:
+# ✔  Deploy complete!
+# Function URL (ingest(us-central1)): https://us-central1-alerts-sheets-bb09c.cloudfunctions.net/ingest
+```
+
+### Step 5: Rebuild Android
+
+```bash
 cd D:\github\alerts-sheets\android
-.\gradlew.bat :app:assembleDebug
 
-# Output
-> Task :app:compileDebugKotlin
-> Task :app:packageDebug
-> Task :app:assembleDebug
-BUILD SUCCESSFUL in 2s
-42 actionable tasks: 8 executed, 34 up-to-date
+# Clean rebuild (ensures BuildConfig updated)
+.\gradlew.bat clean :app:assembleDebug
 
-# APK
-D:\github\alerts-sheets\android\app\build\outputs\apk\debug\app-debug.apk
-
-# Installed
+# Install
 adb install -r .\app\build\outputs\apk\debug\app-debug.apk
-Performing Streamed Install
-Success
-
-# Launched
-adb shell am force-stop com.example.alertsheets
-adb shell am start -n com.example.alertsheets/.ui.MainActivity
-Starting: Intent { cmp=com.example.alertsheets/.ui.MainActivity }
 ```
 
 ---
 
-## 🧪 VERIFICATION STEPS (After Firebase Auth Enabled)
+## 🧪 VERIFICATION CHECKLIST
 
-### Step A: Confirm Auth Initialization
+### Pre-Flight Checks
 ```bash
-# Clear logs and restart app
-adb logcat -c
-adb shell am force-stop com.example.alertsheets
-adb shell am start -n com.example.alertsheets/.ui.MainActivity
+# ✅ Verify Android secret configured
+notepad android\local.properties
+# Should contain: INGEST_SHARED_SECRET=<your-secret>
 
-# Wait 3 seconds, then check logs
-adb logcat -d -s AlertsApp:* | Select-String -Pattern "auth_ready|uid"
+# ✅ Verify Cloud Functions secret configured
+# If using .env.local:
+notepad functions\.env.local
+# Should contain: INGEST_SHARED_SECRET=<same-secret>
 
-# Expected output (AFTER Firebase Auth enabled):
-# AlertsApp: 🔐 Firebase Auth: No user found, signing in anonymously...
-# AlertsApp: ✅ Firebase Auth: auth_ready=true uid_present=true uid_masked=abcd***wxyz
+# If using Firebase config:
+firebase functions:config:get
+# Should show: ingest.shared_secret: "<your-secret>"
+
+# ✅ Verify secrets MATCH (critical!)
+# Android local.properties and Cloud Functions env must have identical values
 ```
 
-### Step B: Test with Dirty Test Button
+### Test 1: Lab Dirty Test (Without SMS)
 ```bash
-# Start monitoring logs
+# Clear logs
 adb logcat -c
-adb logcat -v time -s DeliveryPipeline:V AuthTokenProvider:V ReliableHttpSender:V *:E
+
+# Start monitoring
+adb logcat -v time -s DeliveryPipeline:V ReliableHttpSender:V StructuredLogger:V *:E
 
 # In app:
-# 1. Open AppConfigActivity
+# 1. Open AppConfigActivity (from main screen)
 # 2. Tap "🔥 Dirty Test (Emoji SMS)" button
-# 3. Observe dialog and logcat
 
 # Expected logcat output:
-# DeliveryPipeline: Endpoint requires Firebase auth (URL/name match), fetching token...
-# AuthTokenProvider: Token obtained successfully (length=XXX)
-# DeliveryPipeline: ✓ Authorization header added (token length=XXX)
-# ReliableHttpSender: [HTTP POST with Authorization: Bearer <token>]
+# DeliveryPipeline: ✓ Authorization header added for ingest endpoint (secret length=64)
+# DeliveryPipeline: 📤 Sending to: Firestore Ingest Function...
+# ReliableHttpSender: POST https://us-central1-alerts-sheets-bb09c.cloudfunctions.net/ingest
 # DeliveryPipeline: ✅ HTTP OK | code=200 latency=XXXms
 
 # Expected dialog:
 # Title: "Test Result"
-# Content: "✓ Test SUCCESS\nHTTP 200 (XXXms)\nStatus: ✓ CONFIRMED\n\nResponse preview:\n{...}"
+# Content: "✓ Test SUCCESS\nHTTP 200 (XXXms)\nStatus: ✓ CONFIRMED\n\nResponse preview:\n{\"status\":\"ok\",...}"
+
+# ❌ If you see:
+# - "secret length=0" → Secret not configured in local.properties
+# - "code=401" → Secret mismatch OR Cloud Function not deployed
+# - "auth_missing" event → Secret empty in BuildConfig
 ```
 
-### Step C: Test with Real SMS
-```bash
-# Start monitoring
-adb logcat -c
-adb logcat -v time -s DeliveryPipeline:V AuthTokenProvider:V ReliableHttpSender:V StructuredLogger:V *:E
+### Test 2: Fix SMS Source Routing
+**Problem:** SMS sources currently point to disabled Apps Script endpoint
 
-# Send SMS from configured source to your device
+**Fix in App UI:**
+```
+1. Open MainActivity
+2. Tap "Sources" tile
+3. Select "SMS Adjust Leads" source
+4. Tap "Endpoints" section
+5. Uncheck "Google Apps Script" (disabled)
+6. Check "Firestore Ingest Function" (enabled)
+7. Tap "Save"
+
+Repeat for other SMS sources.
+```
+
+**OR manually edit via adb (faster):**
+```bash
+# Download current config
+adb shell run-as com.example.alertsheets cat files/sources.json > sources_backup.json
+
+# Edit sources.json:
+# Change all "endpointIds": ["b0040999-..."] 
+# To: "endpointIds": ["endpoint-1766609309063"]
+
+# Push back
+adb push sources_edited.json /sdcard/sources.json
+adb shell run-as com.example.alertsheets cp /sdcard/sources.json files/sources.json
+
+# Restart app
+adb shell am force-stop com.example.alertsheets
+adb shell am start -n com.example.alertsheets/.ui.MainActivity
+```
+
+### Test 3: Real SMS Delivery
+```bash
+# Prerequisites:
+# - SMS source pointing to Firestore ingest endpoint (see Test 2)
+# - Shared secret configured in both Android and Cloud Functions
+# - Cloud Functions deployed
+
+# Clear logs
+adb logcat -c
+
+# Start monitoring
+adb logcat -v time -s DeliveryPipeline:V ReliableHttpSender:V StructuredLogger:V *:E
+
+# Send SMS from configured number (e.g., +1 888-660-1455)
 
 # Expected logcat output:
-# DeliveryPipeline: 📨 SMS event | sender=***XX message_len=XX
-# DeliveryPipeline: ✓ Source matched: [source_name]
-# DeliveryPipeline: ✓ Endpoint selected: [endpoint_name]
-# DeliveryPipeline: Endpoint requires Firebase auth (URL/name match), fetching token...
-# AuthTokenProvider: Token obtained successfully (length=XXX)
-# DeliveryPipeline: ✓ Authorization header added (token length=XXX)
+# DeliveryPipeline: 📨 SMS event | sender=***55 message_len=XX
+# DeliveryPipeline: ✓ Source matched: SMS Adjust Leads Firestore Database
+# DeliveryPipeline: ✓ Endpoint selected: Firestore Ingest Function
+# DeliveryPipeline: ✓ Authorization header added for ingest endpoint (secret length=64)
+# DeliveryPipeline: 📤 Sending to: Firestore Ingest Function (https://us-central1-...)
+# ReliableHttpSender: POST (with Authorization header)
 # DeliveryPipeline: ✅ HTTP OK | code=200 latency=XXXms
+# StructuredLogger: {"event":"http_ok","code":200,...}
 
-# Expected result:
-# - HTTP 200 (not 401)
-# - Debug screen shows new entry with code=200
-# - Firestore console shows new document in /alerts collection
+# Check Firestore Console:
+# https://console.firebase.google.com/project/alerts-sheets-bb09c/firestore/data
+# Expected: New document in /alerts collection with SMS data
 ```
 
-### Step D: Verify Debug Screen
+### Test 4: Apps Script Path (Verify Unchanged)
 ```bash
-# Open Debug screen
-adb shell am start -n com.example.alertsheets/.ui.DebugActivity
+# If you have Apps Script endpoint enabled and configured:
 
-# Expected display:
-# - Recent deliveries shown (test + real SMS if sent)
-# - HTTP codes visible (200, not 401)
-# - Latency displayed
-# - Response snippets in details
-```
-
----
-
-## 🔍 VERIFICATION COMMANDS (Copy/Paste)
-
-### Check Firebase Auth Status
-```bash
-adb logcat -d -s AlertsApp:* | Select-String "auth_ready"
-```
-
-### Check Auth Token Usage
-```bash
-adb logcat -d -s DeliveryPipeline:* AuthTokenProvider:* | Select-String "token|auth"
-# Note: Token VALUE should NEVER appear, only "token length=XXX"
-```
-
-### Check HTTP Requests
-```bash
-adb logcat -d -s ReliableHttpSender:* DeliveryPipeline:* | Select-String "http_attempt|http_ok|http_fail"
-```
-
-### Check for 401 Errors (Should be NONE after fix)
-```bash
-adb logcat -d | Select-String "401"
-```
-
----
-
-## 📊 IMPLEMENTATION SUMMARY
-
-### What Works NOW (Without Firebase Auth Enabled)
-✅ Build successful
-✅ App launches without crashes
-✅ URL-based auth detection logic implemented
-✅ AuthTokenProvider exists and ready
-✅ Masked phone numbers in SMS sources
-✅ Test buttons wired to DeliveryPipeline
-✅ Response snippets captured and logged
-
-### What NEEDS Firebase Console Action
-⚠️ **Firebase Auth must be enabled in Console**
-- Go to Firebase Console → Authentication → Sign-in method
-- Enable "Anonymous" provider
-- Click "Save"
-
-### What Will Work AFTER Firebase Auth Enabled
-✅ Anonymous sign-in on app start
-✅ ID token retrieval for Cloud Functions
-✅ Authorization headers added automatically
-✅ HTTP 200 responses (not 401)
-✅ Firestore documents created successfully
-
----
-
-## 🔗 CRITICAL FILES (Session 5 Final)
-
-### Auth Infrastructure
-- `android/app/src/main/java/com/example/alertsheets/AlertsApplication.kt` - Auth initialization
-- `android/app/src/main/java/com/example/alertsheets/data/AuthTokenProvider.kt` - Token retrieval
-- `android/app/src/main/java/com/example/alertsheets/domain/DeliveryPipeline.kt` - URL-based auth injection
-
-### URL-Based Auth Detection Logic
-```kotlin
-// In DeliveryPipeline.kt (line ~258)
-val needsAuth = endpoint.url.contains("cloudfunctions.net/ingest", ignoreCase = true) ||
-               endpoint.name.contains("Firestore Ingest", ignoreCase = true)
-
-if (needsAuth) {
-    val token = AuthTokenProvider.getFirebaseIdToken()
-    if (token != null) {
-        headers["Authorization"] = "Bearer $token"
-    } else {
-        // Fail early with auth_missing event
-        return@launch
-    }
-}
-```
-
----
-
-## 📋 NEXT ACTIONS (Priority Order)
-
-### P0: Enable Firebase Auth (USER ACTION REQUIRED)
-```
-1. Go to: https://console.firebase.google.com/project/alerts-sheets-bb09c/authentication
-2. Click "Sign-in method" tab
-3. Click "Anonymous" provider
-4. Toggle "Enable" switch
-5. Click "Save"
-```
-
-### P1: Rebuild and Test After Auth Enabled
-```bash
-cd D:\github\alerts-sheets\android
-.\gradlew.bat clean assembleDebug
-adb install -r .\app\build\outputs\apk\debug\app-debug.apk
-adb shell am force-stop com.example.alertsheets
+# Monitor logs
 adb logcat -c
-adb shell am start -n com.example.alertsheets/.ui.MainActivity
+adb logcat -v time -s DeliveryPipeline:V
 
-# Wait 3 seconds, then check:
-adb logcat -d -s AlertsApp:* | Select-String "auth_ready"
-# Expected: "auth_ready=true uid_present=true"
-```
+# Send notification/SMS routed to Apps Script endpoint
 
-### P2: Test Dirty Test Button
-```
-1. Open AppConfigActivity in app
-2. Tap "🔥 Dirty Test" button
-3. Verify dialog shows HTTP 200 (not 401)
-4. Check Debug screen shows entry with code=200
-```
+# Expected logcat output:
+# DeliveryPipeline: Endpoint does not require auth (Apps Script or other)
+# DeliveryPipeline: 📤 Sending to: Google Apps Script...
+# [NO Authorization header added]
+# DeliveryPipeline: ✅ HTTP OK | code=200
 
-### P3: Test Real SMS Delivery
-```
-1. Send SMS from configured source
-2. Check logcat for "http_ok code=200"
-3. Check Firestore console for new /alerts document
-4. Check Debug screen shows delivery
-```
-
-### P4: Commit Changes
-```bash
-cd D:\github\alerts-sheets
-git add android/app/src/main/java/com/example/alertsheets/AlertsApplication.kt
-git add android/app/src/main/java/com/example/alertsheets/domain/DeliveryPipeline.kt
-git add android/app/src/main/java/com/example/alertsheets/SmsSourceAdapter.kt
-git add docs/ai/STATE.md
-
-git commit -m "fix: url-based firebase auth for firestore ingest (no manual config)
-
-URL-Based Auth Detection:
-- Automatically detects Firestore ingest endpoints by URL/name matching
-- Adds Firebase ID token Authorization header when needed
-- Apps Script endpoints remain unauthenticated (no auth header)
-- No manual authType configuration required
-
-Auth Flow:
-- App starts → Firebase Auth anonymous sign-in
-- SMS arrives → DeliveryPipeline checks endpoint URL
-- If URL contains 'cloudfunctions.net/ingest' → add auth header
-- If URL is Apps Script → no auth header
-- Token fetch failure → abort with auth_missing event
-
-Enhanced Logging:
-- auth_ready status on app start
-- uid_present masked as XXX***XXX
-- tokenLength logged (never token value)
-- Response snippets (120 chars) in all paths
-
-SMS Contact UX:
-- Masked phone numbers in UI (***XX)
-- Full number preserved internally
-
-Requires: Firebase Authentication enabled in Console (Anonymous provider)
-
-Files: 3 modified
-LOC: ~80 lines
-"
-
-git log --oneline -1
+# Verify: No "Authorization header added" log
 ```
 
 ---
 
-## 🚨 KNOWN ISSUES
+## 🚨 TROUBLESHOOTING
 
-### Issue 1: Firebase Auth Not Enabled
-**Status:** ⚠️ BLOCKING  
-**Impact:** Cannot get ID tokens → 401 errors continue  
-**Fix:** Enable Anonymous Auth in Firebase Console (see P0 above)  
-**Evidence:**
+### Issue 1: Still Getting 401 Errors
+
+**Symptoms:**
 ```
-E AlertsApp: ❌ Firebase Auth: auth_ready=false error=An internal error has occurred. [ CONFIGURATION_NOT_FOUND ]
+DeliveryPipeline: ❌ HTTP FAIL | code=401
+Response: "Unauthorized. Invalid secret."
 ```
 
-### Issue 2: google-services.json Validation
-**Status:** ⚠️ VERIFY NEEDED  
-**Impact:** Firebase services may not initialize correctly  
-**Fix:** Verify file exists at `android/app/google-services.json` and project_id matches  
-**Commands:**
+**Root Causes:**
+1. **Secret mismatch** - Android and Cloud Functions using different values
+2. **Cloud Functions not deployed** - Still running old code
+3. **Typo in secret** - Extra spaces, wrong case, etc.
+
+**Debug Steps:**
 ```bash
-ls android/app/google-services.json
-cat android/app/google-services.json | findstr "project_id"
+# A) Verify Android secret
+adb logcat -d -s DeliveryPipeline:* | Select-String "secret length"
+# Expected: "secret length=64" (or whatever your secret length is)
+# If you see "secret length=0" → Not configured in local.properties
+
+# B) Verify Cloud Functions deployed
+firebase functions:log --only ingest --limit 10
+# Look for "✅ Authentication successful" logs
+
+# C) Test Cloud Function directly with curl
+curl -X POST https://us-central1-alerts-sheets-bb09c.cloudfunctions.net/ingest \
+  -H "Authorization: Bearer YOUR_SECRET_HERE" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "uuid": "test-' + (new Date()).getTime() + '",
+    "sourceId": "test",
+    "payload": "{\"test\":true}",
+    "timestamp": "' + (new Date()).toISOString() + '"
+  }'
+
+# Expected: {"status":"ok",...}
+# If 401: Secret wrong or not configured on server
 ```
+
+**Fix:**
+1. Verify secrets match EXACTLY (copy-paste, don't retype)
+2. Redeploy Cloud Functions: `firebase deploy --only functions:ingest`
+3. Rebuild Android: `.\gradlew.bat clean assembleDebug`
+
+---
+
+### Issue 2: auth_missing Event
+
+**Symptoms:**
+```
+DeliveryPipeline: ❌ INGEST_SHARED_SECRET is empty!
+StructuredLogger: {"event":"auth_missing",...}
+```
+
+**Root Cause:**
+Secret not configured in `android/local.properties`
+
+**Fix:**
+```bash
+# 1. Add secret
+notepad android\local.properties
+# Add line: INGEST_SHARED_SECRET=your-secret-here
+
+# 2. Clean rebuild (REQUIRED - BuildConfig needs regeneration)
+cd android
+.\gradlew.bat clean :app:assembleDebug
+
+# 3. Reinstall
+adb install -r .\app\build\outputs\apk\debug\app-debug.apk
+
+# 4. Verify
+adb logcat -c
+adb logcat -s DeliveryPipeline:*
+# Should now show: "secret length=XX"
+```
+
+---
+
+### Issue 3: SMS Not Delivering (Endpoint Disabled)
+
+**Symptoms:**
+- SMS arrives on device
+- No delivery logs appear
+- OR logs show "endpoint disabled"
+
+**Root Cause:**
+SMS source pointing to disabled Apps Script endpoint (see Phase 0 Evidence)
+
+**Fix:**
+See **Test 2: Fix SMS Source Routing** above
+
+---
+
+### Issue 4: Server Configuration Error (500)
+
+**Symptoms:**
+```
+DeliveryPipeline: ❌ HTTP FAIL | code=500
+Response: "Server configuration error"
+```
+
+**Root Cause:**
+Cloud Function deployed without `INGEST_SHARED_SECRET` env var
+
+**Fix:**
+```bash
+cd functions
+
+# Option A: Set in Firebase config
+firebase functions:config:set ingest.shared_secret="your-secret-here"
+firebase deploy --only functions:ingest
+
+# Option B: Use .env.local for local emulator
+echo "INGEST_SHARED_SECRET=your-secret-here" > .env.local
+firebase emulators:start --only functions
+```
+
+---
+
+## 📋 CURRENT STATUS SUMMARY
+
+### ✅ Complete
+- [x] Android shared secret implementation
+- [x] Cloud Functions shared secret validation
+- [x] Build verification (both Android and Cloud Functions)
+- [x] Documentation complete
+- [x] Troubleshooting guide
+
+### ⏳ Pending User Action
+- [ ] Generate shared secret (`openssl rand -hex 32`)
+- [ ] Add secret to `android/local.properties`
+- [ ] Add secret to `functions/.env.local` OR Firebase config
+- [ ] Deploy Cloud Functions (`firebase deploy --only functions:ingest`)
+- [ ] Rebuild Android (`gradlew clean assembleDebug`)
+- [ ] Fix SMS source endpoint assignments (point to Firestore ingest)
+
+### 🎯 Expected After Configuration
+- [ ] Lab Dirty Test → HTTP 200 (not 401)
+- [ ] Real SMS → HTTP 200, document in Firestore
+- [ ] Apps Script path unchanged (no auth header)
+- [ ] Debug screen shows successful deliveries
+- [ ] Firestore console shows new documents
 
 ---
 
 ## 📞 RESOURCES
 
 - **Firebase Console:** https://console.firebase.google.com/project/alerts-sheets-bb09c
-- **Authentication Settings:** https://console.firebase.google.com/project/alerts-sheets-bb09c/authentication/providers
 - **Firestore Data:** https://console.firebase.google.com/project/alerts-sheets-bb09c/firestore/data
-- **Cloud Functions:** https://console.firebase.google.com/project/alerts-sheets-bb09c/functions
+- **Cloud Functions Logs:** `firebase functions:log --only ingest`
 - **Workspace:** `D:\github\alerts-sheets`
 - **Device:** R5CX20WL15P (Samsung, Android SDK 34)
 
 ---
 
-**Status:** Implementation complete. Waiting for Firebase Console configuration before verification.
+## 📝 NEXT SESSION PRIORITIES
+
+1. **P0:** Configure shared secret (generate + add to both Android and Cloud Functions)
+2. **P0:** Deploy Cloud Functions with new auth
+3. **P0:** Fix SMS source routing (point to Firestore ingest endpoint)
+4. **P1:** Test end-to-end (SMS → Firestore)
+5. **P2:** Implement Lab test button fixes (show real response dialog)
+6. **P2:** Add "Copy Build Info" + "Export last 10 logs" features
+
+---
+
+**Status:** Code complete, waiting for secret configuration + deployment.

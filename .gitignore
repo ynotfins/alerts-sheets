@@ -63,6 +63,21 @@ dist/
 *.log
 
 # ========================================
+# ANDROID BUILD ARTIFACTS
+# ========================================
+android/app/build/**
+android/.gradle/**
+android/build/**
+android/local.properties
+
+# ========================================
+# CLOUD FUNCTIONS BUILD ARTIFACTS
+# ========================================
+functions/lib/**
+functions/*.log
+functions/node_modules/
+
+# ========================================
 # AI CONTEXT & TRACKING (DO NOT COMMIT)
 # ========================================
 .ai-context/

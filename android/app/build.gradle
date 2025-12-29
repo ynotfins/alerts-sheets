@@ -25,6 +25,28 @@ android {
         // sentryDsn=https://your-key@o0.ingest.sentry.io/0
         def sentryDsn = project.findProperty("sentryDsn") ?: System.getenv("SENTRY_DSN") ?: ""
         buildConfigField "String", "SENTRY_DSN", "\"${sentryDsn}\""
+        
+        // ✅ BUILD ID: Git SHA + Build Time
+        def gitSha = "unknown"
+        try {
+            def stdout = new ByteArrayOutputStream()
+            exec {
+                commandLine 'git', 'rev-parse', '--short', 'HEAD'
+                standardOutput = stdout
+                ignoreExitValue = true
+            }
+            gitSha = stdout.toString().trim()
+            if (gitSha.isEmpty()) {
+                gitSha = "unknown"
+            }
+        } catch (Exception e) {
+            gitSha = "unknown"
+        }
+        
+        def buildTime = new Date().format("yyyy-MM-dd'T'HH:mm:ss'Z'", TimeZone.getTimeZone("UTC"))
+        
+        buildConfigField "String", "GIT_SHA", "\"${gitSha}\""
+        buildConfigField "String", "BUILD_TIME_UTC", "\"${buildTime}\""
     }
 
     buildTypes {
@@ -32,7 +54,7 @@ android {
             // Debug uses production Cloud Functions (for real testing)
             buildConfigField "String", "INGEST_ENDPOINT", '"https://us-central1-alerts-sheets-bb09c.cloudfunctions.net/ingest"'
             buildConfigField "String", "ENVIRONMENT", '"debug"'
-            buildConfigField "boolean", "ENABLE_FIRESTORE_INGEST", "false"  // ✅ OFF by default
+            buildConfigField "boolean", "ENABLE_FIRESTORE_INGEST", "true"  // ✅ ON for debug testing
             buildConfigField "boolean", "ENABLE_SENTRY", "false"  // ✅ OFF in debug (use Crashlytics)
             
             // Uncomment to use local emulator:

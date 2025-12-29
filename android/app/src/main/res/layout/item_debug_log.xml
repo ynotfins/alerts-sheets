@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView 
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="4dp"
+    app:cardCornerRadius="4dp"
+    app:cardElevation="2dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="12dp">
+
+        <!-- Header Row -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/tvLogTimestamp"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="12:34:56"
+                android:textSize="12sp"
+                android:textColor="#999999"/>
+
+            <TextView
+                android:id="@+id/tvLogLevel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="INFO"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:paddingStart="8dp"
+                android:paddingEnd="0dp"/>
+
+        </LinearLayout>
+
+        <!-- Event -->
+        <TextView
+            android:id="@+id/tvLogEvent"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="http_ok"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:paddingTop="4dp"/>
+
+        <!-- IDs Row -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:paddingTop="4dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Source: "
+                android:textSize="12sp"
+                android:textColor="#666666"/>
+
+            <TextView
+                android:id="@+id/tvLogSourceId"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="bnn_app"
+                android:textSize="12sp"
+                android:textColor="#333333"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Endpoint: "
+                android:textSize="12sp"
+                android:textColor="#666666"
+                android:paddingStart="12dp"
+                android:paddingEnd="0dp"/>
+
+            <TextView
+                android:id="@+id/tvLogEndpointId"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="apps_script"
+                android:textSize="12sp"
+                android:textColor="#333333"/>
+
+        </LinearLayout>
+
+        <!-- Details -->
+        <TextView
+            android:id="@+id/tvLogDetails"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="code=200 latency=234ms"
+            android:textSize="12sp"
+            android:textColor="#666666"
+            android:paddingTop="4dp"
+            android:maxLines="2"
+            android:ellipsize="end"/>
+
+    </LinearLayout>
+
+</androidx.cardview.widget.CardView>
+

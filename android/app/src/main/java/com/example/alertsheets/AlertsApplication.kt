@@ -27,15 +27,18 @@ class AlertsApplication : Application() {
         // ✅ CRITICAL: Initialize Firebase Auth (anonymous sign-in for testing)
         val auth = FirebaseAuth.getInstance()
         if (auth.currentUser == null) {
+            Log.i(TAG, "🔐 Firebase Auth: No user found, signing in anonymously...")
             auth.signInAnonymously().addOnCompleteListener { task ->
                 if (task.isSuccessful) {
-                    Log.i(TAG, "✅ Firebase Auth: Anonymous sign-in successful (UID: ${auth.currentUser?.uid})")
+                    val uid = auth.currentUser?.uid ?: "unknown"
+                    Log.i(TAG, "✅ Firebase Auth: auth_ready=true uid_present=true uid_masked=${uid.take(4)}***${uid.takeLast(4)}")
                 } else {
-                    Log.e(TAG, "❌ Firebase Auth: Anonymous sign-in FAILED", task.exception)
+                    Log.e(TAG, "❌ Firebase Auth: auth_ready=false error=${task.exception?.message}", task.exception)
                 }
             }
         } else {
-            Log.i(TAG, "✅ Firebase Auth: Already signed in (UID: ${auth.currentUser?.uid})")
+            val uid = auth.currentUser?.uid ?: "unknown"
+            Log.i(TAG, "✅ Firebase Auth: auth_ready=true uid_present=true uid_masked=${uid.take(4)}***${uid.takeLast(4)}")
         }
         
         // ✅ CRITICAL: Initialize LogRepository SECOND (after Firebase, before anything logs)

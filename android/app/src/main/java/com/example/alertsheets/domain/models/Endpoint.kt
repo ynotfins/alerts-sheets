@@ -3,6 +3,14 @@ package com.example.alertsheets.domain.models
 import com.example.alertsheets.utils.PayloadSerializer
 
 /**
+ * Authentication type for endpoint
+ */
+enum class AuthType {
+    NONE,                // No authentication
+    FIREBASE_ID_TOKEN    // Firebase ID token in Authorization header
+}
+
+/**
  * HTTP endpoint where notifications are sent
  * 
  * Examples:
@@ -20,6 +28,7 @@ data class Endpoint(
     val timeout: Int = 30000,                // Connection timeout in ms
     val retryCount: Int = 3,                 // Number of retry attempts on failure
     val headers: Map<String, String> = emptyMap(), // Custom headers (e.g., API keys)
+    val authType: AuthType = AuthType.NONE,  // ✅ Authentication type (default NONE for backward compatibility)
     val stats: EndpointStats = EndpointStats(),
     val createdAt: Long = System.currentTimeMillis(),
     val updatedAt: Long = System.currentTimeMillis(),

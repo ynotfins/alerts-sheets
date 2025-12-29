@@ -45,7 +45,11 @@ class SmsSourceAdapter(
 
         fun bind(source: Source) {
             nameText.text = source.name
-            numberText.text = source.id.removePrefix("sms:")
+            
+            // ✅ Mask phone number (show only last 2 digits)
+            val rawNumber = source.id.removePrefix("sms:")
+            val maskedNumber = maskPhoneNumber(rawNumber)
+            numberText.text = maskedNumber
             
             enableSwitch.setOnCheckedChangeListener(null)
             enableSwitch.isChecked = source.enabled
@@ -66,6 +70,22 @@ class SmsSourceAdapter(
                 filterText.text = "Filter: \"$filter\" ($caseLabel)"
             } else {
                 filterText.visibility = View.GONE
+            }
+        }
+        
+        /**
+         * Mask phone number to show only last 2 digits
+         * Examples:
+         * - +15551234567 → ***67
+         * - 5551234567 → ***67
+         * - +1 → ***1
+         */
+        private fun maskPhoneNumber(phone: String): String {
+            val digits = phone.filter { it.isDigit() }
+            return when {
+                digits.length >= 2 -> "***${digits.takeLast(2)}"
+                digits.length == 1 -> "***${digits}"
+                else -> "***"
             }
         }
     }

@@ -42,6 +42,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var textPermissionsSubtitle: TextView
     private lateinit var dotLogs: ImageView
     private lateinit var textStats: TextView
+    private lateinit var textBuildId: TextView
     private lateinit var textSourcesHeader: TextView
     private lateinit var emptyState: LinearLayout
 
@@ -59,8 +60,12 @@ class MainActivity : AppCompatActivity() {
         textPermissionsSubtitle = findViewById(R.id.text_permissions_subtitle)
         dotLogs = findViewById(R.id.dot_logs)
         textStats = findViewById(R.id.text_stats)
+        textBuildId = findViewById(R.id.text_build_id)
         textSourcesHeader = findViewById(R.id.text_sources_header)
         emptyState = findViewById(R.id.empty_state)
+        
+        // ✅ Set Build ID
+        textBuildId.text = "Build: v${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE}) ${BuildConfig.GIT_SHA} ${BuildConfig.BUILD_TIME_UTC}"
         
         setupPermanentCards()
     }
@@ -77,6 +82,16 @@ class MainActivity : AppCompatActivity() {
         cardLab.setBackgroundColor(0xFFF97316.toInt()) // Orange
         cardLab.setOnClickListener {
             startActivity(Intent(this, LabActivity::class.java))
+        }
+        
+        // Debug card - PURPLE (Debug builds only)
+        if (BuildConfig.DEBUG) {
+            val cardDebug = findViewById<FrameLayout>(R.id.card_debug)
+            cardDebug.visibility = View.VISIBLE
+            cardDebug.setBackgroundColor(0xFF9333EA.toInt()) // Purple
+            cardDebug.setOnClickListener {
+                startActivity(Intent(this, DebugActivity::class.java))
+            }
         }
         
         // Permissions card - Dynamic (updated in updateStatus)

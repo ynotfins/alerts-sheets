@@ -590,18 +590,20 @@ class AppConfigActivity : AppCompatActivity() {
             Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
         }
 
+        // ✅ GOLDEN PATH: Route through DeliveryPipeline WITH AUTH SUPPORT
         kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO).launch {
-            // Get URL
-            val endpoints = PrefsManager.getEndpoints(this@AppConfigActivity)
-            val url = endpoints.firstOrNull()?.url ?: ""
+            // Get enabled endpoint using V2 repository
+            val endpointRepo = com.example.alertsheets.data.repositories.EndpointRepository(this@AppConfigActivity)
+            val endpoints = endpointRepo.getAll().filter { it.enabled }
+            val endpoint = endpoints.firstOrNull()
 
-            if (url.isEmpty()) {
-                android.util.Log.e("TEST", "FAILED: No endpoint configured")
+            if (endpoint == null) {
+                android.util.Log.e("TEST", "FAILED: No enabled endpoint configured")
                 if (!silent)
                         runOnUiThread {
                             Toast.makeText(
                                             this@AppConfigActivity,
-                                            "No Endpoint URL Configured!",
+                                            "No Enabled Endpoint Configured!",
                                             Toast.LENGTH_LONG
                                     )
                                     .show()
@@ -610,78 +612,58 @@ class AppConfigActivity : AppCompatActivity() {
                 return@launch
             }
 
-            // Log request details
-            android.util.Log.i("TEST", "=== Test Request ===")
-            android.util.Log.i("TEST", "Endpoint: $url")
-            android.util.Log.i("TEST", "JSON Payload: $json")
-
-            try {
-                val body = json.toRequestBody("application/json; charset=utf-8".toMediaType())
-                val request = okhttp3.Request.Builder().url(url).post(body).build()
-
-                val client = okhttp3.OkHttpClient()
-                client.newCall(request).execute().use { response ->
-                    val statusCode = response.code
-                    val responseBody = response.body?.string() ?: ""
-
-                    android.util.Log.i("TEST", "HTTP Status: $statusCode")
-                    android.util.Log.i("TEST", "Response Body: $responseBody")
-
-                    val success = response.isSuccessful
-
-                    if (success) {
-                        // Parse response to extract what was saved
-                        val responseData = try {
-                            val jsonResponse = org.json.JSONObject(responseBody)
-                            when {
-                                jsonResponse.has("id") -> "ID: ${jsonResponse.getString("id")}"
-                                jsonResponse.has("sender") -> "From: ${jsonResponse.getString("sender")}"
-                                else -> "Saved"
-                            }
-                        } catch (e: Exception) {
-                            "OK"
-                        }
+            // ✅ Use new deliverTestEventWithAuth (supports auth tokens)
+            val result = com.example.alertsheets.domain.DeliveryPipeline.deliverTestEventWithAuth(
+                endpoint = endpoint,
+                bodyJson = json
+            )
+            
+            if (!silent) {
+                runOnUiThread {
+                    if (result.success) {
+                        // ✅ Show detailed result with response body
+                        val responseBody = result.responseBody ?: "No response body"
+                        val isConfirmed = responseBody.contains("\"ok\":true", ignoreCase = true) ||
+                                          responseBody.contains("\"success\":true", ignoreCase = true) ||
+                                          responseBody.contains("\"saved\":true", ignoreCase = true)
                         
-                        if (!silent)
-                                runOnUiThread {
-                                    // Show detailed success message with response data
-                                    val message = "✓ Test SUCCESS (HTTP $statusCode)\n$responseData\n\nResponse: $responseBody"
-                                    
-                                    // Create custom toast with scrollable view for long responses
-                                    AlertDialog.Builder(this@AppConfigActivity)
-                                        .setTitle("✓ Test Successful")
-                                        .setMessage("HTTP $statusCode\n\n$responseData\n\nFull Response:\n$responseBody")
-                                        .setPositiveButton("OK", null)
-                                        .show()
-                                }
-                        PrefsManager.setPayloadTestStatus(this@AppConfigActivity, 1)
+                        val confirmStatus = if (isConfirmed) "✓ CONFIRMED" else "⚠ UNCONFIRMED"
+                        val message = """
+                            ✓ Test SUCCESS
+                            HTTP ${result.httpCode} (${result.latencyMs}ms)
+                            Status: $confirmStatus
+                            
+                            Response preview:
+                            ${responseBody.take(200)}
+                        """.trimIndent()
+                        
+                        android.app.AlertDialog.Builder(this@AppConfigActivity)
+                            .setTitle("Test Result")
+                            .setMessage(message)
+                            .setPositiveButton("OK", null)
+                            .show()
                     } else {
-                        android.util.Log.e("TEST", "FAILED with status $statusCode: $responseBody")
-                        if (!silent)
-                                runOnUiThread {
-                                    Toast.makeText(
-                                                    this@AppConfigActivity,
-                                                    "Test FAILED: HTTP $statusCode",
-                                                    Toast.LENGTH_LONG
-                                            )
-                                            .show()
-                                }
-                        PrefsManager.setPayloadTestStatus(this@AppConfigActivity, 2)
+                        // ✅ Show detailed error including HTTP code and response
+                        val responseHint = result.responseBody?.take(120) ?: result.errorMessage ?: "Unknown error"
+                        val message = """
+                            ✗ Test FAILED
+                            HTTP ${result.httpCode}
+                            ${result.errorClass ?: "Error"}
+                            
+                            Details:
+                            $responseHint
+                        """.trimIndent()
+                        
+                        android.app.AlertDialog.Builder(this@AppConfigActivity)
+                            .setTitle("Test Failed")
+                            .setMessage(message)
+                            .setNegativeButton("OK", null)
+                            .show()
                     }
                 }
-            } catch (e: Exception) {
-                android.util.Log.e("TEST", "EXCEPTION: ${e.message}", e)
-                if (!silent)
-                        runOnUiThread {
-                            Toast.makeText(
-                                            this@AppConfigActivity,
-                                            "Test FAILED: ${e.message}",
-                                            Toast.LENGTH_LONG
-                                    )
-                                    .show()
-                        }
-                PrefsManager.setPayloadTestStatus(this@AppConfigActivity, 2)
             }
+            
+            PrefsManager.setPayloadTestStatus(this@AppConfigActivity, if (result.success) 1 else 2)
         } // End launch coroutine
     } // End sendTestPayload
 

@@ -1,8 +1,713 @@
 # PROJECT STATE - Single Source of Truth
 
-**Last Updated:** 2025-12-29 22:45 UTC (Session 9: Toggle UX/Persistence Fixes)  
+**Last Updated:** 2025-12-30 03:10 UTC (Session 9.4: Apps Script SMS Safety Fixes - Timestamp + IncidentId + NYC Boroughs)  
 **Branch:** `fix/wiring-sources-endpoints`  
-**Status:** 🟢 Toggles Fixed + Session 8 Validation Intact
+**Status:** 🟢 SMS-only Apps Script hardened (timestamp normalization, safer incidentId extraction, NYC borough normalization)
+
+---
+
+## 🎯 SESSION 9.4 SUMMARY: Apps Script SMS Safety Fixes (Timestamp + IncidentId + NYC Boroughs)
+
+### Goal
+Fix **SMS alert handling only** in `scripts/Code.gs` without impacting **BNN** parsing/upsert logic.
+
+### What Was Fixed
+- **Timestamp consistency (SMS)**: NEW + UPDATE timestamps now always use Script timezone formatting: `MM/dd/yyyy hh:mm:ss a`.
+- **IncidentId extraction safety (SMS)**:
+  - Prefer **AdjustLeads URL** extraction (bottom-most AdjustLeads URL line).
+  - Fallback digits only when **no AdjustLeads URL exists**, and only from **non-URL** lines (never maps URLs).
+  - **Defensive upsert**: SMS row update is now allowed **only when id came from AdjustLeads URL** (prevents accidental row merging).
+  - **Row-match sanity check**: even if Column C matches, update is suppressed unless column J contains `/alerts/<digits>` for the same incident (prevents row-1017-style merging due to historical bad IDs).
+- **NYC borough normalization (SMS)**:
+  - Manhattan/Brooklyn/Queens/Bronx/Staten Island normalized to consistent **county + city** for geocoding safety (state defaults to NY if borough clearly indicated).
+
+### Evidence / Test Harness
+- Added `testSmsParsingExamples()` in `scripts/Code.gs` (3 deterministic examples) with `Logger.log()` output:
+  - incidentId + method + matched line snippet (digits redacted)
+  - state/county/city/address/type/details
+
+### Verification Steps (Session 9.4)
+1. **Apps Script editor**: Run `testSmsParsingExamples()`.
+   - Case 1 should log `incidentId=AL-294966 method=adjustleads_url`
+   - Case 2 should log `state=NY county=New York city=New York` (from Manhattan)
+   - Case 3 should log `method=hash` (no AdjustLeads URL present, maps+zip noise ignored)
+2. **Sheet sanity** (SMS rows only where Column A contains `SMS` / `SMS Fire Alert`):
+   - NEW row column **B** timestamp and UPDATE-appended column **B** timestamp use the same format: `MM/dd/yyyy hh:mm:ss a` (Script TZ)
+   - No more accidental merges: updates only append when URL-derived incidentId matches and row original contains the same `/alerts/<digits>`
+
+### Non-Goals / Invariants
+- **BNN code path untouched** (no changes to BNN parsing/upsert logic in `doPost()` for incidents with `data.incidentId`).
+
+---
+
+## 🎯 SESSION 9.3 SUMMARY: Apps Script SMS Parsing & Row Upsert Fix
+
+### What Was Fixed (2025-12-30 02:00 UTC)
+
+**Issue:** SMS alerts from AdjustLeads were creating new rows every time instead of updating existing incidents. Apps Script returned `parsed:false` for all SMS messages.
+
+**Root Causes Identified:**
+
+1. **Non-Stable Incident IDs** (Line 224 of Code.gs):
+   ```javascript
+   `SMS-${Date.now()}`,  // ❌ Generated new ID every time!
+   ```
+   - **Impact:** Every SMS created a new row, never updated existing
+   - **User reported:** Multiple rows for same incident in Google Sheets
+
+2. **Inadequate SMS Parser** (Lines 265-334):
+   - **Missing:** AdjustLeads URL detection (`https://www.adjustleads.com/app/alerts/294966`)
+   - **Missing:** Emoji-aware line parsing (`🔥`, `📍`, `🗺️`, `📋`, `ℹ️`)
+   - **Missing:** Structured extraction per AdjustLeads SMS format
+
+3. **No Update Logic for SMS**:
+   - Current code ALWAYS appended new row
+   - **Missing:** Check for existing SMS incident ID and update that row
+   - **Expected:** Same row upsert behavior as BNN (lines 79-148)
+
+### Implementation Details
+
+#### 1. **New parseAdjustLeadsSms() Function** (Replaces parseFireAlertSms)
+
+**Stable Incident ID Extraction (3-Tier Fallback):**
+```javascript
+// Priority 1: Extract from AdjustLeads URL
+const urlMatch = message.match(/https?:\/\/(?:www\.)?adjustleads\.(?:com|net)\/(?:app\/)?alerts\/(\d{6,})/i);
+if (urlMatch) {
+  result.incidentId = `AL-${urlMatch[1]}`; // e.g., AL-294966
+}
+
+// Priority 2: Find trailing 6-digit number anywhere in message
+const fallbackMatch = message.match(/\b(\d{6})\b(?!.*\d{6})/);
+if (fallbackMatch) {
+  result.incidentId = `AL-${fallbackMatch[1]}`;
+}
+
+// Priority 3: MD5 hash of (sender + first 50 chars of message)
+const hash = Utilities.computeDigest(Utilities.DigestAlgorithm.MD5, sender + message.substring(0, 50));
+const shortHash = hash.slice(0, 8).map(b => (b & 0xFF).toString(16).padStart(2, '0')).join('');
+result.incidentId = `AL-${shortHash}`;
+```
+
+**Emoji-Aware Line Parsing:**
+```javascript
+// 🔥 County line: "New Fire Alert in Morris County"
+if (line.includes('🔥') || line.includes('Fire Alert')) {
+  const countyMatch = line.match(/(?:in|at)\s+(\w+(?:\s+\w+)?)\s+County/i);
+  if (countyMatch) result.county = countyMatch[1].trim();
+}
+
+// 📍 Address line: "31 Grand Avenue, Cedar Knolls, NJ"
+if (line.includes('📍') || (line.match(/\d+\s+\w+/) && line.includes(','))) {
+  const addressMatch = cleanLine.match(/^([^,]+),\s*([^,]+),\s*([A-Z]{2})/i);
+  if (addressMatch) {
+    result.address = addressMatch[1].trim();
+    result.city = addressMatch[2].trim();
+    result.state = addressMatch[3].trim().toUpperCase();
+  }
+}
+
+// 📋 Incident type line: "Residential Fire - Possible structure fire..."
+if (line.includes('📋') || (line.includes('Fire') && line.includes('-'))) {
+  const parts = cleanLine.split('-').map(p => p.trim());
+  if (parts.length >= 2) {
+    result.incidentType = parts[0]; // "Residential Fire"
+    result.incidentDetails = parts.slice(1).join(' - '); // Rest
+  }
+}
+```
+
+#### 2. **Enhanced handleSmsMessage() with Upsert Logic**
+
+**Row Search (Same as BNN):**
+```javascript
+const lastRow = sheet.getLastRow();
+let foundRow = -1;
+
+if (lastRow > 1) {
+  const idValues = sheet.getRange(2, 3, lastRow - 1, 1).getValues();
+  for (let i = 0; i < idValues.length; i++) {
+    const sheetId = idValues[i][0].toString().trim();
+    if (sheetId === incidentId) {
+      foundRow = i + 2;
+      break;
+    }
+  }
+}
+```
+
+**UPDATE Path (Append Lines to Existing Row):**
+```javascript
+if (foundRow !== -1) {
+  // Status: Append "SMS Update"
+  statusCell.setValue(statusCell.getValue() + "\nSMS Update");
+  
+  // Timestamp: Append new timestamp
+  timeCell.setValue(timeCell.getValue() + "\n" + timestamp);
+  
+  // Incident Details: Append new details
+  detailsCell.setValue(detailsCell.getValue() + "\n" + parsedData.incidentDetails);
+  
+  // Original Body: Append full SMS
+  originalCell.setValue(originalCell.getValue() + "\n\nFrom: " + sender + "\n" + message);
+  
+  return JSON.stringify({ 
+    result: "success", 
+    incidentId: incidentId,
+    action: "update",  // ✅ Indicates row was updated
+    parsed: true 
+  });
+}
+```
+
+**NEW Path (Create Row with Stable ID):**
+```javascript
+else {
+  const row = [
+    "SMS Fire Alert",                // Status
+    timestamp,                       // Timestamp
+    incidentId,                      // ✅ Stable incident ID (AL-294966)
+    parsedData.state || "",          // State (from 📍 line)
+    parsedData.county || "",         // County (from 🔥 line)
+    parsedData.city || "",           // City (from 📍 line)
+    parsedData.address || "",        // Address (from 📍 line)
+    parsedData.incidentType || "Fire Alert",  // Type (from 📋 line)
+    parsedData.incidentDetails || message,    // Details (from 📋 line)
+    `From: ${sender}\n${message}`    // Original Body
+  ];
+  
+  sheet.appendRow(row);
+  
+  return JSON.stringify({ 
+    result: "success", 
+    incidentId: incidentId,
+    action: "new",  // ✅ Indicates new row created
+    parsed: true 
+  });
+}
+```
+
+**Generic SMS (Backward Compatibility):**
+```javascript
+if (!parsedData.isAdjustLeads) {
+  const row = [
+    "SMS",
+    timestamp,
+    `SMS-${Date.now()}`,  // One-off ID OK for generic
+    "",
+    "",
+    "",
+    `From: ${sender}`,
+    "SMS Message",
+    message,
+    `From: ${sender}\n${message}`
+  ];
+  sheet.appendRow(row);
+  
+  return JSON.stringify({ 
+    result: "success", 
+    type: "sms", 
+    sender: sender,
+    parsed: false  // ✅ Generic SMS still returns false
+  });
+}
+```
+
+#### 3. **Test Function Added: testSmsParser()**
+
+```javascript
+function testSmsParser() {
+  const testMessage = `🔥 New Fire Alert in Morris County
+📍 31 Grand Avenue, Cedar Knolls, NJ
+🗺️ https://maps.google.com/?q=31+Grand+Avenue+Cedar+Knolls+NJ
+📋 Residential Fire - Possible structure fire with smoke showing
+ℹ️ https://www.adjustleads.com/app/alerts/294966`;
+
+  const result = parseAdjustLeadsSms(testMessage, "+1 888-660-1455");
+  
+  Logger.log("=== SMS Parser Test ===");
+  Logger.log("Incident ID: " + result.incidentId);  // Should be: AL-294966
+  Logger.log("County: " + result.county);            // Should be: Morris
+  Logger.log("Address: " + result.address);          // Should be: 31 Grand Avenue
+  Logger.log("City: " + result.city);                // Should be: Cedar Knolls
+  Logger.log("State: " + result.state);              // Should be: NJ
+  Logger.log("Type: " + result.incidentType);        // Should be: Residential Fire
+  Logger.log("Details: " + result.incidentDetails);  // Should be: Possible structure...
+  Logger.log("Is AdjustLeads: " + result.isAdjustLeads); // Should be: true
+}
+```
+
+**Run in Apps Script Editor:**
+1. Open Apps Script project
+2. Select `testSmsParser` from function dropdown
+3. Click "Run"
+4. Check Execution Log for expected values
+
+### Files Changed (Session 9.3) - 2 Files
+
+**1. `scripts/Code.gs`** (~165 lines changed total)
+
+- **Lines 204-336 (133 lines)**: Replaced `handleSmsMessage()` with upsert logic
+  - Added row search logic (same as BNN)
+  - Added UPDATE path (append to existing row)
+  - Added NEW path (create row with stable ID)
+  - Added generic SMS fallback (backward compat)
+
+- **Lines 337-452 (116 lines)**: Replaced `parseFireAlertSms()` with `parseAdjustLeadsSms()`
+  - 3-tier incident ID extraction (URL → 6-digit → hash)
+  - Emoji-aware line parsing
+  - Extracts county, address, city, state, type, details
+  - Returns structured object with `isAdjustLeads` flag
+
+- **Lines 489-510 (22 lines)**: Added `testSmsParser()` function
+  - Test message with all emoji lines
+  - Logs parsed values for verification
+
+**2. `scripts/Code.gs.backup-20251230`** (NEW backup file)
+  - Complete backup of original Code.gs before changes
+  - Created for rollback safety
+
+**No changes to:**
+- Lines 1-203: `doPost()` and BNN handling (UNCHANGED)
+- Lines 453-488: `handleGenericApp()` (UNCHANGED)
+- Android code (SMS payload already correct from Session 9.2)
+- Sheet schema (columns A-J + FD codes)
+
+---
+
+## 🧪 VERIFICATION STEPS (Session 9.3 Apps Script)
+
+### Pre-Deployment: Test Function Verification
+
+**Run in Apps Script Editor:**
+
+```javascript
+// 1. Open Apps Script project: https://script.google.com/home/projects/YOUR_PROJECT_ID
+// 2. Select "testSmsParser" from function dropdown
+// 3. Click "Run"
+// 4. Check Execution Log (View → Logs)
+
+// Expected Output:
+// === SMS Parser Test ===
+// Incident ID: AL-294966
+// County: Morris
+// Address: 31 Grand Avenue
+// City: Cedar Knolls
+// State: NJ
+// Type: Residential Fire
+// Details: Possible structure fire with smoke showing
+// Is AdjustLeads: true
+```
+
+### Manual Testing (Required Before Production)
+
+**Test 1: AdjustLeads SMS New Incident**
+
+```powershell
+# Send real SMS from configured number (+1 888-660-1455)
+# Message format:
+# 🔥 New Fire Alert in Morris County
+# 📍 31 Grand Avenue, Cedar Knolls, NJ
+# 🗺️ https://maps.google.com/?q=...
+# 📋 Residential Fire - Possible structure fire
+# ℹ️ https://www.adjustleads.com/app/alerts/294966
+
+# Expected Android logcat:
+adb logcat -v time -s DeliveryPipeline:* StructuredLogger:*
+
+# DeliveryPipeline: ✓ HTTP OK: 200 (234ms)
+# Response: {"result":"success","type":"sms","sender":"+***55","incidentId":"AL-294966","action":"new","parsed":true}
+
+# Expected in Google Sheets:
+# - New row with Incident ID = AL-294966 (column C)
+# - Status = "SMS Fire Alert" (column A)
+# - State/County/City/Address populated from 📍 and 🔥 lines
+# - Incident Type = "Residential Fire" (column H)
+# - Incident Details = "Possible structure fire..." (column I)
+# - Original Body = "From: +1 888-660-1455\n🔥 New Fire Alert..." (column J)
+```
+
+**Test 2: AdjustLeads SMS Update (Same Incident)**
+
+```powershell
+# Send SECOND SMS with SAME AdjustLeads ID (294966)
+# Use different details to verify append behavior
+
+# Expected Android logcat:
+# Response: {"result":"success","incidentId":"AL-294966","action":"update","parsed":true}
+
+# Expected in Google Sheets:
+# - SAME ROW (AL-294966) updated, NOT new row
+# - Status column: "SMS Fire Alert\nSMS Update" (two lines)
+# - Timestamp column: Two timestamps (original + new)
+# - Address (columns D-G): UNCHANGED (original address preserved)
+# - Incident Details: Original details + "\n" + new details
+# - Original Body: Original + "\n\nFrom: +1 888..." (appended)
+```
+
+**Test 3: BNN Regression (Unchanged Behavior)**
+
+```powershell
+# Send BNN notification (curl test)
+$body = @{
+    incidentId = "#1825784"
+    state = "NJ"
+    county = "Morris"
+    city = "Parsippany"
+    address = "123 Main St"
+    incidentType = "Structure Fire"
+    incidentDetails = "Heavy smoke showing from 2nd floor"
+    originalBody = "<C> BNN DESK`n123 Main St`nParsippany, NJ`nStructure Fire BNNDESK"
+    fdCodes = @("nj-morris-fd", "parsippany-rescue")
+    status = "New Incident"
+} | ConvertTo-Json
+
+curl -X POST `
+  -H "Content-Type: application/json" `
+  -d $body `
+  https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec
+
+# Expected in Google Sheets:
+# - Incident ID = #1825784
+# - Address = "123 Main St" (from BNN payload, not SMS parsing)
+# - FD Codes = ["nj-morris-fd", "parsippany-rescue"] (no BNN/BNNDESK)
+# - Update behavior: appends to existing row (lines 79-148 UNCHANGED)
+```
+
+**Test 4: Generic SMS (Non-AdjustLeads)**
+
+```powershell
+# Send SMS without AdjustLeads URL or Fire Alert keywords
+# Message: "Meeting at 3pm tomorrow"
+
+# Expected Android logcat:
+# Response: {"result":"success","type":"sms","sender":"+1 555-0123","parsed":false}
+
+# Expected in Google Sheets:
+# - New row with SMS-{timestamp} ID (one-off ID)
+# - Status = "SMS"
+# - Type = "SMS Message"
+# - Details = "Meeting at 3pm tomorrow"
+# - Original Body = "From: {sender}\n{message}"
+```
+
+---
+
+## ✅ ACCEPTANCE CHECKLIST (Session 9.3 Apps Script)
+
+### SMS Parsing (AdjustLeads Format)
+
+- [ ] **Code:** parseAdjustLeadsSms() function replaces parseFireAlertSms() ✅
+- [ ] **Code:** Incident ID extracted from URL pattern: `AL-294966` ✅
+- [ ] **Code:** 3-tier fallback (URL → 6-digit → hash) ✅
+- [ ] **Code:** County extracted from 🔥 line ✅
+- [ ] **Code:** Address/City/State extracted from 📍 line ✅
+- [ ] **Code:** Incident Type/Details extracted from 📋 line ✅
+- [ ] **Code:** Original message preserved in result ✅
+- [ ] **Test:** testSmsParser() logs expected values (run in Apps Script Editor)
+- [ ] **Runtime:** Real SMS extracts correct Incident ID from AdjustLeads URL
+- [ ] **Runtime:** Parsed fields match emoji line content
+- [ ] **Runtime:** Response includes: `{"parsed":true,"incidentId":"AL-294966","action":"new"}`
+
+### Row Upsert Behavior
+
+- [ ] **Code:** handleSmsMessage() searches for existing row by incident ID ✅
+- [ ] **Code:** UPDATE path appends Status, Timestamp, Details, Original Body ✅
+- [ ] **Code:** NEW path creates row with stable incident ID ✅
+- [ ] **Runtime:** First SMS with AL-294966 → NEW row created
+- [ ] **Runtime:** Second SMS with AL-294966 → SAME row updated (not new)
+- [ ] **Runtime:** Status column shows: "SMS Fire Alert\nSMS Update" (two lines)
+- [ ] **Runtime:** Timestamp column shows two timestamps
+- [ ] **Runtime:** Columns D-G (State/County/City/Address) UNCHANGED on update
+- [ ] **Runtime:** Incident Details appended with newline separator
+- [ ] **Runtime:** Original Body appended with "\n\n" separator
+- [ ] **Runtime:** Zero duplicate AL-* rows in sheet
+
+### BNN Regression (Must Not Break)
+
+- [ ] **Code:** Lines 1-203 (doPost + BNN handling) UNCHANGED ✅
+- [ ] **Runtime:** BNN incident #1825784 creates new row if first time
+- [ ] **Runtime:** BNN update to #1825784 appends to SAME row
+- [ ] **Runtime:** BNN FD Codes deduplicated, BNN/BNNDESK removed
+- [ ] **Runtime:** BNN columns D-G unchanged on update
+- [ ] **Runtime:** BNN response: `{"result":"success","id":"1825784"}`
+
+### Generic SMS (Backward Compat)
+
+- [ ] **Code:** Non-AdjustLeads SMS uses generic format ✅
+- [ ] **Code:** Returns `parsed:false` for generic SMS ✅
+- [ ] **Runtime:** Non-AdjustLeads SMS creates row with SMS-{timestamp} ID
+- [ ] **Runtime:** Generic SMS response: `{"result":"success","parsed":false}`
+- [ ] **Runtime:** No parsing errors in Apps Script logs
+
+### Build & Deployment
+
+- [ ] **Code:** testSmsParser() function added to Code.gs ✅
+- [ ] **Code:** Backup created: Code.gs.backup-20251230 ✅
+- [ ] **Deploy:** Apps Script project updated with new Code.gs
+- [ ] **Deploy:** No execution errors in Apps Script logs (past 24h)
+- [ ] **Deploy:** Apps Script execution time <5s per SMS
+
+---
+
+## 🎯 SESSION 9.2 SUMMARY: SMS Template Placeholder Substitution Fix
+
+### What Was Fixed (2025-12-30 00:30 UTC)
+
+**Issue:** SMS rows in Google Sheets showing `{{sender}}` and `{{message}}` instead of real data.
+
+**Root Cause:** DeliveryPipeline was creating a `ParsedData` object with App-specific fields (`incidentId`, `address`, `originalBody`) instead of SMS-specific fields (`sender`, `message`). The template engine couldn't resolve placeholders because the variable keys didn't match.
+
+```kotlin
+// ❌ BEFORE: Wrong context for SMS templates
+val parsedData = ParsedData(
+    incidentId = alertId,
+    originalBody = message,  // Template expects {{message}}, gets {{originalBody}}
+    address = message        // Template expects {{sender}}, gets {{address}}
+)
+TemplateEngine.apply(templateContent, parsedData, source)
+
+// ✅ AFTER: Correct SMS variable map
+val smsVariables = mapOf(
+    "sender" to senderRaw,
+    "message" to message,
+    "body" to message,  // Alias
+    "time" to SimpleDateFormat(...).format(Date(timestamp)),
+    "timestamp" to dateFormat.format(Date(timestamp))
+)
+TemplateEngine.applyGeneric(templateContent, smsVariables, source.autoClean)
+```
+
+### New Features Added
+
+#### 1. **Unresolved Placeholder Detection (Fail-Fast)** ✅
+
+Blocks HTTP send if rendered payload still contains `{{...}}` patterns:
+
+```kotlin
+val unresolvedPlaceholders = detectUnresolvedPlaceholders(json)
+if (unresolvedPlaceholders.isNotEmpty()) {
+    // Log error with:
+    // - Count of unresolved placeholders
+    // - Which placeholders are missing
+    // - Available variable keys vs. template needs
+    // - Block HTTP send (return early)
+    
+    // Event: payload_render_unresolved_placeholders
+    // Details: "count=2 placeholders={{foo}},{{bar}} missingKeys=foo,bar"
+    return@launch  // ❌ Do NOT pollute Sheets
+}
+```
+
+#### 2. **Enhanced Payload Render Logging (PII-Safe)** ✅
+
+```kotlin
+// Redact phone numbers from preview
+val redactedPayload = redactPhoneNumbers(json.take(120))
+
+Log.d("DeliveryPipeline", "✓ Payload rendered (${json.length} chars, $placeholderCount placeholders resolved)")
+Log.d("DeliveryPipeline", "   Preview (first 120 chars, redacted): $redactedPayload")
+
+// Event: payload_render_ok
+// Details: "payloadSize=450 placeholdersResolved=4 previewLen=120"
+```
+
+**Redaction Examples:**
+- `+1-555-0123` → `+***23`
+- `(555) 123-4567` → `(***) ***-**67`
+- `5551234567` → `*******67`
+
+#### 3. **Helper Functions Added**
+
+```kotlin
+private fun detectUnresolvedPlaceholders(json: String): List<String>
+// Uses regex: \\{\\{[^}]+\\}\\}
+// Returns: ["{{sender}}", "{{foo}}"]
+
+private fun redactPhoneNumbers(text: String): String
+// Masks phone numbers in logs (PII protection)
+// Patterns: +1-555-0123, (555) 123-4567, 5551234567
+```
+
+### Files Changed (Session 9.2) - 1 File
+
+**`android/app/src/main/java/com/example/alertsheets/domain/DeliveryPipeline.kt`** (~120 lines changed)
+
+**Lines 213-220:** Changed from ParsedData to SMS variable map
+```kotlin
+// Now creates smsVariables map with: sender, message, body, time, timestamp
+```
+
+**Lines 252-256:** Use applyGeneric instead of apply (for SMS)
+```kotlin
+TemplateEngine.applyGeneric(templateContent, smsVariables, source.autoClean)
+```
+
+**Lines 282-327:** Added unresolved placeholder detection + fail-fast
+```kotlin
+if (unresolvedPlaceholders.isNotEmpty()) {
+    // Log error with missing keys vs. available keys
+    // Emit payload_render_unresolved_placeholders event
+    // Block HTTP send
+    return@launch
+}
+```
+
+**Lines 330-337:** Added enhanced logging with redacted preview
+```kotlin
+val redactedPayload = redactPhoneNumbers(json.take(120))
+Log.d(TAG, "Preview (first 120 chars, redacted): $redactedPayload")
+```
+
+**Lines 738-787:** Added 2 new helper functions
+- `detectUnresolvedPlaceholders()` - regex-based detection
+- `redactPhoneNumbers()` - PII-safe logging
+
+---
+
+## 🧪 VERIFICATION STEPS (Session 9.2 SMS Placeholders)
+
+### Build Verification ✅
+
+```powershell
+cd D:\github\alerts-sheets\android
+.\gradlew.bat :app:assembleDebug
+
+# Expected: BUILD SUCCESSFUL in 2s
+# APK: android/app/build/outputs/apk/debug/app-debug.apk
+```
+
+### Test 1: Real SMS With Resolved Placeholders
+
+```powershell
+# Install APK
+adb install -r android\app\build\outputs\apk\debug\app-debug.apk
+
+# Clear logs
+adb logcat -c
+
+# Monitor DeliveryPipeline
+adb logcat -v time -s DeliveryPipeline:* StructuredLogger:* *:E
+
+# Manual test:
+# 1. Send SMS from configured sender (+1 888-660-1455)
+# 2. Message: "Fire at 123 Main St"
+
+# Expected logcat:
+# DeliveryPipeline: ✓ Payload rendered (450 chars, 4 placeholders resolved)
+# DeliveryPipeline:    Preview (first 120 chars, redacted): {"source":"sms","sender":"+***55","message":"Fire at 123 Main St",...
+# StructuredLogger: payload_render_ok payloadSize=450 placeholdersResolved=4 previewLen=120
+# DeliveryPipeline: ✓ HTTP OK: 200 (234ms)
+# StructuredLogger: http_ok code=200 latencyMs=234
+
+# Verify Sheets:
+# - Row added with REAL sender (not "{{sender}}")
+# - Row added with REAL message (not "{{message}}")
+
+# Verify Apps Script response (from logcat):
+# Response should show: {"result":"success","type":"sms","sender":"+18886601455","parsed":true}
+# NOT: {"result":"success","type":"sms","sender":"{{sender}}","parsed":false}
+```
+
+### Test 2: Template With Unknown Placeholder (Fail-Fast)
+
+```powershell
+# Edit SMS source template in Lab:
+# Add invalid placeholder: {"sender":"{{sender}}","foo":"{{invalidKey}}"}
+
+# Send SMS from configured number
+
+# Expected logcat:
+# DeliveryPipeline: ❌ Unresolved placeholders detected: {{invalidKey}}
+# DeliveryPipeline:    Available keys: sender, message, body, time, timestamp
+# DeliveryPipeline:    Missing keys: invalidKey
+# StructuredLogger: payload_render_unresolved_placeholders count=1 placeholders={{invalidKey}} missingKeys=invalidKey
+
+# Expected behavior:
+# - NO HTTP request sent
+# - DeliveryLogBuffer event: payload_render_unresolved_placeholders
+# - Sheet remains unchanged (no row added)
+```
+
+### Test 3: Lab Test Preview Shows Resolved Placeholders
+
+```powershell
+# In app:
+# 1. Open Lab → Edit SMS Source
+# 2. Tap "Test New" button
+
+# Expected:
+# - Dialog appears: "📋 JSON Payload Preview"
+# - JSON shows REAL test data (not placeholders):
+#   {
+#     "source": "sms",
+#     "sender": "+1-555-0123",  ← NOT {{sender}}
+#     "message": "ALERT: Fire reported...",  ← NOT {{message}}
+#     "time": "12/30/2025 12:30 PM"
+#   }
+# - Tap "✓ Send" → HTTP request sent
+# - Result dialog shows: "✓ Test SUCCESS HTTP 200"
+```
+
+### Test 4: Verify PII Redaction in Logs
+
+```powershell
+adb logcat -v time -s DeliveryPipeline:D
+
+# After sending SMS with number +1-555-1234:
+# Expected log shows: "sender":"+***34"
+# NOT: "sender":"+1-555-1234" (full number redacted)
+
+# Regex patterns tested:
+# - +1-555-0123 → +***23
+# - (555) 123-4567 → (***) ***-**67
+# - 5551234567 → *******67
+```
+
+---
+
+## 🎯 SESSION 9.1 SUMMARY: Toast Message Correctness Fix
+
+### What Was Fixed (2025-12-29 23:15 UTC)
+
+**Issue:** Endpoint toggle toast appeared inverted or incorrect in some cases.
+
+**Root Cause Analysis:**
+- Toast was using `endpoint.name` (old object) instead of `updated.name` (new object)
+- Toast condition `if (isEnabled)` was correct, but derived from callback parameter
+- Need to ensure toast and persistence use the **same updated object**
+
+**Fix Applied:**
+```kotlin
+// ❌ BEFORE: Used old endpoint object
+Toast.makeText(this, "${endpoint.name} ${if (isEnabled) "enabled" else "disabled"}", ...)
+
+// ✅ AFTER: Use updated object for consistency
+val updated = endpoint.copy(enabled = isEnabled, ...)
+endpoints[position] = updated
+saveEndpoints()
+Toast.makeText(this, "${updated.name} ${if (updated.enabled) "enabled" else "disabled"}", ...)
+```
+
+**Additional Improvements:**
+1. **Enhanced Logging:** Added before/after state tracking
+   ```kotlin
+   Log.d("EndpointActivity", "Endpoint toggle: name=${endpoint.name}, enabled_before=${endpoint.enabled}, enabled_after=$isEnabled, position=$position")
+   Log.d("EndpointActivity", "Toggle complete: ${updated.name} now enabled=${updated.enabled}, screen should stay open")
+   ```
+
+2. **Consistent State Verification:** Toast, persistence, and logs all use `updated.enabled`
+
+3. **No PII/Secrets:** Logs show name + enabled state only (no URLs)
+
+### Files Changed (Session 9.1) - 1 File
+
+**`android/app/src/main/java/com/example/alertsheets/EndpointActivity.kt`** (~10 lines changed, lines 64-91)
+- **Line 73:** Added before/after logging: `enabled_before=${endpoint.enabled}, enabled_after=$isEnabled`
+- **Line 85:** Changed toast to use `updated.name` and `updated.enabled` (not `endpoint.name` + `isEnabled`)
+- **Line 91:** Enhanced completion log: `now enabled=${updated.enabled}`
+
+**Verification:** Toast and endpoints.json now guaranteed to match.
 
 ---
 
@@ -115,14 +820,20 @@ adb shell run-as com.example.alertsheets cat files/endpoints.json | Select-Strin
 
 **Logcat to check:**
 ```powershell
-adb logcat -s EndpointActivity:D
-# Expected logs:
-# EndpointActivity: Toggle at position=0 enabled=false
-# EndpointActivity: Calling saveEndpoints() for: Firestore Ingest Function
+adb logcat -v time -s EndpointActivity:D
+
+# Expected logs (Session 9.1 enhanced format):
+# EndpointActivity: Endpoint toggle: name=Firestore Ingest, enabled_before=true, enabled_after=false, position=0
+# EndpointActivity: Calling saveEndpoints() for: Firestore Ingest
 # EndpointActivity: saveEndpoints() called - saving 2 endpoints
 # EndpointActivity: saveEndpoints() complete - NO finish() called
-# EndpointActivity: Toggle complete, screen should stay open
+# EndpointActivity: Toggle complete: Firestore Ingest now enabled=false, screen should stay open
 ```
+
+**Toast Verification:**
+- **Toggle OFF:** Toast says "Firestore Ingest disabled" ✅
+- **Toggle ON:** Toast says "Firestore Ingest enabled" ✅
+- **Persistence:** endpoints.json `"enabled": false` or `true` matches toast ✅
 
 ### Test 2: Source Toggle on Dashboard
 
@@ -179,17 +890,62 @@ adb logcat -s DeliveryPipeline:* DataPipeline:*
 
 ---
 
+## ✅ ACCEPTANCE CHECKLIST (Session 9.2 SMS Placeholders)
+
+### Code Changes ✅
+- [x] **DeliveryPipeline:** SMS context uses `smsVariables` map (not ParsedData)
+- [x] **SMS Variables:** Map includes `sender`, `message`, `body`, `time`, `timestamp`
+- [x] **Template Engine:** Uses `applyGeneric()` for SMS (supports variable map)
+- [x] **Placeholder Detection:** `detectUnresolvedPlaceholders()` regex finds `{{...}}`
+- [x] **Fail-Fast:** Blocks HTTP send if unresolved placeholders detected
+- [x] **Logging:** Enhanced with placeholder count + redacted preview
+- [x] **PII Protection:** `redactPhoneNumbers()` masks phone numbers in logs
+- [x] **Error Events:** Emits `payload_render_unresolved_placeholders` with details
+- [x] **Build:** Succeeds with no errors ✅
+
+### Runtime Verification (Pending Manual Test)
+- [ ] **Real SMS:** Send from configured number → placeholders resolved
+- [ ] **Logcat:** Shows `payload_render_ok placeholdersResolved=4`
+- [ ] **Logcat:** Shows redacted preview (phone numbers masked)
+- [ ] **HTTP Response:** Apps Script returns `"parsed":true,"sender":"<real number>"`
+- [ ] **Sheets Row:** Contains real sender + message (no `{{...}}` placeholders)
+- [ ] **Invalid Template:** Unknown placeholder → blocked send + error logged
+- [ ] **Lab Test:** Preview dialog shows resolved JSON (not placeholders)
+- [ ] **No Regression:** App sources still work (if any configured)
+
+### Expected Logcat Output
+
+**Success Case:**
+```
+D/DeliveryPipeline: ✓ Payload rendered (450 chars, 4 placeholders resolved)
+D/DeliveryPipeline:    Preview (first 120 chars, redacted): {"source":"sms","sender":"+***55","message":"Fire at 123 Main St",...
+I/StructuredLogger: payload_render_ok payloadSize=450 placeholdersResolved=4
+D/DeliveryPipeline: ✓ HTTP OK: 200 (234ms)
+I/StructuredLogger: http_ok code=200 latencyMs=234
+```
+
+**Fail-Fast Case:**
+```
+E/DeliveryPipeline: ❌ Unresolved placeholders detected: {{foo}}, {{bar}}
+E/DeliveryPipeline:    Available keys: sender, message, body, time, timestamp
+E/DeliveryPipeline:    Missing keys: foo, bar
+E/StructuredLogger: payload_render_unresolved_placeholders count=2 placeholders={{foo}},{{bar}} missingKeys=foo,bar
+```
+
+---
+
 ## ✅ ACCEPTANCE CHECKLIST (Session 9 Toggles)
 
 ### Endpoint Toggle
 - [x] **Code:** EndpointsAdapter uses position-based callback (`(Int, Boolean)`)
 - [x] **Code:** EndpointActivity uses position indexing with bounds check
-- [x] **Code:** Toast confirmation added: "Endpoint Name enabled/disabled"
+- [x] **Code:** Toast uses `updated.enabled` (NEW state, not old endpoint.enabled) ✅ Session 9.1
+- [x] **Code:** Toast message: "Endpoint Name enabled/disabled" (correct state)
+- [x] **Code:** Enhanced logging: before/after state + position ✅ Session 9.1
 - [x] **Code:** Error handling with try-catch around saveEndpoints()
-- [x] **Code:** Logging added to verify no finish() called
-- [ ] **Runtime:** Toggle endpoint → Screen stays open (manual test required)
-- [ ] **Runtime:** Toast appears on toggle (manual test required)
-- [ ] **Runtime:** endpoints.json updated after toggle (adb dump required)
+- [ ] **Runtime:** Toggle OFF → Toast says "disabled" + endpoints.json enabled:false ✅ (verification required)
+- [ ] **Runtime:** Toggle ON → Toast says "enabled" + endpoints.json enabled:true ✅ (verification required)
+- [ ] **Runtime:** Screen stays open (no close) (manual test required)
 - [ ] **Runtime:** No exceptions in logcat (verify EndpointActivity:*)
 
 ### Source Toggle

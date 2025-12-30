@@ -9,12 +9,48 @@
         android:orientation="vertical"
         android:padding="24dp">
 
+        <!-- Template Warning Banner (hidden by default) -->
+        <LinearLayout
+            android:id="@+id/template_warning_banner"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="#FFFFEB3B"
+            android:padding="12dp"
+            android:visibility="gone">
+            
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="⚠️ SMS source is using App template"
+                android:textColor="#333333"
+                android:textStyle="bold"
+                android:textSize="14sp" />
+            
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="This may cause placeholder variables ({{package}}, {{title}}) to appear instead of actual SMS content."
+                android:textColor="#555555"
+                android:textSize="12sp"
+                android:layout_marginTop="4dp" />
+            
+            <Button
+                android:id="@+id/btn_fix_template"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Reset to SMS Template"
+                android:layout_marginTop="8dp"
+                android:backgroundTint="#FF9800" />
+        </LinearLayout>
+
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Target Phone Number"
             android:textColor="#333333"
-            android:textStyle="bold" />
+            android:textStyle="bold" 
+            android:layout_marginTop="16dp"/>
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -84,6 +120,30 @@
             android:layout_height="wrap_content"
             android:text="Case Sensitive"
             android:layout_marginTop="8dp"/>
+
+        <!-- Endpoint Selection Section -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Select Endpoints (Fan-Out) *"
+            android:textColor="#333333"
+            android:textStyle="bold"
+            android:layout_marginTop="16dp" />
+
+        <TextView
+            android:id="@+id/text_endpoint_hint"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="At least one ENABLED endpoint must be selected"
+            android:textSize="12sp"
+            android:textColor="#FF5722" />
+
+        <LinearLayout
+            android:id="@+id/container_endpoints"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginTop="8dp" />
 
     </LinearLayout>
 </ScrollView>

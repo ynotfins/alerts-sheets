@@ -9,10 +9,10 @@
             <InsightsFilterSettings>
               <option name="connection">
                 <ConnectionSetting>
-                  <option name="appId" value="PLACEHOLDER" />
-                  <option name="mobileSdkAppId" value="" />
-                  <option name="projectId" value="" />
-                  <option name="projectNumber" value="" />
+                  <option name="appId" value="com.example.alertsheets" />
+                  <option name="mobileSdkAppId" value="1:1043855657506:android:ee06d23a78c0b6a326587b" />
+                  <option name="projectId" value="alerts-sheets-bb09c" />
+                  <option name="projectNumber" value="1043855657506" />
                 </ConnectionSetting>
               </option>
               <option name="signal" value="SIGNAL_UNSPECIFIED" />

@@ -152,6 +152,7 @@ class MainActivity : AppCompatActivity() {
                 val name = card.findViewById<TextView>(R.id.source_name)
                 val subtitle = card.findViewById<TextView>(R.id.source_subtitle)
                 val dot = card.findViewById<ImageView>(R.id.source_status_dot)
+                val toggle = card.findViewById<androidx.appcompat.widget.SwitchCompat>(R.id.source_toggle)
                 
                 // Set icon
                 val iconRes = when (source.iconName) {
@@ -184,6 +185,54 @@ class MainActivity : AppCompatActivity() {
                     if (source.enabled && isConfigured) R.drawable.bg_status_dot_green
                     else R.drawable.bg_status_dot_red
                 )
+                
+                // ✅ Setup toggle (guard against double-firing)
+                toggle.setOnCheckedChangeListener(null)
+                toggle.isChecked = source.enabled
+                toggle.setOnCheckedChangeListener { _, isChecked ->
+                    // Update source enabled state
+                    scope.launch(Dispatchers.IO) {
+                        try {
+                            sourceManager.setSourceEnabled(source.id, isChecked)
+                            
+                            withContext(Dispatchers.Main) {
+                                // Show confirmation toast
+                                val statusText = if (isChecked) "enabled" else "disabled"
+                                Toast.makeText(
+                                    this@MainActivity,
+                                    "${source.name} $statusText",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                                
+                                // Refresh to update status dot
+                                loadDynamicCards()
+                            }
+                        } catch (e: Exception) {
+                            android.util.Log.e("MainActivity", "Error toggling source ${source.id}", e)
+                            withContext(Dispatchers.Main) {
+                                // Revert toggle state on error
+                                toggle.setOnCheckedChangeListener(null)
+                                toggle.isChecked = !isChecked
+                                toggle.setOnCheckedChangeListener { _, _ -> 
+                                    // Re-attach listener
+                                }
+                                
+                                Toast.makeText(
+                                    this@MainActivity,
+                                    "Error updating source: ${e.message}",
+                                    Toast.LENGTH_LONG
+                                ).show()
+                            }
+                        }
+                    }
+                }
+                
+                // ✅ Prevent card click when toggle is touched (but allow toggle to work)
+                toggle.setOnTouchListener { v, _ ->
+                    // Request parent to not intercept touch events (prevents card click)
+                    v.parent?.requestDisallowInterceptTouchEvent(true)
+                    false // Return false to allow switch to handle the event
+                }
                 
                 // Click to edit
                 card.setOnClickListener {

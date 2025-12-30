@@ -27,7 +27,7 @@
             android:layout_height="wrap_content"
             android:text="com.package.name"
             android:textSize="12sp"
-            android:textColor="#AAAAAA" />
+            android:textColor="#CCCCCC" />
 
         <TextView
             android:id="@+id/text_log_content"
@@ -47,6 +47,6 @@
         android:layout_height="wrap_content"
         android:text="12:00 PM"
         android:textSize="12sp"
-        android:textColor="#888888" />
+        android:textColor="#AAAAAA" />
 
 </LinearLayout>

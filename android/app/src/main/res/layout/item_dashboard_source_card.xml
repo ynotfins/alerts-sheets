@@ -25,6 +25,15 @@
             android:layout_gravity="top|end"
             android:src="@drawable/bg_status_dot_green" />
 
+        <!-- Toggle Switch (Bottom Right) -->
+        <androidx.appcompat.widget.SwitchCompat
+            android:id="@+id/source_toggle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom|end"
+            android:clickable="true"
+            android:focusable="true" />
+
         <!-- Content -->
         <LinearLayout
             android:layout_width="match_parent"

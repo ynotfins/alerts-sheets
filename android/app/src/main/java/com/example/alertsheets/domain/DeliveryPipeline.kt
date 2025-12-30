@@ -10,6 +10,7 @@ import com.example.alertsheets.domain.models.ParsedData
 import com.example.alertsheets.domain.models.Source
 import com.example.alertsheets.domain.models.SourceType
 import com.example.alertsheets.utils.DeliveryLogBuffer
+import com.example.alertsheets.utils.EndpointValidators
 import com.example.alertsheets.utils.SmsSenderNormalizer
 import com.example.alertsheets.utils.StructuredLogger
 import com.example.alertsheets.utils.TemplateEngine
@@ -137,12 +138,46 @@ object DeliveryPipeline {
                 details = "sourceName=${source.name}"
             )
             
-            // Step 3: Pick ONE endpoint (Golden Path: first enabled endpoint)
+            // Step 3: Pick ONE enabled endpoint with valid URL (Golden Path v2)
+            // Use EndpointValidators for consistent validation logic
             val endpointRepo = EndpointRepository(context)
-            val endpoint = source.endpointIds
-                .firstNotNullOfOrNull { endpointId ->
-                    endpointRepo.getById(endpointId)?.takeIf { it.enabled }
-                }
+            val allSelectedEndpoints = source.endpointIds.mapNotNull { endpointId ->
+                endpointRepo.getById(endpointId)
+            }
+            val validEndpoints = EndpointValidators.filterSelectable(allSelectedEndpoints)
+            val endpoint = validEndpoints.firstOrNull()
+            
+            if (validEndpoints.isEmpty() && source.endpointIds.isNotEmpty()) {
+                // Selected endpoints exist but none are enabled/valid
+                val summary = EndpointValidators.getValidationSummary(allSelectedEndpoints)
+                Log.e(TAG, "❌ No enabled endpoints with valid URL for source: ${source.name}")
+                Log.e(TAG, "   Selected: ${source.endpointIds.size}, Selectable: ${summary["selectable"]}")
+                
+                StructuredLogger.logEvent(
+                    level = "ERROR",
+                    sourceId = source.id,
+                    endpointId = null,
+                    alertId = alertId,
+                    event = "no_enabled_endpoints",
+                    details = "selected=${source.endpointIds.size} selectable=${summary["selectable"]} enabled=${summary["enabled"]} validUrl=${summary["validUrl"]}"
+                )
+                
+                DeliveryLogBuffer.append(
+                    DeliveryLogBuffer.DeliveryLogEntry(
+                        timestamp = System.currentTimeMillis(),
+                        alertId = alertId,
+                        sourceId = source.id,
+                        endpointId = null,
+                        event = "no_enabled_endpoints",
+                        httpCode = null,
+                        latencyMs = null,
+                        errorClass = "NoEnabledEndpoint",
+                        errorMessage = "No enabled endpoints with valid URL for ${source.name} (${source.endpointIds.size} selected, ${summary["selectable"]} valid)",
+                        details = "selected=${source.endpointIds.size} selectable=${summary["selectable"]}"
+                    )
+                )
+                return@launch
+            }
             
             if (endpoint == null) {
                 Log.e(TAG, "❌ No enabled endpoint for source: ${source.name}")

@@ -61,13 +61,42 @@ class EndpointActivity : AppCompatActivity() {
         // ✅ V2: Load from repository
         endpoints = endpointRepository.getAll().toMutableList()
         adapter = EndpointsAdapter(endpoints, 
-            onToggle = { endpoint, isEnabled ->
-                val updated = endpoint.copy(enabled = isEnabled, updatedAt = System.currentTimeMillis())
-                val index = endpoints.indexOf(endpoint)
-                if (index >= 0) {
-                    endpoints[index] = updated
+            onToggle = { position, isEnabled ->
+                // ✅ Use position-based indexing with bounds check
+                if (position < 0 || position >= endpoints.size) {
+                    android.util.Log.e("EndpointActivity", "Invalid position: $position (size=${endpoints.size})")
+                    return@EndpointsAdapter
                 }
-                saveEndpoints()
+                
+                android.util.Log.d("EndpointActivity", "Toggle at position=$position enabled=$isEnabled")
+                
+                try {
+                    val endpoint = endpoints[position]
+                    val updated = endpoint.copy(enabled = isEnabled, updatedAt = System.currentTimeMillis())
+                    endpoints[position] = updated
+                    
+                    android.util.Log.d("EndpointActivity", "Calling saveEndpoints() for: ${endpoint.name}")
+                    saveEndpoints()
+                    
+                    // ✅ Notify adapter about change (prevents screen close)
+                    adapter.notifyItemChanged(position)
+                    
+                    // ✅ Show Toast confirmation
+                    android.widget.Toast.makeText(
+                        this@EndpointActivity,
+                        "${endpoint.name} ${if (isEnabled) "enabled" else "disabled"}",
+                        android.widget.Toast.LENGTH_SHORT
+                    ).show()
+                    
+                    android.util.Log.d("EndpointActivity", "Toggle complete, screen should stay open")
+                } catch (e: Exception) {
+                    android.util.Log.e("EndpointActivity", "Error toggling endpoint", e)
+                    android.widget.Toast.makeText(
+                        this@EndpointActivity,
+                        "Error updating endpoint: ${e.message}",
+                        android.widget.Toast.LENGTH_LONG
+                    ).show()
+                }
             },
             onDelete = { endpoint ->
                 showEditDialog(endpoint)
@@ -80,7 +109,9 @@ class EndpointActivity : AppCompatActivity() {
 
     private fun saveEndpoints() {
         // ✅ V2: Save via repository
+        android.util.Log.d("EndpointActivity", "saveEndpoints() called - saving ${endpoints.size} endpoints")
         endpointRepository.saveAll(endpoints)
+        android.util.Log.d("EndpointActivity", "saveEndpoints() complete - NO finish() called")
     }
 
     private fun showAddDialog() {

@@ -10,7 +10,7 @@ import com.example.alertsheets.domain.models.Endpoint
 
 class EndpointsAdapter(
     private var endpoints: List<Endpoint>,
-    private val onToggle: (Endpoint, Boolean) -> Unit,
+    private val onToggle: (Int, Boolean) -> Unit, // ✅ Changed to position-based
     private val onDelete: (Endpoint) -> Unit
 ) : RecyclerView.Adapter<EndpointsAdapter.ViewHolder>() {
 
@@ -32,11 +32,13 @@ class EndpointsAdapter(
         holder.name.text = item.name
         holder.url.text = item.url
         
+        // ✅ Guard against double-firing
         holder.switchEnabled.setOnCheckedChangeListener(null)
         holder.switchEnabled.isChecked = item.enabled
         
+        // ✅ Pass position instead of object
         holder.switchEnabled.setOnCheckedChangeListener { _, isChecked ->
-            onToggle(item, isChecked)
+            onToggle(position, isChecked)
         }
         
         holder.btnEdit.setOnClickListener {

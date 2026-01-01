@@ -68,10 +68,12 @@ class EndpointActivity : AppCompatActivity() {
                     return@EndpointsAdapter
                 }
                 
-                android.util.Log.d("EndpointActivity", "Toggle at position=$position enabled=$isEnabled")
-                
                 try {
                     val endpoint = endpoints[position]
+                    
+                    // ✅ Log BEFORE state for verification
+                    android.util.Log.d("EndpointActivity", "Endpoint toggle: name=${endpoint.name}, enabled_before=${endpoint.enabled}, enabled_after=$isEnabled, position=$position")
+                    
                     val updated = endpoint.copy(enabled = isEnabled, updatedAt = System.currentTimeMillis())
                     endpoints[position] = updated
                     
@@ -81,14 +83,14 @@ class EndpointActivity : AppCompatActivity() {
                     // ✅ Notify adapter about change (prevents screen close)
                     adapter.notifyItemChanged(position)
                     
-                    // ✅ Show Toast confirmation
+                    // ✅ Show Toast with NEW state (updated.enabled == isEnabled)
                     android.widget.Toast.makeText(
                         this@EndpointActivity,
-                        "${endpoint.name} ${if (isEnabled) "enabled" else "disabled"}",
+                        "${updated.name} ${if (updated.enabled) "enabled" else "disabled"}",
                         android.widget.Toast.LENGTH_SHORT
                     ).show()
                     
-                    android.util.Log.d("EndpointActivity", "Toggle complete, screen should stay open")
+                    android.util.Log.d("EndpointActivity", "Toggle complete: ${updated.name} now enabled=${updated.enabled}, screen should stay open")
                 } catch (e: Exception) {
                     android.util.Log.e("EndpointActivity", "Error toggling endpoint", e)
                     android.widget.Toast.makeText(

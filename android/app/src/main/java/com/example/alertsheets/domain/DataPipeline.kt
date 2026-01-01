@@ -260,36 +260,20 @@ class DataPipeline(private val context: Context) {
     
     /**
      * Process app notification
+     * ✅ GOLDEN PATH: Routes to new DeliveryPipeline.deliverAppEvent()
      */
     fun processAppNotification(packageName: String, raw: RawNotification) {
-        val source = sourceManager.findSourceForNotification(packageName)
-        if (source != null) {
-            logger.log("📱 App: ${source.name}")
-            Log.v("Pipe", "App notification from $packageName -> source ${source.name}")
-            process(source, raw)
-        } else {
-            logger.log("⚠️ No source for: $packageName")
-            Log.v("Pipe", "No source configured for $packageName, ignoring")
-            
-            // Log structured event for debugging
-            StructuredLogger.logEvent(
-                level = "INFO",
-                sourceId = null,
-                endpointId = null,
-                alertId = null,
-                event = "app_ignored",
-                details = "reason=no_matching_source package=$packageName"
-            )
-            
-            // Log as IGNORED
-            LogRepository.addLog(LogEntry(
-                packageName = packageName,
-                title = "Notification Ignored",
-                content = "No source configured for this app",
-                status = LogStatus.IGNORED,
-                rawJson = PayloadSerializer.toJson(raw)
-            ))
-        }
+        Log.d(TAG, "📱 processAppNotification() routing to DeliveryPipeline | package=$packageName")
+        
+        // Route to Golden Path delivery pipeline (same as SMS)
+        DeliveryPipeline.deliverAppEvent(
+            context = context,
+            packageName = packageName,
+            title = raw.title,
+            text = raw.text,
+            bigText = raw.bigText,
+            timestamp = raw.timestamp
+        )
     }
     
     /**

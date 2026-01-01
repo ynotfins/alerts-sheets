@@ -211,11 +211,14 @@ object DeliveryPipeline {
             Log.d(TAG, "✓ Endpoint selected: ${endpoint.name} (${endpoint.id})")
             
             // Step 4: Render JSON payload using source's templateJson
-            val parsedData = ParsedData(
-                incidentId = alertId,
-                timestamp = dateFormat.format(Date(timestamp)),
-                originalBody = message,
-                address = message.take(100) // Use message as fallback for address field
+            // ✅ For SMS sources, use direct variable map with sender/message keys
+            // (ParsedData is for APP sources with incidentId/address/etc.)
+            val smsVariables = mapOf(
+                "sender" to senderRaw,  // Raw sender (with formatting)
+                "message" to message,   // Full message text
+                "body" to message,      // Alias for message
+                "time" to SimpleDateFormat("MM/dd/yyyy h:mm a", Locale.US).format(Date(timestamp)),
+                "timestamp" to dateFormat.format(Date(timestamp))
             )
             
             val templateContent = source.templateJson
@@ -248,8 +251,9 @@ object DeliveryPipeline {
                 return@launch
             }
             
+            // ✅ Render template with SMS variables
             val json = try {
-                TemplateEngine.apply(templateContent, parsedData, source)
+                TemplateEngine.applyGeneric(templateContent, smsVariables, source.autoClean)
             } catch (e: Exception) {
                 Log.e(TAG, "❌ Template rendering failed: ${e.message}", e)
                 
@@ -279,7 +283,51 @@ object DeliveryPipeline {
                 return@launch
             }
             
-            Log.d(TAG, "✓ Payload rendered (${json.length} chars)")
+            // ✅ FAIL-FAST: Check for unresolved placeholders
+            val unresolvedPlaceholders = detectUnresolvedPlaceholders(json)
+            if (unresolvedPlaceholders.isNotEmpty()) {
+                val placeholderList = unresolvedPlaceholders.joinToString(", ")
+                val missingKeys = unresolvedPlaceholders.map { it.removePrefix("{{").removeSuffix("}}") }
+                val availableKeys = smsVariables.keys.joinToString(", ")
+                
+                Log.e(TAG, "❌ Unresolved placeholders detected: $placeholderList")
+                Log.e(TAG, "   Available keys: $availableKeys")
+                Log.e(TAG, "   Missing keys: ${missingKeys.joinToString(", ")}")
+                
+                StructuredLogger.logEvent(
+                    level = "ERROR",
+                    sourceId = source.id,
+                    endpointId = endpoint.id,
+                    alertId = alertId,
+                    event = "payload_render_unresolved_placeholders",
+                    details = "count=${unresolvedPlaceholders.size} placeholders=$placeholderList missingKeys=${missingKeys.joinToString(",")}"
+                )
+                
+                DeliveryLogBuffer.append(
+                    DeliveryLogBuffer.DeliveryLogEntry(
+                        timestamp = System.currentTimeMillis(),
+                        alertId = alertId,
+                        sourceId = source.id,
+                        endpointId = endpoint.id,
+                        event = "payload_render_unresolved_placeholders",
+                        httpCode = null,
+                        latencyMs = null,
+                        errorClass = "UnresolvedPlaceholders",
+                        errorMessage = "Template has ${unresolvedPlaceholders.size} unresolved placeholder(s): $placeholderList",
+                        details = "missingKeys=${missingKeys.joinToString(",")} availableKeys=$availableKeys"
+                    )
+                )
+                
+                // ❌ BLOCK send - do not pollute Sheets with placeholder data
+                return@launch
+            }
+            
+            // ✅ Log successful render with redacted preview
+            val redactedPayload = redactPhoneNumbers(json.take(120))
+            val placeholderCount = templateContent.count { it == '{' } / 2 // Approximate {{var}} count
+            
+            Log.d(TAG, "✓ Payload rendered (${json.length} chars, $placeholderCount placeholders resolved)")
+            Log.d(TAG, "   Preview (first 120 chars, redacted): $redactedPayload")
             
             StructuredLogger.logEvent(
                 level = "INFO",
@@ -287,7 +335,7 @@ object DeliveryPipeline {
                 endpointId = endpoint.id,
                 alertId = alertId,
                 event = "payload_render_ok",
-                details = "payloadSize=${json.length}"
+                details = "payloadSize=${json.length} placeholdersResolved=$placeholderCount previewLen=${redactedPayload.length}"
             )
             
             // Step 5: Prepare headers (including auth if needed)
@@ -678,6 +726,300 @@ object DeliveryPipeline {
     }
     
     /**
+     * Deliver APP notification event (Golden Path v2)
+     * 
+     * Uses same multi-endpoint fanout logic as SMS
+     * Supports both {{key}} and {key} placeholder syntax
+     */
+    fun deliverAppEvent(
+        context: Context,
+        packageName: String,
+        title: String,
+        text: String,
+        bigText: String,
+        timestamp: Long = System.currentTimeMillis()
+    ) {
+        scope.launch {
+            val alertId = "app_${System.currentTimeMillis()}"
+            val startTime = System.currentTimeMillis()
+            
+            Log.d(TAG, "📱 APP event received | alertId=$alertId package=$packageName")
+            Log.d(TAG, "   Title: ${title.take(50)}")
+            
+            // Step 1: Match source by packageName
+            val sourceRepo = SourceRepository(context)
+            val source = sourceRepo.getAll().firstOrNull { 
+                it.type == SourceType.APP && it.id == packageName 
+            }
+            
+            if (source == null) {
+                Log.w(TAG, "❌ No source configured for package: $packageName")
+                
+                StructuredLogger.logEvent(
+                    level = "INFO",
+                    sourceId = null,
+                    endpointId = null,
+                    alertId = alertId,
+                    event = "app_ignored",
+                    details = "reason=no_matching_source package=$packageName"
+                )
+                
+                DeliveryLogBuffer.append(
+                    DeliveryLogBuffer.DeliveryLogEntry(
+                        timestamp = System.currentTimeMillis(),
+                        alertId = alertId,
+                        sourceId = null,
+                        endpointId = null,
+                        event = "app_ignored",
+                        httpCode = null,
+                        latencyMs = null,
+                        errorClass = "NoMatchingSource",
+                        errorMessage = "No configured source for $packageName",
+                        details = "package=$packageName"
+                    )
+                )
+                return@launch
+            }
+            
+            if (!source.enabled) {
+                Log.w(TAG, "❌ Source disabled: ${source.name}")
+                return@launch
+            }
+            
+            Log.d(TAG, "✓ Source matched: ${source.name} (ID: ${source.id})")
+            
+            // Step 2: Create APP variable map (like smsVariables)
+            val dateFormat = SimpleDateFormat("MM/dd/yyyy hh:mm:ss a", Locale.US)
+            val appVariables = mapOf(
+                "package" to packageName,
+                "packageName" to packageName,  // Alias
+                "title" to title,
+                "text" to text,
+                "bigText" to bigText,
+                "time" to SimpleDateFormat("MM/dd/yyyy HH:mm:ss", Locale.US).format(Date(timestamp)),
+                "timestamp" to dateFormat.format(Date(timestamp))
+            )
+            
+            Log.d(TAG, "✓ APP variables created: ${appVariables.keys.joinToString(", ")}")
+            
+            // Step 3: Resolve endpoints (filter for enabled + valid URL)
+            val endpointRepo = EndpointRepository(context)
+            val selectableEndpoints = source.endpointIds
+                .mapNotNull { endpointRepo.getById(it) }
+                .filter { EndpointValidators.isSelectable(it) }
+            
+            if (selectableEndpoints.isEmpty()) {
+                val summary = EndpointValidators.getValidationSummary(
+                    source.endpointIds.mapNotNull { endpointRepo.getById(it) }
+                )
+                Log.e(TAG, "❌ No enabled endpoints with valid URL for source: ${source.name}")
+                Log.e(TAG, "   Selected: ${summary["total"]}, Selectable: ${summary["selectable"]}, Enabled: ${summary["enabled"]}, ValidUrl: ${summary["validUrl"]}")
+                
+                StructuredLogger.logEvent(
+                    level = "ERROR",
+                    sourceId = source.id,
+                    endpointId = null,
+                    alertId = alertId,
+                    event = "no_enabled_endpoints",
+                    details = "selected=${summary["total"]} selectable=${summary["selectable"]}"
+                )
+                
+                DeliveryLogBuffer.append(
+                    DeliveryLogBuffer.DeliveryLogEntry(
+                        timestamp = System.currentTimeMillis(),
+                        alertId = alertId,
+                        sourceId = source.id,
+                        endpointId = null,
+                        event = "no_enabled_endpoints",
+                        httpCode = null,
+                        latencyMs = null,
+                        errorClass = "NoEnabledEndpoints",
+                        errorMessage = "All endpoints disabled or invalid",
+                        details = "selected=${source.endpointIds.size} selectable=${selectableEndpoints.size}"
+                    )
+                )
+                return@launch
+            }
+            
+            Log.d(TAG, "✓ Resolved ${selectableEndpoints.size} enabled endpoint(s)")
+            Log.d(TAG, "   Endpoint IDs: ${selectableEndpoints.map { it.id }.joinToString(", ")}")
+            
+            // Step 4: Multi-endpoint fanout (one HTTP POST per endpoint)
+            for ((index, endpoint) in selectableEndpoints.withIndex()) {
+                Log.d(TAG, "📤 Delivering to endpoint ${index + 1}/${selectableEndpoints.size}: ${endpoint.name}")
+                
+                // Render template for this endpoint
+                val templateContent = source.templateJson.ifEmpty { "{}" }
+                
+                // Use applyGeneric (supports both {{key}} and {key} syntax)
+                val json = TemplateEngine.applyGeneric(templateContent, appVariables, source.autoClean)
+                
+                // Check for unresolved placeholders
+                val unresolvedPlaceholders = detectUnresolvedPlaceholders(json)
+                if (unresolvedPlaceholders.isNotEmpty()) {
+                    Log.e(TAG, "❌ Unresolved placeholders detected: ${unresolvedPlaceholders.joinToString(", ")}")
+                    val availableKeys = appVariables.keys.joinToString(", ")
+                    val missingKeys = unresolvedPlaceholders
+                        .map { it.removePrefix("{{").removeSuffix("}}").removePrefix("{").removeSuffix("}") }
+                        .filter { !appVariables.containsKey(it) }
+                        .joinToString(", ")
+                    
+                    Log.e(TAG, "   Available keys: $availableKeys")
+                    Log.e(TAG, "   Missing keys: $missingKeys")
+                    
+                    StructuredLogger.logEvent(
+                        level = "ERROR",
+                        sourceId = source.id,
+                        endpointId = endpoint.id,
+                        alertId = alertId,
+                        event = "payload_render_unresolved_placeholders",
+                        details = "count=${unresolvedPlaceholders.size} placeholders=${unresolvedPlaceholders.joinToString(",")} missingKeys=$missingKeys"
+                    )
+                    
+                    DeliveryLogBuffer.append(
+                        DeliveryLogBuffer.DeliveryLogEntry(
+                            timestamp = System.currentTimeMillis(),
+                            alertId = alertId,
+                            sourceId = source.id,
+                            endpointId = endpoint.id,
+                            event = "payload_render_unresolved_placeholders",
+                            httpCode = null,
+                            latencyMs = null,
+                            errorClass = "TemplateError",
+                            errorMessage = "Unresolved placeholders in payload",
+                            details = "count=${unresolvedPlaceholders.size} missingKeys=$missingKeys"
+                        )
+                    )
+                    continue // Skip this endpoint, try next
+                }
+                
+                // Enhanced logging (NO PII)
+                val redactedPayload = json.take(300).replace(packageName, "***")
+                Log.d(TAG, "✓ Payload rendered (${json.length} chars, ${appVariables.size} variables resolved)")
+                Log.d(TAG, "   Preview (first 300 chars, redacted): $redactedPayload")
+                
+                // Check if auth needed (ingest endpoint)
+                val headers = mutableMapOf<String, String>()
+                val needsAuth = endpoint.url.contains("cloudfunctions.net/ingest", ignoreCase = true) ||
+                               endpoint.name.contains("Firestore Ingest", ignoreCase = true)
+                
+                if (needsAuth && !headers.containsKey("Authorization")) {
+                    val secret = com.example.alertsheets.BuildConfig.INGEST_SHARED_SECRET
+                    if (secret.isNotEmpty()) {
+                        headers["Authorization"] = "Bearer $secret"
+                        Log.d(TAG, "✓ Authorization header added for ingest endpoint (secret length=${secret.length})")
+                    } else {
+                        Log.e(TAG, "❌ INGEST_SHARED_SECRET is empty! Cannot authenticate to Firestore ingest endpoint.")
+                        
+                        StructuredLogger.logEvent(
+                            level = "ERROR",
+                            sourceId = source.id,
+                            endpointId = endpoint.id,
+                            alertId = alertId,
+                            event = "auth_missing",
+                            details = "endpoint=${endpoint.name} url=${endpoint.url.take(50)}"
+                        )
+                        
+                        DeliveryLogBuffer.append(
+                            DeliveryLogBuffer.DeliveryLogEntry(
+                                timestamp = System.currentTimeMillis(),
+                                alertId = alertId,
+                                sourceId = source.id,
+                                endpointId = endpoint.id,
+                                event = "auth_missing",
+                                httpCode = null,
+                                latencyMs = null,
+                                errorClass = "AuthError",
+                                errorMessage = "INGEST_SHARED_SECRET is empty",
+                                details = "endpoint=${endpoint.name}"
+                            )
+                        )
+                        continue // Skip this endpoint
+                    }
+                }
+                
+                // HTTP POST
+                Log.d(TAG, "📤 Sending to: ${endpoint.name} (${endpoint.url.take(50)}...)")
+                
+                StructuredLogger.logEvent(
+                    level = "INFO",
+                    sourceId = source.id,
+                    endpointId = endpoint.id,
+                    alertId = alertId,
+                    event = "http_attempt",
+                    details = "endpoint=${endpoint.name} payloadSize=${json.length}"
+                )
+                
+                val result = ReliableHttpSender.postJson(
+                    endpointUrl = endpoint.url,
+                    headers = headers,
+                    bodyJson = json
+                )
+                
+                // Log result
+                if (result.success) {
+                    val details = "code=${result.httpCode} latency=${result.latencyMs}ms body=${result.responseBody?.take(100)}"
+                    Log.d(TAG, "✅ HTTP OK | $details")
+                    
+                    StructuredLogger.logEvent(
+                        level = "INFO",
+                        sourceId = source.id,
+                        endpointId = endpoint.id,
+                        alertId = alertId,
+                        event = "http_ok",
+                        details = details
+                    )
+                    
+                    DeliveryLogBuffer.append(
+                        DeliveryLogBuffer.DeliveryLogEntry(
+                            timestamp = System.currentTimeMillis(),
+                            alertId = alertId,
+                            sourceId = source.id,
+                            endpointId = endpoint.id,
+                            event = "http_ok",
+                            httpCode = result.httpCode,
+                            latencyMs = result.latencyMs,
+                            errorClass = null,
+                            errorMessage = null,
+                            details = "response=${result.responseBody?.take(100)}"
+                        )
+                    )
+                } else {
+                    val details = "code=${result.httpCode} error=${result.errorClass}: ${result.errorMessage}"
+                    Log.e(TAG, "❌ HTTP FAIL | $details")
+                    
+                    StructuredLogger.logEvent(
+                        level = "ERROR",
+                        sourceId = source.id,
+                        endpointId = endpoint.id,
+                        alertId = alertId,
+                        event = "http_fail",
+                        details = details
+                    )
+                    
+                    DeliveryLogBuffer.append(
+                        DeliveryLogBuffer.DeliveryLogEntry(
+                            timestamp = System.currentTimeMillis(),
+                            alertId = alertId,
+                            sourceId = source.id,
+                            endpointId = endpoint.id,
+                            event = "http_fail",
+                            httpCode = result.httpCode,
+                            latencyMs = result.latencyMs,
+                            errorClass = result.errorClass,
+                            errorMessage = result.errorMessage,
+                            details = details
+                        )
+                    )
+                }
+            }
+            
+            val totalTime = System.currentTimeMillis() - startTime
+            Log.d(TAG, "✅ APP delivery complete | alertId=$alertId totalTime=${totalTime}ms endpoints=${selectableEndpoints.size}")
+        }
+    }
+    
+    /**
      * Get sender shape for safe logging (NO PII)
      * Returns: "hasPlus=true digitsLen=11 last2=55"
      */
@@ -686,6 +1028,50 @@ object DeliveryPipeline {
         val digits = sender.filter { it.isDigit() }
         val last2 = if (digits.length >= 2) digits.takeLast(2) else "N/A"
         return "hasPlus=$hasPlus digitsLen=${digits.length} last2=$last2"
+    }
+    
+    /**
+     * Detect unresolved placeholders in rendered payload
+     * 
+     * Returns list of unresolved placeholders like ["{{sender}}", "{{foo}}"]
+     * Uses regex to find {{...}} patterns
+     */
+    private fun detectUnresolvedPlaceholders(json: String): List<String> {
+        val regex = Regex("\\{\\{[^}]+\\}\\}")
+        return regex.findAll(json).map { it.value }.distinct().toList()
+    }
+    
+    /**
+     * Redact phone numbers from payload preview for logging
+     * 
+     * Replaces patterns like:
+     * - +1-555-0123 -> +1-***-**23
+     * - (555) 123-4567 -> (***) ***-**67
+     * - 5551234567 -> *******67
+     * 
+     * Does NOT log full phone numbers (PII protection)
+     */
+    private fun redactPhoneNumbers(text: String): String {
+        // Pattern 1: +1-555-0123 or +15550123
+        var result = text.replace(Regex("\\+\\d[\\d\\-]{7,}\\d{2}")) { match ->
+            val last2 = match.value.takeLast(2)
+            val prefix = if (match.value.startsWith("+")) "+" else ""
+            "$prefix***$last2"
+        }
+        
+        // Pattern 2: (555) 123-4567
+        result = result.replace(Regex("\\(\\d{3}\\)\\s*\\d{3}-\\d{4}")) { match ->
+            val last2 = match.value.takeLast(2)
+            "(***) ***-**$last2"
+        }
+        
+        // Pattern 3: 10+ digit sequences (without spaces/dashes)
+        result = result.replace(Regex("\\b\\d{10,}\\b")) { match ->
+            val last2 = match.value.takeLast(2)
+            "*".repeat(match.value.length - 2) + last2
+        }
+        
+        return result
     }
 }
 

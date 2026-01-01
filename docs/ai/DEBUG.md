@@ -1,13 +1,99 @@
 # DEBUGGING PLAYBOOK - AlertsToSheets
 
-**Last Updated:** 2025-12-26  
-**Applies To:** Branch `fix/wiring-sources-endpoints`, Commit `03699e8+`
+**Last Updated:** 2025-12-31  
+**Applies To:** Branch `fix/wiring-sources-endpoints`
 
 ---
 
 ## 🎯 PURPOSE
 
 This document provides systematic debugging procedures for all observability tools integrated into the AlertsToSheets Android app. Use this when tools don't work as expected or when investigating production issues.
+
+---
+
+## 🧾 EVENT CATALOG (What to Look For in Logs)
+
+This section is the **single source of truth for event names** emitted by the app’s pipeline and the Apps Script SMS handler.
+
+### 1) Android: `StructuredLogger` NDJSON schema
+
+- **Format**: one JSON object per line in Logcat (tag: `StructuredLogger`)
+- **Fields** (typical):
+  - `timestamp` (ISO8601)
+  - `level` (`INFO|ERROR`)
+  - `source_id`
+  - `endpoint_id`
+  - `alert_id`
+  - `event` (**see event list below**)
+  - `details` (free text)
+
+Code reference: `android/app/src/main/java/com/example/alertsheets/utils/StructuredLogger.kt`.
+
+### 2) Android: Delivery “Golden Path” events (`DeliveryPipeline` → `StructuredLogger`)
+
+These are emitted by `android/app/src/main/java/com/example/alertsheets/domain/DeliveryPipeline.kt`.
+
+- **Source matching**
+  - `source_match_ok`: sender matched an enabled source
+  - `source_ignored`: no matching source (or sender shape mismatch)
+  - `source_disabled`: source matched but disabled
+
+- **Endpoint selection**
+  - `no_enabled_endpoints`: source had endpointIds, but none selectable (disabled/invalid URL)
+  - `no_endpoint`: no endpointIds configured for the source
+
+- **Payload render**
+  - `payload_render_ok`: template rendered and passed placeholder checks
+  - `payload_render_fail`: template render threw/failed (invalid template, etc.)
+  - `payload_render_unresolved_placeholders`: rendered JSON still contained `{{...}}` placeholders (send blocked)
+
+- **Auth guard (ingest endpoints)**
+  - `auth_missing`: ingest endpoint requires secret but secret not configured (send blocked)
+
+- **HTTP lifecycle**
+  - `http_attempt`: HTTP POST attempted
+  - `http_ok`: HTTP returned 2xx/ok (includes `code`, `latencyMs` in details)
+  - `http_fail`: HTTP failed (code 0 or non-2xx, includes error class/message)
+
+- **Test (“Dirty Test” / lab)**
+  - `test_attempt_started`
+  - `test_http_ok_confirmed` / `test_http_ok_unconfirmed`
+  - `test_http_fail`
+
+### 3) Android: Legacy / auxiliary events (`DataPipeline`)
+
+These appear in `android/app/src/main/java/com/example/alertsheets/domain/DataPipeline.kt`.
+
+- `firestore_ingest_skipped`: ingest disabled by flag/config
+- `ingest_enqueue_failed`: attempted to queue ingest but failed
+- `http_exception`: exception thrown in old HTTP path
+- `app_ignored`: app notification ignored by rules/template
+
+### 4) Apps Script: SMS handler diagnostics (`Code.gs`)
+
+These are **Apps Script `Logger.log()` markers** (not `StructuredLogger` events). They are emitted by the SMS-only path in `Code.gs`.
+
+#### IncidentId extraction markers
+
+- **`[SMS] incidentId_extracted`**
+  - method=`adjustleads_url` | `fallback_digits` | `hash`
+  - line snippet is digits-redacted (PII-safe)
+
+#### Upsert suppression / anti-merge guards
+
+- **`[SMS] upsert_suppressed`**
+  - method was not `adjustleads_url` → **no upsert allowed**
+- **`[SMS] id_match_non_sms_row_skipped`**
+  - Column C matched incidentId, but Column A did not contain `SMS` → skip to avoid cross-type collisions
+- **`[SMS] upsert_guard_block`**
+  - Column C matched incidentId, but Column J did not contain the same `/alerts/<digits>` → block update to prevent accidental merges
+
+#### Suggested quick-run harness
+
+- Run `testSmsWiringDiagnostics()` inside Apps Script editor to print:
+  - normalized timestamp outputs
+  - incidentId + method
+  - parsed state/county/city/address (NYC borough normalization)
 
 ---
 

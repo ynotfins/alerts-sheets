@@ -145,10 +145,12 @@ object TemplateEngine {
             "timestamp" to getTimestamp()
         )
         
-        // Replace each variable
+        // Replace each variable (support both {{key}} and {key} syntax)
         for ((key, value) in allVariables) {
-            val placeholder = "{{$key}}"
-            if (result.contains(placeholder)) {
+            val placeholder1 = "{{$key}}"  // Standard syntax
+            val placeholder2 = "{$key}"    // Alternative syntax (single brace)
+            
+            if (result.contains(placeholder1) || result.contains(placeholder2)) {
                 // Apply cleaning if enabled for this source
                 val cleanValue = if (autoClean) cleanText(value) else value
                 
@@ -161,7 +163,9 @@ object TemplateEngine {
                     escapeForJson(cleanValue)
                 }
                 
-                result = result.replace(placeholder, finalValue)
+                // Replace both syntaxes
+                result = result.replace(placeholder1, finalValue)
+                result = result.replace(placeholder2, finalValue)
             }
         }
         

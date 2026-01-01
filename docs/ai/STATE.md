@@ -1,12 +1,67 @@
 # PROJECT STATE - Single Source of Truth
 
-**Last Updated:** 2025-12-30 03:10 UTC (Session 9.4: Apps Script SMS Safety Fixes - Timestamp + IncidentId + NYC Boroughs)  
+**Last Updated:** 2025-12-31 01:45 UTC (Session 9.7: APP Source (BNN) Delivery + Placeholder Fix)  
 **Branch:** `fix/wiring-sources-endpoints`  
-**Status:** 🟢 SMS-only Apps Script hardened (timestamp normalization, safer incidentId extraction, NYC borough normalization)
+**Status:** 🟢 APP (BNN) Delivery Fixed - Placeholders Now Resolve + Multi-Endpoint Fanout
 
 ---
 
-## 🎯 SESSION 9.4 SUMMARY: Apps Script SMS Safety Fixes (Timestamp + IncidentId + NYC Boroughs)
+## 🎯 SESSION 9.7 SUMMARY: APP Source (BNN) Delivery + Placeholder Fix (Android Only)
+
+### What Was Fixed (2025-12-31 01:45 UTC)
+
+**Issue:** APP notifications (BNN) were posting placeholder strings (`{package}`, `{title}`, `{bigText}`) to Google Sheets instead of real values.
+
+**Root Causes:**
+
+1. **APP used wrong variable map** → `{{package}}`, `{{title}}`, `{{text}}`, `{{bigText}}` never resolved
+2. **Two separate paths** → SMS (Golden Path ✅) vs APP (OLD parser ❌)
+3. **Single-brace syntax unsupported** → Only `{{key}}` worked, not `{key}`
+
+**Solution:** Migrated APP to Golden Path (same as SMS)
+
+### Files Changed (3 files, ~365 lines)
+
+1. **`DeliveryPipeline.kt`** (+320 lines): Added `deliverAppEvent()` method
+   - Creates `appVariables` map: `package`, `packageName`, `title`, `text`, `bigText`, `time`, `timestamp`
+   - Multi-endpoint fanout (independent HTTP POST per endpoint)
+   - Fail-fast on unresolved placeholders
+   - PII-safe logging
+
+2. **`TemplateEngine.kt`** (~30 lines): Support both `{{key}}` and `{key}` syntax
+   
+3. **`DataPipeline.kt`** (~15 lines): Route APP to `DeliveryPipeline.deliverAppEvent()`
+
+### Verification Commands (Windows PowerShell)
+
+```powershell
+# Build
+cd D:\github\alerts-sheets\android
+.\gradlew.bat :app:assembleDebug
+
+# Watch logs
+adb logcat -v time | Select-String -Pattern `
+  "DeliveryPipeline|appVariables|http_ok|http_fail"
+
+# Expected output for BNN notification:
+# DeliveryPipeline: 📱 APP event received | package=us.bnn.newsapp
+# DeliveryPipeline: ✓ APP variables created: package, packageName, title, text, bigText, time, timestamp
+# DeliveryPipeline: ✓ Payload rendered (450 chars, 7 variables resolved)
+# DeliveryPipeline: ✅ HTTP OK | code=200
+```
+
+### Acceptance Checklist
+
+- [x] Code: `deliverAppEvent()` added ✅
+- [x] Code: Both `{{key}}` and `{key}` syntax supported ✅
+- [x] Build: Compiles without errors ✅
+- [ ] Runtime: Sheet shows real values (not placeholders)
+- [ ] Runtime: Multi-endpoint fanout works
+- [ ] Runtime: SMS unchanged (no regression)
+
+---
+
+## 🎯 SESSION 9.6.1 SUMMARY: Debug Event Catalog Updated
 
 ### Goal
 Fix **SMS alert handling only** in `scripts/Code.gs` without impacting **BNN** parsing/upsert logic.
@@ -17,28 +72,64 @@ Fix **SMS alert handling only** in `scripts/Code.gs` without impacting **BNN** p
   - Prefer **AdjustLeads URL** extraction (bottom-most AdjustLeads URL line).
   - Fallback digits only when **no AdjustLeads URL exists**, and only from **non-URL** lines (never maps URLs).
   - **Defensive upsert**: SMS row update is now allowed **only when id came from AdjustLeads URL** (prevents accidental row merging).
-  - **Row-match sanity check**: even if Column C matches, update is suppressed unless column J contains `/alerts/<digits>` for the same incident (prevents row-1017-style merging due to historical bad IDs).
 - **NYC borough normalization (SMS)**:
   - Manhattan/Brooklyn/Queens/Bronx/Staten Island normalized to consistent **county + city** for geocoding safety (state defaults to NY if borough clearly indicated).
 
 ### Evidence / Test Harness
 - Added `testSmsParsingExamples()` in `scripts/Code.gs` (3 deterministic examples) with `Logger.log()` output:
+ - Added `testSmsTimestampNormalization()` in `scripts/Code.gs` to prove Script-TZ formatting is consistent across payload timestamp shapes (Date.toString/ISO/epoch).
+
+### Additional Anti-Merge Guard (SMS)
+- Added an upsert guard: even when Column C matches, SMS updates only occur if the existing row’s Column J contains the same AdjustLeads `/alerts/<digits>` as the parsed incidentId.
+- Also prevents cross-type collisions by skipping any matching-ID row whose Column A does not contain `SMS`.
   - incidentId + method + matched line snippet (digits redacted)
   - state/county/city/address/type/details
-
-### Verification Steps (Session 9.4)
-1. **Apps Script editor**: Run `testSmsParsingExamples()`.
-   - Case 1 should log `incidentId=AL-294966 method=adjustleads_url`
-   - Case 2 should log `state=NY county=New York city=New York` (from Manhattan)
-   - Case 3 should log `method=hash` (no AdjustLeads URL present, maps+zip noise ignored)
-2. **Sheet sanity** (SMS rows only where Column A contains `SMS` / `SMS Fire Alert`):
-   - NEW row column **B** timestamp and UPDATE-appended column **B** timestamp use the same format: `MM/dd/yyyy hh:mm:ss a` (Script TZ)
-   - No more accidental merges: updates only append when URL-derived incidentId matches and row original contains the same `/alerts/<digits>`
 
 ### Non-Goals / Invariants
 - **BNN code path untouched** (no changes to BNN parsing/upsert logic in `doPost()` for incidents with `data.incidentId`).
 
 ---
+
+## 🎯 SESSION 9.6 SUMMARY: Canonical Apps Script SMS Wiring Alignment (BNN Untouched)
+
+### Source of Truth
+- **Canonical deployed script file**: `Apps_Script_current/code.gs.txt`
+- Repo mirror kept in sync: `scripts/Code.gs`
+- Contract: `parsing.md`
+
+### SMS-only fixes applied (comprehensive wiring alignment)
+- **Timestamp normalization (SMS only)**:
+  - Uses `formatSmsTimestamp(data.timestamp, data.time)`
+  - Always outputs Script-TZ `MM/dd/yyyy hh:mm:ss a`
+  - Supports: formatted string, ISO, epoch seconds, epoch millis
+- **IncidentId extraction hardening (SMS only)**:
+  - Primary: last-line AdjustLeads URL `/alerts/<digits>` (6+)
+  - Fallback: last standalone 6+ digits from **NON-URL** lines only (never any http(s) line, never maps URLs, rejects 10–11 digit phone-like)
+  - `incidentIdMethod` logged: `adjustleads_url` | `fallback_digits` | `hash`
+  - **Upsert suppressed** unless `incidentIdMethod == adjustleads_url`
+- **Anti-merge guard (SMS only)**:
+  - Even if Column C matches, UPDATE only if Column J contains the same AdjustLeads `/alerts/<digits>` as the parsed incidentId
+  - Only updates rows where Column A contains `SMS` (prevents cross-type collisions)
+- **NYC borough normalization (SMS only)**:
+  - Manhattan→(city=New York, county=New York), Brooklyn→(New York, Kings), Queens→(New York, Queens), Bronx→(New York, Bronx), Staten Island→(New York, Richmond)
+  - Non-NYC: does **not** invent county when missing
+
+### Test harness (Apps Script)
+- Added `testSmsWiringDiagnostics()`:
+  - Logs timestamp normalization across variants
+  - Logs `incidentId`, `incidentIdMethod`, matched line snippet (digits redacted)
+  - Logs normalized `state/county/city/address`
+
+### Touched functions (BNN untouched)
+- Modified: `handleSmsMessage`, `parseAdjustLeadsSms`
+- Added: `formatSmsTimestamp`, `epochNumberToDate`, `extractAdjustLeadsIncidentId`, `normalizeNyBoroughs`, `extractDigitsFromIncidentId`, `extractAdjustLeadsDigitsFromText`, `testSmsWiringDiagnostics` (and small helpers)
+- **No changes**: BNN incident handling block in `doPost()` (lines above SMS routing)
+
+### Docs Updated
+- Updated `docs/ai/DEBUG.md` with a consolidated **Event Catalog** for:
+  - Android `StructuredLogger` / `DeliveryPipeline` events
+  - Android `DataPipeline` auxiliary events
+  - Apps Script SMS `Logger.log()` diagnostics markers (anti-merge + incidentId extraction)
 
 ## 🎯 SESSION 9.3 SUMMARY: Apps Script SMS Parsing & Row Upsert Fix
 

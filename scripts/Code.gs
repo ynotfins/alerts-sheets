@@ -202,21 +202,20 @@ function doPost(e) {
  * Parse AdjustLeads alerts with stable incident IDs and upsert support
  */
 function handleSmsMessage(data, sheet) {
-  const sender = data.sender || "Unknown";
-  const message = data.message || "";
+  const sender = (data.sender || "Unknown").toString();
+  const message = (data.message || data.body || "").toString();
 
-  // SMS timestamp rule: ALWAYS display in Script timezone as "MM/dd/yyyy hh:mm:ss a"
-  const timestamp = formatScriptTimestampFromPayload(data.timestamp || data.time);
+  // Always normalize timestamps in Script TZ to a single display format.
+  const timestamp = formatScriptTimestampFromPayload(data.timestamp || data.time || new Date());
 
-  // ✅ Parse AdjustLeads SMS
-  const parsedData = parseAdjustLeadsSms(message, sender);
+  const parsed = parseAdjustLeadsSms(message, sender);
 
-  if (!parsedData.isAdjustLeads) {
-    // Generic SMS - Simple format (backward compat)
+  // Generic SMS (non-AdjustLeads) - backward compatible append-only
+  if (!parsed.isAdjustLeads) {
     const row = [
       "SMS",
       timestamp,
-      `SMS-${Date.now()}`,  // One-off ID OK for generic
+      `SMS-${Date.now()}`,
       "",
       "",
       "",
@@ -226,141 +225,105 @@ function handleSmsMessage(data, sheet) {
       `From: ${sender}\n${message}`
     ];
     sheet.appendRow(row);
-    
-    return ContentService.createTextOutput(
-      JSON.stringify({ 
-        result: "success", 
-        type: "sms", 
-        sender: sender,
-        parsed: false 
-      })
-    ).setMimeType(ContentService.MimeType.JSON);
+
+    return ContentService.createTextOutput(JSON.stringify({
+      result: "success",
+      type: "sms",
+      sender,
+      parsed: false
+    })).setMimeType(ContentService.MimeType.JSON);
   }
 
-  // ✅ AdjustLeads SMS with stable incident ID
-  const incidentId = parsedData.incidentId;
-  const incidentDigits = getIncidentDigitsFromAlId(incidentId);
+  const incidentId = parsed.incidentId;
+  const incidentDigits = getAdjustLeadsDigitsFromIncidentId(incidentId);
+  const canUpsert = parsed.incidentIdMethod === "adjustleads_url" && !!incidentDigits;
 
-  // Required debug logging (PII-safe): incident id method + line snippet (digits redacted)
-  Logger.log(
-    "[SMS] incidentId=%s method=%s matchedLine=%s",
-    incidentId,
-    parsedData.incidentIdMethod || "",
-    parsedData.incidentIdLineSnippet || ""
-  );
-  
-  // Search for existing row (same logic as BNN)
-  // Defensive: only upsert when incidentId came from AdjustLeads URL extraction.
-  // This prevents accidental row merging when fallback digits are ambiguous.
+  // Find existing row by Incident ID (Column C) but only consider SMS rows
+  const lastRow = sheet.getLastRow();
   let foundRow = -1;
-  if (parsedData.incidentIdMethod === "adjustleads_url") {
-    const lastRow = sheet.getLastRow();
-    if (lastRow > 1) {
-      const idValues = sheet.getRange(2, 3, lastRow - 1, 1).getValues();
-      for (let i = 0; i < idValues.length; i++) {
-        const sheetId = idValues[i][0].toString().trim();
-        if (sheetId === incidentId) {
-          foundRow = i + 2;
-          break;
-        }
+
+  if (lastRow > 1) {
+    const idValues = sheet.getRange(2, 3, lastRow - 1, 1).getValues();
+    for (let i = 0; i < idValues.length; i++) {
+      const sheetId = (idValues[i][0] || "").toString().trim();
+      if (sheetId !== incidentId) continue;
+
+      // Guard 1: only update SMS rows
+      const statusText = (sheet.getRange(i + 2, 1).getValue() || "").toString().toUpperCase();
+      if (!statusText.includes("SMS")) continue;
+
+      // Guard 2: anti-merge — only update if Original Body (Col J) contains same /alerts/<digits>
+      if (canUpsert) {
+        const originalBody = (sheet.getRange(i + 2, 10).getValue() || "").toString();
+        if (!originalBody.includes(`/alerts/${incidentDigits}`)) continue;
+      } else {
+        // Never upsert on fallback IDs
+        continue;
       }
-    }
-  } else {
-    Logger.log(
-      "[SMS] upsert_suppressed incidentId=%s method=%s",
-      incidentId,
-      parsedData.incidentIdMethod || ""
-    );
-  }
-  
-  if (foundRow !== -1) {
-    // Extra anti-merge defense:
-    // If the existing row doesn't include the same AdjustLeads /alerts/<digits> in column J,
-    // do NOT upsert; treat as a new incident row instead.
-    if (incidentDigits) {
-      const originalCell = sheet.getRange(foundRow, 10);
-      const existingOriginal = (originalCell.getValue() || "").toString();
-      const expectedUrlFragment = "/alerts/" + incidentDigits;
-      if (existingOriginal.indexOf(expectedUrlFragment) === -1) {
-        Logger.log(
-          "[SMS] upsert_row_mismatch incidentId=%s expectedFragment=%s (creating new row instead)",
-          incidentId,
-          expectedUrlFragment
-        );
-        foundRow = -1;
-      }
+
+      foundRow = i + 2;
+      break;
     }
   }
 
   if (foundRow !== -1) {
-    // ✅ UPDATE EXISTING ROW (append lines)
-    
-    // Status: Append "SMS Update"
+    // UPDATE: append lines; preserve C-G immutability
     const statusCell = sheet.getRange(foundRow, 1);
-    statusCell.setValue(statusCell.getValue() + "\nSMS Update");
-    
-    // Timestamp: Append new timestamp
+    statusCell.setValue(`${statusCell.getValue()}\nSMS Update`.trim());
+
     const timeCell = sheet.getRange(foundRow, 2);
-    timeCell.setValue(timeCell.getValue() + "\n" + timestamp);
-    
-    // Incident Type: Append if changed (column H)
-    if (parsedData.incidentType) {
+    timeCell.setValue(`${timeCell.getValue()}\n${timestamp}`.trim());
+
+    if (parsed.incidentType) {
       const typeCell = sheet.getRange(foundRow, 8);
-      const currentType = typeCell.getValue();
-      if (!currentType.includes(parsedData.incidentType)) {
-        typeCell.setValue(currentType + "\n" + parsedData.incidentType);
+      const currentType = (typeCell.getValue() || "").toString();
+      if (!currentType.includes(parsed.incidentType)) {
+        typeCell.setValue(`${currentType}\n${parsed.incidentType}`.trim());
       }
     }
-    
-    // Incident Details: Append new details (column I)
-    if (parsedData.incidentDetails) {
+
+    if (parsed.incidentDetails) {
       const detailsCell = sheet.getRange(foundRow, 9);
-      detailsCell.setValue(detailsCell.getValue() + "\n" + parsedData.incidentDetails);
+      detailsCell.setValue(`${detailsCell.getValue()}\n${parsed.incidentDetails}`.trim());
     }
-    
-    // Original Body: Append full SMS (column J)
+
     const originalCell = sheet.getRange(foundRow, 10);
-    originalCell.setValue(originalCell.getValue() + "\n\nFrom: " + sender + "\n" + message);
-    
-    return ContentService.createTextOutput(
-      JSON.stringify({ 
-        result: "success", 
-        type: "sms", 
-        sender: sender,
-        incidentId: incidentId,
-        action: "update",
-        parsed: true 
-      })
-    ).setMimeType(ContentService.MimeType.JSON);
-    
-  } else {
-    // ✅ CREATE NEW ROW
-    const row = [
-      "SMS Fire Alert",                // Status
-      timestamp,                       // Timestamp
-      incidentId,                      // Stable incident ID (AL-294966)
-      parsedData.state || "",          // State (from 📍 line)
-      parsedData.county || "",         // County (from 🔥 line)
-      parsedData.city || "",           // City (from 📍 line)
-      parsedData.address || "",        // Address (from 📍 line)
-      parsedData.incidentType || "Fire Alert",  // Type (from 📋 line)
-      parsedData.incidentDetails || message,    // Details (from 📋 line)
-      `From: ${sender}\n${message}`    // Original Body
-    ];
-    
-    sheet.appendRow(row);
-    
-    return ContentService.createTextOutput(
-      JSON.stringify({ 
-        result: "success", 
-        type: "sms", 
-        sender: sender,
-        incidentId: incidentId,
-        action: "new",
-        parsed: true 
-      })
-    ).setMimeType(ContentService.MimeType.JSON);
+    originalCell.setValue(`${originalCell.getValue()}\n\nFrom: ${sender}\n${message}`.trim());
+
+    return ContentService.createTextOutput(JSON.stringify({
+      result: "success",
+      type: "sms",
+      sender,
+      incidentId,
+      action: "update",
+      parsed: true
+    })).setMimeType(ContentService.MimeType.JSON);
   }
+
+  // NEW ROW
+  const row = [
+    "SMS Fire Alert",
+    timestamp,
+    incidentId,
+    parsed.state || "",
+    parsed.county || "",
+    parsed.city || "",
+    parsed.address || "",
+    parsed.incidentType || "Fire Alert",
+    parsed.incidentDetails || message,
+    `From: ${sender}\n${message}`
+  ];
+  sheet.appendRow(row);
+
+  return ContentService.createTextOutput(JSON.stringify({
+    result: "success",
+    type: "sms",
+    sender,
+    incidentId,
+    action: "new",
+    parsed: true,
+    incidentIdMethod: parsed.incidentIdMethod
+  })).setMimeType(ContentService.MimeType.JSON);
 }
 
 /**
@@ -370,9 +333,9 @@ function handleSmsMessage(data, sheet) {
 function parseAdjustLeadsSms(message, sender) {
   const result = {
     isAdjustLeads: false,
-    incidentId: "",           // ✅ Stable ID for upsert
-    incidentIdMethod: "",     // "adjustleads_url" | "fallback_digits" | "hash"
-    incidentIdLineSnippet: "",// PII-safe snippet (digits redacted) of the matched line
+    incidentId: "",
+    incidentIdMethod: "",
+    incidentIdLineSnippet: "",
     address: "",
     city: "",
     county: "",
@@ -383,332 +346,83 @@ function parseAdjustLeadsSms(message, sender) {
     adjustLeadsUrl: "",
     originalMessage: message
   };
-  
-  // Step 1: Heuristic: AdjustLeads-style messages typically include emojis or "Fire Alert"
-  const looksLikeAdjustLeads =
-    message.includes("adjustleads.") ||
-    message.includes("Fire Alert") ||
-    (message.includes("🔥") && message.includes("📍") && message.includes("📋"));
-  if (!looksLikeAdjustLeads) {
-    return result;
-  }
+
+  const msg = (message || "").toString();
+  if (!msg) return result;
+
+  // Determine if this is likely an AdjustLeads fire alert
+  const looksLikeAlert = msg.includes("adjustleads.") || msg.includes("Fire Alert") || msg.includes("New Fire Alert");
+  if (!looksLikeAlert) return result;
 
   result.isAdjustLeads = true;
 
-  // Step 2: Extract incident ID (STRICT)
-  // Rule:
-  // - Prefer AdjustLeads URL line (typically last non-empty line)
-  // - Fallback: last 6+ digit sequence ONLY if URL is absent and candidate line is safe (not maps/urls/phone-like)
-  const idExtraction = extractAdjustLeadsIncidentId(message, sender);
-  result.incidentId = idExtraction.incidentId;
-  result.incidentIdMethod = idExtraction.method;
-  result.incidentIdLineSnippet = idExtraction.matchedLineSnippet;
-  result.adjustLeadsUrl = idExtraction.adjustLeadsUrl;
-  
-  // Step 3: Parse emoji-delimited lines
-  const lines = getNonEmptyLines(message);
-  
+  const idInfo = extractAdjustLeadsIncidentId(msg, sender);
+  result.incidentId = idInfo.incidentId;
+  result.incidentIdMethod = idInfo.method;
+  result.adjustLeadsUrl = idInfo.url || "";
+  result.incidentIdLineSnippet = idInfo.lineSnippet || "";
+
+  const lines = getNonEmptyLines(msg);
+
   for (const line of lines) {
-    // 🔥 County line: "New Fire Alert in Morris County"
-    if (line.includes('🔥') || line.includes('Fire Alert')) {
-      const countyMatch = line.match(/(?:in|at)\s+(\w+(?:\s+\w+)?)\s+County/i);
-      if (countyMatch) {
-        result.county = countyMatch[1].trim();
-      }
+    // 🔥 County / Borough line
+    if (line.includes('🔥') || line.toLowerCase().includes('fire alert')) {
+      const countyMatch = line.match(/(?:in|at)\s+(.+?)\s+County/i);
+      if (countyMatch) result.county = countyMatch[1].trim();
     }
-    
-    // 📍 Address line: "31 Grand Avenue, Cedar Knolls, NJ"
-    if (line.includes('📍') || (line.match(/\d+\s+\w+/) && line.includes(','))) {
+
+    // 📍 Address line
+    if (line.includes('📍') || (line.match(/^\d+\s+\S+/) && line.includes(','))) {
       const cleanLine = line.replace(/📍/g, '').trim();
-      // Pattern: Street Address, City, State
-      const addressMatch = cleanLine.match(/^([^,]+),\s*([^,]+),\s*([A-Z]{2})/i);
-      if (addressMatch) {
-        result.address = addressMatch[1].trim();
-        result.city = addressMatch[2].trim();
-        result.state = addressMatch[3].trim().toUpperCase();
+      // Typical: Street, City, ST
+      const m = cleanLine.match(/^([^,]+),\s*([^,]+),\s*([A-Z]{2})\b/i);
+      if (m) {
+        result.address = m[1].trim();
+        result.city = m[2].trim();
+        result.state = m[3].trim().toUpperCase();
       } else {
-        // Fallback: Just take the street address part
-        const streetMatch = cleanLine.match(/^(\d+\s+[A-Za-z\s]+)/);
-        if (streetMatch) {
-          result.address = streetMatch[1].trim();
+        // Sometimes: Street, City, State ZIP
+        const m2 = cleanLine.match(/^([^,]+),\s*([^,]+),\s*(New\s+York|New\s+Jersey|Pennsylvania|Connecticut|Massachusetts|Delaware|Maryland|Virginia|Vermont|Maine|New\s+Hampshire|Rhode\s+Island|North\s+Carolina|South\s+Carolina)\b/i);
+        if (m2) {
+          result.address = m2[1].trim();
+          result.city = m2[2].trim();
+          // State abbreviation from full name is out-of-scope; leave state blank if not 2-letter
+        } else {
+          const streetMatch = cleanLine.match(/^(\d+\s+.+)$/);
+          if (streetMatch) result.address = streetMatch[1].trim();
         }
       }
     }
-    
-    // 🗺️ Maps URL line (capture for future geocoding)
+
+    // 🗺️ Maps URL
     if (line.includes('🗺️') || line.includes('maps.google.com')) {
       const mapsMatch = line.match(/(https?:\/\/[^\s]+)/);
-      if (mapsMatch) {
-        result.mapsUrl = mapsMatch[1];
-      }
+      if (mapsMatch) result.mapsUrl = mapsMatch[1];
     }
-    
-    // 📋 Incident type line: "Residential Fire - Possible structure fire..."
+
+    // 📋 Type/details
     if (line.includes('📋') || (line.includes('Fire') && line.includes('-'))) {
       const cleanLine = line.replace(/📋/g, '').trim();
-      const parts = cleanLine.split('-').map(p => p.trim());
+      const parts = cleanLine.split(' - ').map(p => p.trim()).filter(Boolean);
       if (parts.length >= 2) {
-        result.incidentType = parts[0]; // "Residential Fire"
-        result.incidentDetails = parts.slice(1).join(' - '); // Rest
+        result.incidentType = parts[0];
+        result.incidentDetails = parts.slice(1).join(' - ');
       } else {
-        result.incidentType = "Fire Alert";
-        result.incidentDetails = cleanLine;
+        result.incidentType = result.incidentType || "Fire Alert";
+        result.incidentDetails = result.incidentDetails || cleanLine;
       }
     }
   }
-  
-  // Validation: Ensure we extracted minimum data
-  if (!result.address && !result.county) {
-    // Mark as partially parsed
-    result.incidentDetails = result.incidentDetails || message;
+
+  // NYC borough normalization for geocoding safety
+  normalizeNyBoroughsInPlace(result);
+
+  // If county missing but city present (non-NYC), leave county blank (safer than guessing)
+  if (!result.county && result.city) {
+    // leave blank
   }
 
-  // Step 4: NYC borough normalization (geocoding safety)
-  // Apply for state == NY OR if borough clearly indicated in message lines.
-  const nyNormalized = normalizeNyBoroughs({
-    city: result.city,
-    county: result.county,
-    state: result.state,
-    address: result.address,
-    messageLines: lines
-  });
-  result.city = nyNormalized.city;
-  result.county = nyNormalized.county;
-  result.state = nyNormalized.state;
-  
   return result;
-}
-
-/**
- * SMS timestamp formatting: ALWAYS in Script timezone as "MM/dd/yyyy hh:mm:ss a"
- * Accepts payload timestamps as number (ms) or string (ISO), but always normalizes output.
- */
-function formatScriptTimestampFromPayload(payloadTimestamp) {
-  const tz = Session.getScriptTimeZone();
-
-  // If payload already looks like our desired format, return as-is
-  // "MM/dd/yyyy hh:mm:ss a"
-  const asString = payloadTimestamp !== null && payloadTimestamp !== undefined ? payloadTimestamp.toString().trim() : "";
-  if (/^\d{2}\/\d{2}\/\d{4}\s+\d{2}:\d{2}:\d{2}\s+[AP]M$/.test(asString)) {
-    return asString;
-  }
-
-  let d = null;
-
-  if (payloadTimestamp !== null && payloadTimestamp !== undefined && payloadTimestamp !== "") {
-    if (typeof payloadTimestamp === "number") {
-      // Support epoch seconds as well as millis
-      const n = payloadTimestamp;
-      d = new Date(n < 1e12 ? n * 1000 : n);
-    } else if (typeof payloadTimestamp === "string") {
-      const s = payloadTimestamp.trim();
-
-      // Numeric string: epoch seconds/millis
-      if (/^\d+$/.test(s)) {
-        const n = parseInt(s, 10);
-        d = new Date(n < 1e12 ? n * 1000 : n);
-      } else {
-        // ISO string or other Date-parsable string
-        d = new Date(s);
-      }
-    }
-  }
-
-  if (!d || isNaN(d.getTime())) {
-    d = new Date();
-  }
-
-  return Utilities.formatDate(d, tz, "MM/dd/yyyy hh:mm:ss a");
-}
-
-function getNonEmptyLines(message) {
-  return message
-    .split("\n")
-    .map((l) => (l || "").toString().trim())
-    .filter((l) => l.length > 0);
-}
-
-function redactDigitsForLogs(text) {
-  return (text || "").toString().replace(/\d/g, "X");
-}
-
-function getIncidentDigitsFromAlId(alId) {
-  const m = (alId || "").toString().match(/^AL-(\d{6,})$/);
-  return m ? m[1] : "";
-}
-
-function extractAdjustLeadsIncidentId(message, sender) {
-  const urlRegex = /https?:\/\/(?:www\.)?adjustleads\.(?:com|net)\/(?:app\/)?alerts\/(\d{6,})/i;
-  const lines = getNonEmptyLines(message);
-
-  // Prefer: the last (bottom-most) line containing the AdjustLeads URL.
-  // This aligns with "URL at end" while still tolerating occasional trailing lines/whitespace.
-  for (let i = lines.length - 1; i >= 0; i--) {
-    const line = lines[i];
-    const m = line.match(urlRegex);
-    if (m) {
-      const incidentId = `AL-${m[1]}`;
-      const matchedLineSnippet = redactDigitsForLogs(line).slice(0, 80);
-      Logger.log(
-        "[SMS] incidentId_extracted id=%s method=%s line=%s",
-        incidentId,
-        "adjustleads_url",
-        matchedLineSnippet
-      );
-      return {
-        incidentId: incidentId,
-        method: "adjustleads_url",
-        matchedLineSnippet: matchedLineSnippet,
-        adjustLeadsUrl: m[0]
-      };
-    }
-  }
-
-  // Fallback: last 6+ digit sequence ONLY if URL is absent and candidate line is safe.
-  // Defensive filters:
-  // - ignore maps/google URL lines
-  // - ignore any URL-containing lines (http/https)
-  // - ignore phone-like 10-11 digit sequences
-  let fallback = null;
-  let fallbackLine = "";
-  for (let i = lines.length - 1; i >= 0; i--) {
-    const line = lines[i];
-    const lower = line.toLowerCase();
-
-    if (lower.includes("maps.google.com") || lower.includes("google.com/maps") || lower.includes("maps.app.goo.gl")) {
-      continue;
-    }
-    if (lower.includes("http://") || lower.includes("https://")) {
-      continue;
-    }
-
-    // Ignore address/zip context lines to avoid mistaking ZIP+4 or other numeric address noise as an incidentId
-    if (/\b[A-Z]{2}\s+\d{5}(?:-\d{4})?\b/.test(line)) {
-      continue;
-    }
-    if (line.includes("📍")) {
-      continue;
-    }
-
-    const matches = line.match(/\b(\d{6,})\b/g);
-    if (!matches || matches.length === 0) {
-      continue;
-    }
-
-    // pick last match in this line
-    const candidate = matches[matches.length - 1];
-
-    // reject phone-like candidates
-    if (candidate.length === 10 || candidate.length === 11) {
-      continue;
-    }
-
-    fallback = candidate;
-    fallbackLine = line;
-    break;
-  }
-
-  if (fallback) {
-    const incidentId = `AL-${fallback}`;
-    const matchedLineSnippet = redactDigitsForLogs(fallbackLine).slice(0, 80);
-    Logger.log(
-      "[SMS] incidentId_extracted id=%s method=%s line=%s",
-      incidentId,
-      "fallback_digits",
-      matchedLineSnippet
-    );
-    return {
-      incidentId: incidentId,
-      method: "fallback_digits",
-      matchedLineSnippet: matchedLineSnippet,
-      adjustLeadsUrl: ""
-    };
-  }
-
-  // Last resort: hash-based stable ID (never used for upsert)
-  const hash = Utilities.computeDigest(
-    Utilities.DigestAlgorithm.MD5,
-    (sender || "") + (message || "").substring(0, 50)
-  );
-  const shortHash = hash
-    .slice(0, 8)
-    .map((b) => (b & 0xff).toString(16).padStart(2, "0"))
-    .join("");
-  const incidentId = `AL-${shortHash}`;
-  Logger.log("[SMS] incidentId_extracted id=%s method=%s line=%s", incidentId, "hash", "(hash)");
-  return {
-    incidentId: incidentId,
-    method: "hash",
-    matchedLineSnippet: "(hash)",
-    adjustLeadsUrl: ""
-  };
-}
-
-/**
- * NYC borough normalization helper (geocoding safety)
- * - Treat boroughs as counties when county missing
- * - Prefer city="New York" and county=<official county> for consistency
- */
-function normalizeNyBoroughs(input) {
-  const cityRaw = (input.city || "").toString().trim();
-  const countyRaw = (input.county || "").toString().trim();
-  const stateRaw = (input.state || "").toString().trim().toUpperCase();
-  const lines = Array.isArray(input.messageLines) ? input.messageLines : [];
-
-  const boroughMap = {
-    manhattan: { county: "New York", city: "New York" },
-    "new york": { county: "New York", city: "New York" },
-    brooklyn: { county: "Kings", city: "New York" },
-    queens: { county: "Queens", city: "New York" },
-    bronx: { county: "Bronx", city: "New York" },
-    "staten island": { county: "Richmond", city: "New York" }
-  };
-
-  function detectBoroughName(text) {
-    const t = (text || "").toString().trim().toLowerCase();
-    if (!t) return "";
-    if (t === "staten" || t === "statenisland") return "staten island";
-    if (boroughMap[t]) return t;
-    return "";
-  }
-
-  // Borough can be in city or county fields
-  let borough = detectBoroughName(cityRaw) || detectBoroughName(countyRaw);
-
-  // Or inferred from message lines
-  if (!borough) {
-    for (let i = 0; i < lines.length; i++) {
-      const l = lines[i].toLowerCase();
-      if (l.includes("manhattan")) borough = "manhattan";
-      else if (l.includes("brooklyn")) borough = "brooklyn";
-      else if (l.includes("queens")) borough = "queens";
-      else if (l.includes("bronx")) borough = "bronx";
-      else if (l.includes("staten island")) borough = "staten island";
-      if (borough) break;
-    }
-  }
-
-  // Apply only if NY OR borough clearly indicated
-  const shouldApply = stateRaw === "NY" || !!borough;
-  if (!shouldApply) {
-    return { city: cityRaw, county: countyRaw, state: stateRaw };
-  }
-
-  let outState = stateRaw || (borough ? "NY" : "");
-  let outCity = cityRaw;
-  let outCounty = countyRaw;
-
-  if (borough && boroughMap[borough]) {
-    // Fill missing pieces (do not overwrite non-empty county unless it's also borough name)
-    if (!outCounty || detectBoroughName(outCounty)) {
-      outCounty = boroughMap[borough].county;
-    }
-    if (!outCity || detectBoroughName(outCity)) {
-      outCity = boroughMap[borough].city;
-    }
-  }
-
-  return { city: outCity, county: outCounty, state: outState };
 }
 
 /**
@@ -779,47 +493,193 @@ function testSmsParser() {
   Logger.log("Is AdjustLeads: " + result.isAdjustLeads); // Should be: true
 }
 
-/**
- * Deterministic SMS parsing harness (3 cases)
- * Run in Apps Script editor and inspect Execution Logs.
- */
-function testSmsParsingExamples() {
+function getNonEmptyLines(text) {
+  return (text || "")
+    .toString()
+    .split(/\r?\n/)
+    .map(l => l.trim())
+    .filter(l => l.length > 0);
+}
+
+function formatScriptTimestampFromPayload(raw) {
+  const dt = parseTimestampToDate(raw) || new Date();
+  return Utilities.formatDate(dt, Session.getScriptTimeZone(), "MM/dd/yyyy hh:mm:ss a");
+}
+
+function parseTimestampToDate(raw) {
+  if (raw === null || raw === undefined) return null;
+
+  // If already formatted like "MM/dd/yyyy hh:mm:ss a", keep it as-is by parsing conservatively.
+  if (typeof raw === "string") {
+    const s = raw.trim();
+
+    // Already formatted (best-effort pass-through)
+    if (/^\d{1,2}\/\d{1,2}\/\d{4}\s+\d{1,2}:\d{2}:\d{2}\s+(AM|PM)$/i.test(s)) {
+      return new Date(s); // Apps Script Date parsing is locale-dependent, but acceptable here because we only re-format.
+    }
+
+    // Numeric string epoch seconds/millis
+    if (/^\d{10,13}$/.test(s)) {
+      const n = Number(s);
+      return epochNumberToDate(n);
+    }
+
+    // ISO or Date.toString() formats
+    const d = new Date(s);
+    return isNaN(d.getTime()) ? null : d;
+  }
+
+  if (typeof raw === "number") {
+    return epochNumberToDate(raw);
+  }
+
+  if (raw instanceof Date) {
+    return raw;
+  }
+
+  return null;
+}
+
+function epochNumberToDate(n) {
+  if (!isFinite(n)) return null;
+  // seconds vs millis
+  if (n < 1e12) return new Date(n * 1000);
+  return new Date(n);
+}
+
+function extractAdjustLeadsIncidentId(message, sender) {
+  const urlRegex = /https?:\/\/(?:www\.)?adjustleads\.(?:com|net)\/(?:app\/)?alerts\/(\d{6,})/i;
+  const lines = getNonEmptyLines(message);
+
+  // Prefer: bottom-most line containing the AdjustLeads URL
+  for (let i = lines.length - 1; i >= 0; i--) {
+    const line = lines[i];
+    const m = line.match(urlRegex);
+    if (m) {
+      return {
+        incidentId: `AL-${m[1]}`,
+        method: "adjustleads_url",
+        url: m[0],
+        lineSnippet: redactDigits(line)
+      };
+    }
+  }
+
+  // Fallback: last standalone 6+ digits from NON-URL lines only (no upsert)
+  let fallbackDigits = "";
+  let fallbackLine = "";
+  for (let i = lines.length - 1; i >= 0; i--) {
+    const line = lines[i];
+    const lower = line.toLowerCase();
+    if (lower.includes("http://") || lower.includes("https://")) continue;
+    if (lower.includes("maps.google") || lower.includes("google.com/maps")) continue;
+
+    // reject phone-like sequences 10-11 digits
+    if (/\b\d{10,11}\b/.test(line)) continue;
+
+    const m = line.match(/\b(\d{6,})\b/g);
+    if (m && m.length) {
+      fallbackDigits = m[m.length - 1];
+      fallbackLine = line;
+      break;
+    }
+  }
+
+  if (fallbackDigits) {
+    return {
+      incidentId: `AL-${fallbackDigits}`,
+      method: "fallback_digits",
+      url: "",
+      lineSnippet: redactDigits(fallbackLine)
+    };
+  }
+
+  // Last resort: stable hash on sender + prefix
+  const hashBytes = Utilities.computeDigest(
+    Utilities.DigestAlgorithm.MD5,
+    (sender || "") + (message || "").toString().substring(0, 50),
+    Utilities.Charset.UTF_8
+  );
+  const hex = hashBytes.map(b => (b < 0 ? b + 256 : b).toString(16).padStart(2, "0")).join("");
+  return {
+    incidentId: `AL-${hex.substring(0, 16)}`,
+    method: "hash",
+    url: "",
+    lineSnippet: ""
+  };
+}
+
+function getAdjustLeadsDigitsFromIncidentId(incidentId) {
+  const m = (incidentId || "").toString().match(/^AL-(\d{6,})$/);
+  return m ? m[1] : "";
+}
+
+function redactDigits(text) {
+  return (text || "").toString().replace(/\d/g, "X").slice(0, 160);
+}
+
+function normalizeNyBoroughsInPlace(parsed) {
+  const state = (parsed.state || "").toString().trim().toUpperCase();
+  const cityRaw = (parsed.city || "").toString().trim();
+
+  if (state !== "NY") return;
+
+  const city = cityRaw.toLowerCase();
+  const map = {
+    "manhattan": { county: "New York", city: "New York" },
+    "brooklyn": { county: "Kings", city: "New York" },
+    "queens": { county: "Queens", city: "New York" },
+    "bronx": { county: "Bronx", city: "New York" },
+    "staten island": { county: "Richmond", city: "New York" }
+  };
+
+  if (map[city]) {
+    parsed.county = map[city].county;
+    parsed.city = map[city].city;
+  }
+}
+
+// Diagnostics
+function testSmsWiringDiagnostics() {
   const examples = [
     {
-      name: "1) Standard AdjustLeads w/ URL at end",
+      name: "AdjustLeads standard",
       sender: "+1 888-660-1455",
       message: `🔥 New Fire Alert in Morris County
 📍 31 Grand Avenue, Cedar Knolls, NJ
 🗺️ https://maps.google.com/?q=31+Grand+Avenue+Cedar+Knolls+NJ
 📋 Residential Fire - Possible structure fire with smoke showing
-ℹ️ https://www.adjustleads.com/app/alerts/294966`
+ℹ️ https://www.adjustleads.com/app/alerts/294966`,
+      ts: "2025-12-30T20:01:21Z"
     },
     {
-      name: "2) NYC borough (Manhattan) missing county",
+      name: "NYC Manhattan normalization",
       sender: "+1 888-660-1455",
-      message: `🔥 New Fire Alert
-📍 123 Broadway, Manhattan, NY
-📋 Residential Fire - Smoke in lobby
-ℹ️ https://www.adjustleads.com/app/alerts/555666`
+      message: `🔥 New Fire Alert in New York County
+📍 10 Whitehall St, Manhattan, NY
+📋 Electrical Fire - Small fire on the wall with crews opening up.
+ℹ️ https://www.adjustleads.com/app/alerts/12554444`,
+      ts: 1767138546261
     },
     {
-      name: "3) Multiple numbers (maps + zip + id) - ensure correct incidentId",
+      name: "No URL noisy digits (no upsert)",
       sender: "+1 888-660-1455",
       message: `🔥 New Fire Alert
-📍 10 Main Street, Queens, NY 11101
-🗺️ https://maps.google.com/?q=10+Main+Street+Queens+NY+11101
-📋 Residential Fire - Caller reports smoke
-ℹ️ See map for details (no AdjustLeads link present)`
+📍 719 East 11th Street, Ocean City, NJ 08226
+🗺️ https://maps.google.com/?q=719+East+11th+Street+Ocean+City+NJ+08226
+📋 Structural Fire - reported in a structure at the addressed location`,
+      ts: "12/30/2025 08:01:21 PM"
     }
   ];
 
-  Logger.log("=== testSmsParsingExamples ===");
-  for (let i = 0; i < examples.length; i++) {
-    const ex = examples[i];
-    const r = parseAdjustLeadsSms(ex.message, ex.sender);
+  Logger.log("=== SMS Wiring Diagnostics ===");
+  for (const ex of examples) {
+    const parsed = parseAdjustLeadsSms(ex.message, ex.sender);
+    const ts = formatScriptTimestampFromPayload(ex.ts);
     Logger.log("--- %s ---", ex.name);
-    Logger.log("incidentId=%s method=%s line=%s", r.incidentId, r.incidentIdMethod, r.incidentIdLineSnippet);
-    Logger.log("state=%s county=%s city=%s address=%s", r.state, r.county, r.city, r.address);
-    Logger.log("type=%s details=%s", r.incidentType, r.incidentDetails);
+    Logger.log("timestamp=%s", ts);
+    Logger.log("incidentId=%s method=%s snippet=%s", parsed.incidentId, parsed.incidentIdMethod, parsed.incidentIdLineSnippet);
+    Logger.log("state=%s county=%s city=%s address=%s", parsed.state, parsed.county, parsed.city, parsed.address);
+    Logger.log("type=%s details=%s", parsed.incidentType, parsed.incidentDetails);
   }
 }

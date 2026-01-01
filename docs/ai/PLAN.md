@@ -1,413 +1,519 @@
-# IMPLEMENTATION PLAN - Observability Completion
+# IMPLEMENTATION PLAN - Apps Script SMS Parsing Fix
 
-**Created:** 2025-12-26  
+**Created:** 2025-12-30 (Session 9.3)  
 **Target Branch:** `fix/wiring-sources-endpoints`  
-**Planning Agent:** Cursor AI (Sequential Thinking Mode)
+**Planning Agent:** Cursor AI (Sequential Thinking + Serena MCP)  
+**Authoritative Source:** `parsing.md` (JSON contracts, parsing rules, sheet schema)
 
 ---
 
 ## 🎯 OBJECTIVE
 
-Complete the observability stack implementation by adding:
-1. **Structured Logging** with queryable tags
-2. **Debug Screen** for delivery/queue inspection
-3. **Test Crash Trigger** for Crashlytics verification
+Fix Apps Script SMS parsing and row merge logic to ensure:
+1. **Stable Incident IDs** for AdjustLeads SMS (AL-xxxxxx format)
+2. **Correct row upsert** (new vs update detection by Column C)
+3. **Multi-line append** behavior for updates (Status, Timestamp, Type, Details, Original)
+4. **Address immutability** (Columns D/E/F/G never change on updates)
+5. **BNN non-regression** (existing BNN handling must remain unchanged)
 
-**Non-Goal:** Architecture changes, scope expansion, or breaking changes to existing delivery flow.
-
----
-
-## 📋 PREREQUISITES
-
-### ✅ Already Complete
-- Firebase Crashlytics plugin + SDK
-- Firebase Performance plugin + SDK
-- LeakCanary (debug builds)
-- Chucker HTTP inspector (debug builds)
-- Detekt + Ktlint static analysis
-- Sentry SDK (release builds, SDK-only)
-- OkHttp logging interceptor
-
-### ⚠️ Verification Needed
-- [ ] Chucker actually intercepts HTTP calls
-- [ ] LeakCanary notification appears
-- [ ] Crashlytics can receive test crashes
-- [ ] Detekt/Ktlint tasks run successfully
+**Non-Goal:** Android changes, architecture refactoring, or scope expansion beyond Apps Script parsing.
 
 ---
 
-## 🏗️ IMPLEMENTATION PHASES
+## 📋 CONTEXT & PROBLEM STATEMENT
 
-### Phase 1: Test Crash Trigger (P0)
-**Estimated Effort:** 30 minutes  
-**Risk:** Low (isolated change)
+### Symptoms (User Reported)
+- SMS events landing in Google Sheet but **not parsed consistently**
+- `parsed:false` returned from Apps Script for AdjustLeads SMS
+- Possible "5 rows per SMS" duplication bug
+- Placeholders persisting in sheet (not replaced with actual data)
 
-#### Tasks
-1. **Add Test Crash Button to Lab**
-   - File: `android/app/src/main/java/com/example/alertsheets/ui/MainActivity.kt`
-   - Action: Add button to Lab card (debug builds only)
-   - Implementation:
-     ```kotlin
-     if (BuildConfig.DEBUG) {
-         btnTestCrash.setOnClickListener {
-             FirebaseCrashlytics.getInstance().log("User triggered test crash")
-             throw RuntimeException("Test crash from Lab button")
-         }
-     }
-     ```
+### Root Causes Identified
+1. **`parseFireAlertSms()` inadequate** for AdjustLeads emoji-delimited format
+2. **`handleSmsMessage()` always created new rows** with non-stable IDs (`SMS-${Date.now()}`)
+3. **No row search/upsert logic** for SMS (unlike BNN, which had it)
+4. **Incident ID extraction** not implemented for AdjustLeads URLs
 
-2. **Add Button to Layout**
-   - File: `android/app/src/main/res/layout/activity_main_dashboard.xml`
-   - Action: Add button inside Lab card (visibility controlled by BuildConfig)
-
-3. **Verify Crashlytics Reception**
-   - Build debug APK
-   - Install on device
-   - Trigger crash
-   - Wait 5 minutes
-   - Check Firebase Console → Crashlytics
-
-#### Success Criteria
-- ✅ Button only visible in debug builds
-- ✅ Crash appears in Firebase Console within 5 minutes
-- ✅ Stack trace includes "Test crash from Lab button"
+### Authoritative Source
+**`parsing.md`** defines:
+- JSON contracts (Android → Apps Script)
+- Sheet schema (columns A-K+)
+- Parsing rules (BNN vs SMS)
+- Row merge invariants (Column C = primary key)
+- Safety checks (BNN must not regress)
 
 ---
 
-### Phase 2: Structured Logging (P1)
-**Estimated Effort:** 2-3 hours  
-**Risk:** Medium (touches delivery flow)
+## 🏗️ IMPLEMENTATION (SESSION 9.3)
 
-#### Tasks
+### ✅ Completed Tasks
 
-##### 2.1: Create StructuredLogger Utility
-- **File:** `android/app/src/main/java/com/example/alertsheets/utils/StructuredLogger.kt`
-- **Purpose:** Centralize all logging with consistent tag format
-- **API Design:**
-  ```kotlin
-  object StructuredLogger {
-      fun logDelivery(
-          sourceId: String,
-          endpointId: String,
-          alertId: String,
-          deliveryId: String,
-          status: String,
-          httpCode: Int? = null,
-          latency: Long? = null,
-          error: String? = null
-      )
-      
-      fun logQueueState(
-          alertId: String,
-          state: String, // "enqueued", "sent", "failed"
-          reason: String? = null
-      )
-      
-      fun logPipeline(
-          sourceId: String,
-          stage: String, // "parse", "validate", "enqueue"
-          alertId: String,
-          success: Boolean,
-          details: String? = null
-      )
+#### 1. Created Backup
+**File:** `scripts/Code.gs.backup-20251230`
+- Full backup of original Apps Script before changes
+- Enables easy rollback if needed
+
+#### 2. Replaced `parseFireAlertSms()` with `parseAdjustLeadsSms()`
+**File:** `scripts/Code.gs` (lines 265-452, ~188 lines)
+
+**New capabilities:**
+- **3-tier incident ID extraction:**
+  1. Primary: AdjustLeads URL → `AL-294966`
+  2. Fallback: Last 6-digit number → `AL-xxxxxx`
+  3. Last resort: MD5 hash → `AL-<hash>`
+- **Emoji-aware line parsing:**
+  - 🔥 line → County extraction
+  - 📍 line → Address/City/State parsing
+  - 📋 line → Incident type + details
+  - ℹ️ line → AdjustLeads URL capture
+- **Robust regex patterns** (handles variations: adjustleads.com, .net, /app/, etc.)
+- **Returns structured object** with all parsed fields
+
+**Key code patterns:**
+```javascript
+// Incident ID extraction (3-tier)
+const urlMatch = message.match(/https?:\/\/(?:www\.)?adjustleads\.(?:com|net)\/(?:app\/)?alerts\/(\d{6,})/i);
+if (urlMatch) {
+  result.incidentId = `AL-${urlMatch[1]}`;
+} else {
+  // Fallback logic...
+}
+
+// Emoji-aware parsing
+if (line.includes('🔥') || line.includes('Fire Alert')) {
+  const countyMatch = line.match(/(?:in|at)\s+(\w+(?:\s+\w+)?)\s+County/i);
+  if (countyMatch) result.county = countyMatch[1].trim();
+}
+```
+
+#### 3. Replaced `handleSmsMessage()` with Row Upsert Logic
+**File:** `scripts/Code.gs` (lines 204-336, ~133 lines)
+
+**New behavior:**
+- **Generic SMS path** (backward compatible):
+  - If not AdjustLeads format → create single row with `SMS-${Date.now()}` ID
+  - Return `parsed: false`
+- **AdjustLeads SMS path:**
+  - Parse message → extract stable incident ID
+  - **Search existing rows** by Column C (same logic as BNN)
+  - **If found (UPDATE):**
+    - Append "\nSMS Update" to Column A
+    - Append "\n{timestamp}" to Column B
+    - Append new incident type to Column H (if different)
+    - Append new details to Column I
+    - Append "\n\nFrom: {sender}\n{message}" to Column J
+    - **DO NOT MODIFY** Columns D/E/F/G
+  - **If not found (NEW):**
+    - Create new row with stable AL-* ID in Column C
+    - Populate all columns (D/E/F/G with parsed location)
+    - Return `action: "new"`
+
+**Key code patterns:**
+```javascript
+// Row search (same as BNN)
+const lastRow = sheet.getLastRow();
+let foundRow = -1;
+if (lastRow > 1) {
+  const idValues = sheet.getRange(2, 3, lastRow - 1, 1).getValues();
+  for (let i = 0; i < idValues.length; i++) {
+    const sheetId = idValues[i][0].toString().trim();
+    if (sheetId === incidentId) {
+      foundRow = i + 2;
+      break;
+    }
   }
-  ```
+}
 
-- **Output Format:**
-  ```
-  [DELIVERY] sourceId=bnn_app endpointId=apps_script alertId=abc123 deliveryId=def456 status=success httpCode=200 latency=234ms
-  [QUEUE] alertId=abc123 state=enqueued
-  [PIPELINE] sourceId=bnn_app stage=parse alertId=abc123 success=true
-  ```
+// UPDATE path: append to multi-line cells
+if (foundRow !== -1) {
+  const statusCell = sheet.getRange(foundRow, 1);
+  statusCell.setValue(statusCell.getValue() + "\nSMS Update");
+  // ... append to other cells ...
+}
+```
 
-##### 2.2: Integrate into Existing Code
-- **Files to Modify:**
-  - `android/app/src/main/java/com/example/alertsheets/utils/HttpClient.kt`
-  - `android/app/src/main/java/com/example/alertsheets/domain/DataPipeline.kt`
-  - `android/app/src/main/java/com/example/alertsheets/data/QueueProcessor.kt`
+#### 4. Added `testSmsParser()` Function
+**File:** `scripts/Code.gs` (lines 489-510)
 
-- **Integration Points:**
-  1. **HttpClient.post()** - Log delivery start/success/failure
-  2. **DataPipeline.process()** - Log parse/validate/enqueue stages
-  3. **QueueProcessor.processQueue()** - Log queue state changes
+**Purpose:** Pre-deployment verification of parsing logic
+**Usage:** Run directly in Apps Script Editor (Extensions → Apps Script → Run)
 
-##### 2.3: Store Recent Logs for Debug Screen
-- Extend existing `LogRepository` to store structured logs
-- Keep last 50 deliveries + last 50 queue states in memory
-- Persist to SharedPreferences (JSON array)
+**Test message:**
+```javascript
+const testMessage = `🔥 New Fire Alert in Morris County
+📍 31 Grand Avenue, Cedar Knolls, NJ
+🗺️ https://maps.google.com/?q=31+Grand+Avenue+Cedar+Knolls+NJ
+📋 Residential Fire - Possible structure fire with smoke showing
+ℹ️ https://www.adjustleads.com/app/alerts/294966`;
+```
 
-#### Success Criteria
-- ✅ All HTTP deliveries logged with SOURCE_ID, ENDPOINT_ID, ALERT_ID, DELIVERY_ID
-- ✅ All queue state changes logged
-- ✅ Logs queryable via `adb logcat -s "DELIVERY:*" "QUEUE:*" "PIPELINE:*"`
-- ✅ Recent logs persisted for Debug Screen
+**Expected output:**
+```
+Incident ID: AL-294966
+County: Morris
+Address: 31 Grand Avenue
+City: Cedar Knolls
+State: NJ
+Type: Residential Fire
+Details: Possible structure fire with smoke showing
+Is AdjustLeads: true
+```
+
+#### 5. Updated `docs/ai/STATE.md`
+**Section:** SESSION 9.3 SUMMARY: Apps Script SMS Parsing Fix
+
+**Content:**
+- Problem statement + root causes
+- Files changed (3 functions replaced, 1 test added)
+- Verification commands (Apps Script test + curl tests)
+- Acceptance checklist (SMS parsing, row upsert, BNN regression, generic SMS)
 
 ---
 
-### Phase 3: Debug Screen (P1)
-**Estimated Effort:** 3-4 hours  
-**Risk:** Low (new code, no changes to existing)
+## 🧪 TESTING STRATEGY (PENDING USER ACTION)
 
-#### Tasks
+### Pre-Deployment Test (Apps Script Editor)
 
-##### 3.1: Create DebugActivity
-- **File:** `android/app/src/main/java/com/example/alertsheets/ui/DebugActivity.kt`
-- **Layout:** `android/app/src/main/res/layout/activity_debug.xml`
-- **Features:**
-  - Two tabs: "Deliveries" | "Queue"
-  - RecyclerView showing last 20 items
-  - Pull-to-refresh
-  - Export to clipboard button
+**Test:** `testSmsParser()` function
+**Status:** ⏳ PENDING
 
-##### 3.2: Delivery View (Tab 1)
-- **Data Source:** `LogRepository.getRecentDeliveries(limit = 20)`
-- **Columns:**
-  - Timestamp
-  - Source ID
-  - Endpoint ID
-  - Status (colored: green=success, red=error, yellow=pending)
-  - HTTP Code
-  - Latency (ms)
-  - Error snippet (first 50 chars)
+```javascript
+// In Apps Script Editor: Extensions → Apps Script
+// Run: testSmsParser()
+// Check: Logs (View → Logs or Ctrl+Enter)
 
-##### 3.3: Queue View (Tab 2)
-- **Data Source:** `LogRepository.getRecentQueueStates(limit = 20)`
-- **Columns:**
-  - Timestamp
-  - Alert ID
-  - State (enqueued/sent/failed)
-  - Reason (if failed)
+// Expected output:
+// Incident ID: AL-294966
+// County: Morris
+// Address: 31 Grand Avenue
+// City: Cedar Knolls
+// State: NJ
+// Type: Residential Fire
+// Details: Possible structure fire with smoke showing
+// Is AdjustLeads: true
+```
 
-##### 3.4: Wire Entry Point
-- **Option A:** Add "Debug" tile to MainActivity (debug builds only)
-- **Option B:** Add button to Lab card
-- **Decision:** Use Option A (cleaner, follows existing pattern)
-
-#### Success Criteria
-- ✅ Debug tile only visible in debug builds
-- ✅ Screen shows last 20 deliveries + queue states
-- ✅ Data updates on pull-to-refresh
-- ✅ Export to clipboard works
+**PASS CRITERIA:**
+- All fields extracted correctly
+- Incident ID format: `AL-{digits}`
+- No JavaScript errors
 
 ---
 
-### Phase 4: Charles Proxy Documentation (P1)
-**Estimated Effort:** 1 hour  
-**Risk:** None (documentation only)
+### Post-Deployment Tests (curl + Google Sheets)
 
-#### Tasks
-1. **Create Guide:** `docs/CHARLES_PROXY_SETUP.md`
-2. **Content:**
-   - Install Charles on Windows 11
-   - Configure Android device proxy
-   - Install SSL certificate on device
-   - Filter for `alerts-sheets-bb09c.cloudfunctions.net`
-   - Troubleshooting common issues
+#### Test 1: BNN Non-Regression
+**Goal:** Verify BNN handling unchanged (lines 29-198 preserved)
+**Status:** ⏳ PENDING
 
-#### Success Criteria
-- ✅ Step-by-step guide with screenshots
-- ✅ Works on Samsung OneUI devices
-- ✅ Captures HTTPS traffic from app
+```bash
+# Send BNN test payload
+curl -X POST "https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "source": "bnn",
+    "incidentId": "#9999999",
+    "status": "New Incident",
+    "timestamp": "12/30/2025 12:00:00 PM",
+    "state": "NJ",
+    "county": "Test",
+    "city": "TestCity",
+    "address": "123 Test St",
+    "incidentType": "Test Fire",
+    "incidentDetails": "BNN regression test",
+    "fdCodes": ["test1", "test2"],
+    "originalBody": "BNN test message"
+  }'
+
+# Expected response:
+# {"result":"success","type":"bnn","incidentId":"#9999999","action":"new"}
+
+# Verify in Google Sheets:
+# - New row created
+# - Column C = #9999999
+# - FD codes in columns K+
+# - All fields populated correctly
+```
+
+**PASS CRITERIA:**
+- Response: `result: "success"`, `action: "new"`
+- Sheet: New row with `#9999999` in Column C
+- FD codes deduped and filtered correctly
 
 ---
 
-## 🧪 TESTING STRATEGY
+#### Test 2: AdjustLeads SMS (New Row)
+**Goal:** Verify stable ID extraction + new row creation
+**Status:** ⏳ PENDING
 
-### Manual Testing Checklist
-
-#### Test Crash Trigger
 ```bash
-# 1. Build debug APK
-cd android
-./gradlew :app:assembleDebug
+# Send AdjustLeads SMS payload
+curl -X POST "https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "source": "sms",
+    "sender": "+15614193784",
+    "message": "🔥 New Fire Alert in Bergen\n\n📍 2100 North Central Road, Fort Lee, NJ 07024-7558, USA\n🗺️ https://maps.google.com/?q=2100+North+Central+Road+Fort+Lee+NJ\n📋 Structural Fire - First engine on scene\nℹ️ https://www.adjustleads.com/app/alerts/294966",
+    "timestamp": "12/30/2025 12:30:00 PM"
+  }'
 
-# 2. Install
-adb install -r app/build/outputs/apk/debug/app-debug.apk
+# Expected response:
+# {"result":"success","type":"sms","incidentId":"AL-294966","action":"new","parsed":true}
 
-# 3. Trigger crash
-# - Open app
-# - Navigate to Lab card
-# - Tap "Test Crash" button
-# - App should crash immediately
-
-# 4. Verify in Firebase Console (wait 5 min)
-# https://console.firebase.google.com/project/alerts-sheets-bb09c/crashlytics
+# Verify in Google Sheets:
+# - New row created
+# - Column C = AL-294966
+# - Column E = Bergen
+# - Column F = Fort Lee
+# - Column G = 2100 North Central Road
+# - Column H = Structural Fire
+# - Column I = First engine on scene
+# - Column J starts with "From: +1561..."
 ```
 
-#### Test Structured Logging
-```bash
-# 1. Send test notification
-adb shell cmd notification post -S bigtext -t "BNN Alert" "Test Alert" com.example.alertsheets 1
-
-# 2. Check Logcat for structured logs
-adb logcat -s "DELIVERY:*" "QUEUE:*" "PIPELINE:*"
-
-# Expected output:
-# [PIPELINE] sourceId=bnn_app stage=parse alertId=... success=true
-# [QUEUE] alertId=... state=enqueued
-# [DELIVERY] sourceId=bnn_app endpointId=apps_script alertId=... status=success httpCode=200
-```
-
-#### Test Debug Screen
-```bash
-# 1. Open Debug tile
-# 2. Verify deliveries shown
-# 3. Switch to Queue tab
-# 4. Pull to refresh
-# 5. Tap "Export to Clipboard"
-# 6. Paste in text editor - verify JSON format
-```
-
-#### Test Chucker
-```bash
-# 1. Send test notification
-# 2. Pull down notification shade
-# 3. Tap "Chucker" notification
-# 4. Verify HTTP request to Cloud Functions visible
-# 5. Check request headers + body
-```
-
-#### Test LeakCanary
-```bash
-# 1. Navigate through all activities multiple times
-# 2. Wait 5 minutes
-# 3. If leak detected, notification will appear
-# 4. Tap notification to see leak trace
-```
+**PASS CRITERIA:**
+- Response: `parsed: true`, `action: "new"`, `incidentId: "AL-294966"`
+- Sheet: New row with `AL-294966` in Column C
+- Location fields (D/E/F/G) populated correctly
 
 ---
 
-## 🚨 RISK MITIGATION
+#### Test 3: AdjustLeads SMS (Update Existing Row)
+**Goal:** Verify row upsert (append, not duplicate)
+**Status:** ⏳ PENDING
 
-### Risk 1: Breaking Existing Delivery Flow
-**Probability:** Low  
-**Impact:** High  
-**Mitigation:**
-- Only add logging, don't modify existing logic
-- Use try-catch around all logging calls
-- Test with real BNN notifications before committing
+```bash
+# Send SAME AdjustLeads SMS again (same incident ID)
+curl -X POST "https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "source": "sms",
+    "sender": "+15614193784",
+    "message": "🔥 Update: Fire now under control in Bergen\n\n📍 2100 North Central Road, Fort Lee, NJ 07024-7558, USA\n📋 Structural Fire - Units returning to station\nℹ️ https://www.adjustleads.com/app/alerts/294966",
+    "timestamp": "12/30/2025 01:00:00 PM"
+  }'
 
-### Risk 2: Performance Impact from Logging
-**Probability:** Medium  
-**Impact:** Low  
-**Mitigation:**
-- Use async logging (coroutines)
-- Limit in-memory log storage to 50 items
-- Make Debug Screen opt-in (not auto-started)
+# Expected response:
+# {"result":"success","type":"sms","incidentId":"AL-294966","action":"update","parsed":true}
 
-### Risk 3: Crashlytics Test Not Appearing
-**Probability:** Medium  
-**Impact:** Low  
-**Mitigation:**
-- Verify `google-services.json` present
-- Check Firebase project ID matches
-- Wait full 5 minutes (Crashlytics batches uploads)
-- Check device internet connectivity
+# Verify in Google Sheets:
+# - SAME ROW updated (no new row created)
+# - Column A: "SMS Fire Alert\nSMS Update"
+# - Column B: original timestamp + "\n12/30/2025 01:00:00 PM"
+# - Column H: "Structural Fire" (no duplicate if same)
+# - Column I: original details + "\nUnits returning to station"
+# - Column J: original + "\n\nFrom: +1561...\n[new message]"
+# - Columns D/E/F/G UNCHANGED
+```
+
+**PASS CRITERIA:**
+- Response: `action: "update"` (not "new")
+- Sheet: Same row updated, NO NEW ROW CREATED
+- Multi-line append in columns A/B/H/I/J
+- Columns D/E/F/G remain unchanged
+
+---
+
+#### Test 4: Generic SMS (Non-AdjustLeads)
+**Goal:** Verify backward compatibility for non-fire SMS
+**Status:** ⏳ PENDING
+
+```bash
+# Send generic SMS (no AdjustLeads format)
+curl -X POST "https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "source": "sms",
+    "sender": "+12125551234",
+    "message": "Hey, this is just a regular text message.",
+    "timestamp": "12/30/2025 02:00:00 PM"
+  }'
+
+# Expected response:
+# {"result":"success","type":"sms","sender":"+12125551234","parsed":false}
+
+# Verify in Google Sheets:
+# - New row created
+# - Column A = "SMS"
+# - Column C = SMS-{timestamp} (one-off ID)
+# - Column G = "From: +1212..."
+# - Column H = "SMS Message"
+# - Column I = message text
+# - Column J = "From: +1212...\n{message}"
+```
+
+**PASS CRITERIA:**
+- Response: `parsed: false`
+- Sheet: New row with generic format
+- No parsing attempted (simple passthrough)
+
+---
+
+## 🚨 SAFETY CHECKS & INVARIANTS
+
+### Non-Negotiable Rules (from parsing.md)
+
+1. **BNN handler correctness is sacred**
+   - Lines 29-198 in Code.gs MUST NOT REGRESS
+   - FD code deduplication logic preserved
+   - Row merge by Column C preserved
+
+2. **Row merge is always by Column C**
+   - Search logic identical for BNN and SMS
+   - Incident ID uniqueness enforced
+
+3. **Updates never rewrite D/E/F/G**
+   - Location fields (State/County/City/Address) immutable on updates
+   - Only multi-line fields (A/B/H/I/J) append on updates
+
+4. **FD codes are unique per incident**
+   - BNN-specific logic (not applicable to SMS)
+   - Must remain functional for BNN tests
+
+### Implementation Safety
+
+**What was preserved:**
+- ✅ BNN `doPost()` handler (lines 1-203)
+- ✅ BNN incident ID extraction (`/#(\d{7})/`)
+- ✅ BNN FD code deduplication
+- ✅ BNN row merge logic
+
+**What was replaced:**
+- ❌ `parseFireAlertSms()` (inadequate)
+- ❌ `handleSmsMessage()` (always created new rows)
+
+**Rollback plan:**
+- Backup file: `scripts/Code.gs.backup-20251230`
+- If any issues: restore backup and redeploy
 
 ---
 
 ## 📦 DELIVERABLES
 
-### Code Artifacts
-1. `android/app/src/main/java/com/example/alertsheets/utils/StructuredLogger.kt`
-2. `android/app/src/main/java/com/example/alertsheets/ui/DebugActivity.kt`
-3. `android/app/src/main/res/layout/activity_debug.xml`
-4. Modified: `MainActivity.kt`, `HttpClient.kt`, `DataPipeline.kt`, `QueueProcessor.kt`
+### ✅ Code Artifacts (COMPLETED)
+1. ✅ `scripts/Code.gs` (~165 lines modified)
+   - Replaced `parseFireAlertSms()` → `parseAdjustLeadsSms()` (lines 265-452)
+   - Replaced `handleSmsMessage()` with row upsert logic (lines 204-336)
+   - Added `testSmsParser()` function (lines 489-510)
+2. ✅ `scripts/Code.gs.backup-20251230` (full backup)
 
-### Documentation
-1. `docs/CHARLES_PROXY_SETUP.md`
-2. Updated: `CLAUDE.md` (add observability testing section)
-3. Updated: `README.md` (add Gradle tasks for detekt/ktlint)
+### ✅ Documentation (COMPLETED)
+1. ✅ `docs/ai/STATE.md` - Session 9.3 summary added
+   - Problem statement + root causes
+   - Files changed + verification steps
+   - Acceptance checklist
+2. ✅ `docs/ai/PLAN.md` - Updated to reflect Session 9.3 work (this file)
+3. ✅ `parsing.md` - Authoritative source of truth (already existed)
 
-### Build Artifacts
-1. `app-debug.apk` (with all observability tools)
-2. `app-release.apk` (for final verification)
-
-### Proof of Work
-1. Screenshot: Test crash in Firebase Console
-2. Screenshot: Chucker network inspection
-3. Screenshot: Debug Screen showing deliveries
-4. Terminal output: Structured logs from Logcat
-5. Terminal output: `./gradlew detekt ktlintCheck` success
+### ⏳ Testing Artifacts (PENDING USER ACTION)
+1. ⏳ Apps Script Editor test output (testSmsParser logs)
+2. ⏳ curl test results (BNN, AdjustLeads new/update, generic SMS)
+3. ⏳ Google Sheets screenshots showing:
+   - BNN row (non-regression)
+   - AdjustLeads new row (with AL-* ID)
+   - AdjustLeads update (same row, multi-line append)
+   - Generic SMS row (backward compat)
 
 ---
 
 ## 🔄 ROLLBACK PLAN
 
-If implementation causes issues:
+### If Apps Script Fails After Deployment
 
-1. **Immediate:** Revert to commit `03699e8`
-   ```bash
-   git reset --hard 03699e8
-   ./gradlew clean
-   ./gradlew :app:assembleDebug
-   ```
+**Option 1: Restore from backup**
+```bash
+# Copy backup to active file
+cp scripts/Code.gs.backup-20251230 scripts/Code.gs
 
-2. **Partial:** Remove only problematic feature
-   - Test crash button: Remove from layout + MainActivity
-   - Structured logging: Comment out StructuredLogger calls
-   - Debug screen: Remove tile from MainActivity
+# Upload to Apps Script:
+# 1. Open Apps Script Editor (script.google.com)
+# 2. Select project
+# 3. Replace Code.gs content with backup
+# 4. Save (Ctrl+S)
+# 5. Deploy → New deployment (or update existing)
+```
 
-3. **Nuclear:** Checkout clean branch
-   ```bash
-   git checkout -b observability-rollback
-   git revert HEAD~3..HEAD  # Revert last 3 commits
-   ```
-
----
-
-## 📅 TIMELINE ESTIMATE
-
-| Phase | Effort | Dependencies | Blocker Risk |
-|-------|--------|--------------|--------------|
-| Test Crash Trigger | 30 min | None | Low |
-| Structured Logging | 2-3 hours | None | Medium |
-| Debug Screen | 3-4 hours | Structured Logging | Low |
-| Charles Docs | 1 hour | None | None |
-| **TOTAL** | **6-8 hours** | - | - |
+**Option 2: Targeted fix**
+- If only SMS parsing broken: revert `parseAdjustLeadsSms()` only
+- If only SMS upsert broken: revert `handleSmsMessage()` only
+- Keep test function for future debugging
 
 ---
 
-## ✅ DEFINITION OF DONE
+## 📅 TIMELINE
 
-### Phase 1: Test Crash Trigger
-- [ ] Button visible only in debug builds
-- [ ] Crash appears in Firebase Console
-- [ ] Stack trace includes marker text
-- [ ] No impact on release builds
-
-### Phase 2: Structured Logging
-- [ ] All HTTP deliveries tagged
-- [ ] All queue states tagged
-- [ ] Logs queryable via Logcat
-- [ ] Recent logs persisted
-- [ ] No performance degradation
-- [ ] No crashes in production flow
-
-### Phase 3: Debug Screen
-- [ ] Activity created + wired to Dashboard
-- [ ] Shows last 20 deliveries
-- [ ] Shows last 20 queue states
-- [ ] Pull-to-refresh works
-- [ ] Export to clipboard works
-- [ ] Only accessible in debug builds
-
-### Phase 4: Charles Docs
-- [ ] Guide created with screenshots
-- [ ] Tested on Windows 11 + Android device
-- [ ] Captures HTTPS traffic successfully
-
-### Overall
-- [ ] `./gradlew :app:assembleDebug` - SUCCESS
-- [ ] `./gradlew :app:assembleRelease` - SUCCESS
-- [ ] `./gradlew detekt` - No new issues
-- [ ] `./gradlew ktlintCheck` - PASS
-- [ ] Manual test checklist 100% complete
-- [ ] All deliverables committed
-- [ ] `CLAUDE.md` updated
-- [ ] `STATE.md` updated
+| Task | Status | Duration | Completed |
+|------|--------|----------|-----------|
+| Context reset | ✅ DONE | 5 min | 2025-12-30 |
+| Code backup | ✅ DONE | 1 min | 2025-12-30 |
+| Replace parseFireAlertSms | ✅ DONE | 45 min | 2025-12-30 |
+| Replace handleSmsMessage | ✅ DONE | 60 min | 2025-12-30 |
+| Add testSmsParser | ✅ DONE | 15 min | 2025-12-30 |
+| Update STATE.md | ✅ DONE | 30 min | 2025-12-30 |
+| Update PLAN.md | ✅ DONE | 20 min | 2025-12-30 |
+| **User testing** | ⏳ PENDING | 30 min | TBD |
+| **TOTAL** | **~3.5 hours** | - | - |
 
 ---
 
-**This plan is ready for Execution Agent to implement. No architecture decisions required.**
+## ✅ ACCEPTANCE CRITERIA
+
+### Implementation (✅ COMPLETED)
+- [x] Backup created
+- [x] `parseAdjustLeadsSms()` implemented with 3-tier ID extraction
+- [x] `handleSmsMessage()` implements row upsert logic
+- [x] `testSmsParser()` function added
+- [x] STATE.md updated with Session 9.3 summary
+- [x] PLAN.md updated to reflect current work
+- [x] BNN handler (lines 29-198) preserved
+
+### Testing (⏳ PENDING USER ACTION)
+- [ ] `testSmsParser()` runs without errors (Apps Script Editor)
+- [ ] BNN test payload: creates new row with `#xxxxxxx` ID
+- [ ] BNN test payload: FD codes deduped correctly
+- [ ] AdjustLeads SMS (new): creates row with `AL-xxxxxx` ID
+- [ ] AdjustLeads SMS (new): location fields (D/E/F/G) populated
+- [ ] AdjustLeads SMS (update): SAME ROW updated (no new row)
+- [ ] AdjustLeads SMS (update): multi-line append in A/B/H/I/J
+- [ ] AdjustLeads SMS (update): D/E/F/G unchanged
+- [ ] Generic SMS: creates row with `SMS-{timestamp}` ID
+- [ ] Generic SMS: returns `parsed: false`
+
+### Regression (⏳ PENDING USER ACTION)
+- [ ] BNN alerts still parse correctly
+- [ ] BNN incident ID extraction still works (`/#(\d{7})/`)
+- [ ] BNN FD code deduplication still works
+- [ ] BNN row merge still works (Column C search)
+
+---
+
+## 📋 NEXT STEPS (USER ACTION REQUIRED)
+
+1. **Deploy to Apps Script:**
+   - Copy `scripts/Code.gs` to Apps Script Editor
+   - Save and deploy
+
+2. **Run Pre-Deployment Test:**
+   - Run `testSmsParser()` in Apps Script Editor
+   - Verify output in Logs (View → Logs)
+
+3. **Run Post-Deployment Tests:**
+   - Test 1: BNN regression (curl)
+   - Test 2: AdjustLeads SMS new row (curl)
+   - Test 3: AdjustLeads SMS update row (curl same ID)
+   - Test 4: Generic SMS (curl non-AdjustLeads)
+
+4. **Verify in Google Sheets:**
+   - Check row creation/updates
+   - Check Column C incident IDs
+   - Check multi-line append behavior
+   - Check location field immutability
+
+5. **Report Results:**
+   - Update STATE.md with test outcomes
+   - Report any failures for troubleshooting
+
+---
+
+**Implementation complete. Awaiting user testing and deployment.**
 

@@ -1,8 +1,30 @@
 # PROJECT STATE - Single Source of Truth
 
-**Last Updated:** 2025-12-31 01:45 UTC (Session 9.7: APP Source (BNN) Delivery + Placeholder Fix)  
+**Last Updated:** 2026-01-02 (Session 9.8: Cursor MCP Workflow + Playwright/MagicMCP Available)  
 **Branch:** `fix/wiring-sources-endpoints`  
 **Status:** 🟢 APP (BNN) Delivery Fixed - Placeholders Now Resolve + Multi-Endpoint Fanout
+
+---
+
+## 🎯 SESSION 9.8 SUMMARY: Cursor MCP Workflow + Playwright/MagicMCP Available (Docs Only)
+
+### What Changed (2026-01-02)
+
+**Goal:** Document how to use newly-available tooling (Playwright MCP + MagicMCP) safely and consistently in this project.
+
+**Key Updates:**
+- Added `docs/ai/CURSOR_WORKFLOW.md` as the canonical Cursor workflow doc:
+  - global MCP config location (`C:\Users\ynotf\.cursor\mcp.json`)
+  - Smithery CLI install commands (examples)
+  - **no-secrets-in-chat** policy + placeholder conventions
+  - when to use **Playwright MCP** vs **MagicMCP**
+
+### Files Changed
+- `docs/ai/CURSOR_WORKFLOW.md` (new content)
+- `docs/ai/STATE.md` (this entry)
+
+### Notes / Safety
+- This repo should never contain credentials. Use placeholders in docs and keep real values only in local secret storage.
 
 ---
 

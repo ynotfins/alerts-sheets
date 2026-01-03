@@ -1,30 +1,57 @@
 # PROJECT STATE - Single Source of Truth
 
-**Last Updated:** 2026-01-02 (Session 9.8: Cursor MCP Workflow + Playwright/MagicMCP Available)  
+**Last Updated:** 2026-01-03 (BNN: switched raw parsing to right-to-left field assignment to tolerate missing city/county; added multi-variant diagnostics)  
 **Branch:** `fix/wiring-sources-endpoints`  
-**Status:** 🟢 APP (BNN) Delivery Fixed - Placeholders Now Resolve + Multi-Endpoint Fanout
+**Status:** 🟡 Verifying Lab endpoint test gating + sheet writes; 🟢 Lab has truthful step status lights (no false greens); 🟢 Serena Kotlin symbol indexing verified (PASS)
 
 ---
 
-## 🎯 SESSION 9.8 SUMMARY: Cursor MCP Workflow + Playwright/MagicMCP Available (Docs Only)
+## 🧰 SESSION 10 SUMMARY: Serena Kotlin/Java Indexing Enabled (Tooling)
 
-### What Changed (2026-01-02)
+### Goal
+Make Serena `find_symbol` work for Android Kotlin/Java sources (e.g. `DeliveryPipeline`, `LabActivity`) in this workspace.
 
-**Goal:** Document how to use newly-available tooling (Playwright MCP + MagicMCP) safely and consistently in this project.
+### What Changed (2026-01-02 06:55 UTC)
+- Updated Serena per-project language server list in **`.serena/project.yml`**:
+  - Before: `languages: [typescript]`
+  - After: `languages: [kotlin, java, typescript]`
 
-**Key Updates:**
-- Added `docs/ai/CURSOR_WORKFLOW.md` as the canonical Cursor workflow doc:
-  - global MCP config location (`C:\Users\ynotf\.cursor\mcp.json`)
-  - Smithery CLI install commands (examples)
-  - **no-secrets-in-chat** policy + placeholder conventions
-  - when to use **Playwright MCP** vs **MagicMCP**
+### Evidence (Full Reindex Ran)
+Ran a full reindex with Serena CLI:
+- `serena project index --log-level INFO --timeout 120 D:\github\alerts-sheets`
+- Output included: `Indexed files per language: kotlin=71, typescript=66`
 
-### Files Changed
-- `docs/ai/CURSOR_WORKFLOW.md` (new content)
-- `docs/ai/STATE.md` (this entry)
+### Known Quirk
+Kotlin LS logs a shutdown exception (`'kotlin.Nothing' does not have instances`) during teardown, but indexing completed and caches were written.
 
-### Notes / Safety
-- This repo should never contain credentials. Use placeholders in docs and keep real values only in local secret storage.
+### Required Follow-up (Cursor UI)
+Cursor/Serena MCP server must be restarted to reload the updated `.serena/project.yml`:
+- Restart Cursor window **or** restart the **Serena MCP** server from Cursor’s MCP UI
+- Then verify:
+  - `mcp_serena_activate_project("alerts-sheets")`
+  - `mcp_serena_find_symbol(name_path_pattern="DeliveryPipeline")` → should resolve to `android/app/src/main/java/com/example/alertsheets/domain/DeliveryPipeline.kt`
+  - `mcp_serena_find_symbol(name_path_pattern="LabActivity")` → should return Kotlin class symbol(s) (paths under `android/app/src/main/java/...`)
+
+### Verification Result (PASS, 2026-01-03)
+- `mcp_serena_find_symbol("DeliveryPipeline")` returned Kotlin symbols (non-empty)
+- `mcp_serena_find_symbol("LabActivity")` returned Kotlin symbols (non-empty)
+
+### Android Home Screen Version Badge (2026-01-03)
+- Home screen now shows **version + build date** (UTC) under the header:
+  - Format: `v{VERSION_NAME} ({VERSION_CODE}) • {BUILD_DATE_UTC}`
+- Implementation:
+  - `android/app/build.gradle`: added `BuildConfig.BUILD_DATE_UTC` (build-time, `yyyy-MM-dd`, UTC)
+  - `android/app/src/main/java/com/example/alertsheets/ui/MainActivity.kt`: updated `text_build_id` binding
+
+### Documentation Update (2026-01-03)
+- Updated docs to reflect newly-available optional MCPs and the required “no silent degradation” fallback rule:
+  - `docs/ai/CURSOR_WORKFLOW.md` (added MagicMCP + Playwright MCP usage + fallback policy)
+  - `MCP_QUICK_REFERENCE.md` (added MagicMCP + Playwright rows + failure policy section)
+
+### MCP GAS Server Removal (2026-01-03)
+- Removed the attempted **GAS MCP server** setup per user request:
+  - `mcpServers.gas` entry removed/absent in `C:\Users\ynotf\.cursor\mcp.json`
+  - Deleted local folder: `C:\Users\ynotf\Dropbox\.mcp\gas_mcp`
 
 ---
 

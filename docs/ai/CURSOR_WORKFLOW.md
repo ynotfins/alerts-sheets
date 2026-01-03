@@ -1,96 +1,34 @@
 ## Cursor Workflow (AlertsToSheets)
 
-**Purpose:** This is the **canonical, repo-local** workflow for working in Cursor on this project: how we manage MCP servers, how we test, and how we avoid leaking secrets.
+This repo is **Android (Kotlin) + Firebase Functions (TypeScript)**. Keep work modular (**ui / domain / data / utils**) and do not introduce secrets into git.
 
----
+### Tool Strategy (default order)
+- **Complex / multi-step work**: use **Sequential Thinking** first (scope, risks, checkpoints).
+- **Code navigation / edits**: use **Serena** first (`find_symbol`, `find_referencing_symbols`, `replace_*`).
+- **Library docs**: use **Context7** (Android/Kotlin/Firebase/etc.).
+- **Web research**: use **Exa** only when Context7 isn’t enough.
+- **Commits/PRs**: use **GitHub MCP** only for remote file ops (local git via CLI).
+- **Long-term preferences**: **Memory MCP** (cite memories when used).
 
-## MCP Configuration (Global)
+### MagicMCP (UI Components / Logos)
+- **What it’s for**: generating/refining **React UI components** (21st.dev) and fetching **logos**.
+- **When it’s allowed**:
+  - Only when the task is explicitly about **web UI components** (or the user asks for `/ui`, `/21`, `/logo`).
+  - Not a substitute for Android XML/Kotlin UI work.
+- **Fallback if tool fails**:
+  - Say it failed explicitly, then implement the UI manually in the codebase using existing project patterns.
 
-- **Global MCP config file**: `C:\Users\ynotf\.cursor\mcp.json`
-- **Global credential vault (do not commit)**: `C:\Users\ynotf\Dropbox\.mcp\global-credentials.yaml`
+### Playwright MCP (Web Automation / Testing)
+- **What it’s for**: automated **web** navigation, interaction, screenshots, and console/network checks.
+- **When it’s allowed**:
+  - Testing **web pages** (docs, admin consoles, dashboards) and validating web flows after changes.
+  - **Not** for driving native Android UI (use ADB + on-device testing).
+- **Fallback if tool fails**:
+  - Say it failed explicitly, then use the built-in Browser MCP tools (if available) or manual steps + CLI verification (curl/adb/logcat).
 
-### Rules (Non‑Negotiable)
-
-- **Never paste secrets** (API keys, tokens, service account JSON, etc.) into:
-  - chat
-  - git-tracked files
-  - issues/PRs
-- In repo docs/config examples, use **placeholders** only (e.g., `SMITHERY_API_KEY_HERE`).
-- Treat any secret that appears in chat history as **compromised** → rotate/revoke.
-
-### MCP Server Types
-
-- **HTTP MCP servers** (hosted): typically require a URL ending in `/mcp` and **often** require:
-  - `?api_key=SMITHERY_API_KEY_HERE` query param
-  - `Authorization: <PROVIDER_TOKEN_HERE>` header (provider-specific)
-- **Local/stdio MCP servers**: run locally and usually do **not** require Smithery keys.
-
-### Restart Requirement
-
-After editing `C:\Users\ynotf\.cursor\mcp.json`:
-- **Restart Cursor** to reload MCP servers.
-
----
-
-## Installing MCP Servers (Smithery CLI)
-
-### Install (adds server for Cursor)
-
-Run in PowerShell (any folder is fine):
-
-```powershell
-npx -y @smithery/cli@latest install <package-name> --client cursor
-```
-
-Examples:
-
-```powershell
-# Playwright MCP (browser automation)
-npx -y @smithery/cli@latest install @microsoft/playwright-mcp --client cursor
-
-# Firecrawl MCP (web extraction) - if used
-npx -y @smithery/cli@latest install @mendableai/mcp-server-firecrawl --client cursor
-```
-
-### If Smithery prompts for an API key
-
-- Put keys in `C:\Users\ynotf\Dropbox\.mcp\global-credentials.yaml`
-- In `mcp.json`, use placeholders in examples and paste real secrets **only locally**.
-
----
-
-## Playwright MCP (When to Use)
-
-Use Playwright MCP when it provides leverage over manual browser work, for example:
-- verifying a web endpoint returns expected JSON
-- regression-checking a dashboard or hosted tool UI
-- extracting structured data from web pages for debugging
-
-Typical workflow:
-
-1. `browser_navigate` to the page
-2. `browser_snapshot` to get stable element references
-3. `browser_click` / `browser_type` interactions
-4. `browser_console_messages` to check errors
-5. `browser_take_screenshot` for visual evidence (optional)
-
----
-
-## MagicMCP (When to Use)
-
-MagicMCP is useful when we’re building **React UI components** (e.g., `/ui` work):
-- generate a component scaffold/snippet quickly
-- refine an existing component’s layout/styling
-- fetch logos (`/logo ...`) when assets aren’t in the repo
-
-For AlertsToSheets (Android-first), MagicMCP is usually **not** needed unless we add a web dashboard.
-
----
-
-## Repo Safety Checklist (Before Restart / Before Push)
-
-- `git status` is clean (or changes are intentional)
-- No secrets were added to tracked files
-- If we changed docs/config in-repo, update `docs/ai/STATE.md` per project rules
-- Push branch: `fix/wiring-sources-endpoints`
+### Tool Failure Policy (never silent)
+If a required tool is degraded/unreachable:
+- **Announce FAIL/WARN** and what is impacted.
+- **Switch to an approved fallback** (e.g., Serena indexing → pattern search + targeted reads/edits; web testing → Browser MCP/manual).
+- **Provide exact restore steps** (restart Cursor/MCP server, fix config, reindex, etc.).
 

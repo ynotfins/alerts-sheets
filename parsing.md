@@ -21,22 +21,24 @@ The target Google Sheet has fixed headers (columns are 1-indexed):
 |---:|---|---|
 | A | New/Update | Multi-line status history. New incidents create the first line; updates append a new line. |
 | B | Timestamp | Multi-line timestamp history aligned with status. |
-| C | Incident ID | **Primary key** for upsert (row merge). BNN uses `#1825784`. AdjustLeads uses `AL-294966`. |
+| C | Incident ID | **Primary key** for upsert (row merge). BNN uses `1825784` (**digits only, no `#`**). AdjustLeads uses `AL-294966`. |
 | D | State | Stable for BNN incidents. For SMS, parsed from address line if available. **Must not change on updates.** |
 | E | County | Stable for BNN incidents. For SMS, parsed from header line if available. **Must not change on updates.** |
 | F | City | Stable for BNN incidents. For SMS, parsed from address line if available. **Must not change on updates.** |
 | G | Address | Stable for BNN incidents. For SMS, parsed from address line if available. **Must not change on updates.** |
 | H | Incident type | Multi-line incident type history. Append new type lines only when different. |
 | I | Incident | Multi-line incident details history. Append on updates. |
-| J | Original Full Notification | Multi-line raw payload history. For every event, append the full original message with a `From:` prefix where relevant. |
-| K+ | FD Codes (repeated columns) | Each FD code occupies its own cell across the FD Codes region. Dedup per-incident. |
+| J | nfa-id | **Monotonic per-row ID**. Starts at `1000000`. Assigned once on **New incident only**, never changes on updates. |
+| K | Original Full Notification | Multi-line raw payload history. For every event, append the full original message with a `From:` prefix where relevant. **No parsing** — store the raw full text. |
+| L+ | FD Codes (repeated columns) | Each FD code occupies its own cell across the FD Codes region. Dedup per-incident. |
 
 ### Invariants
 
 - **New incident → new row**.
-- **Update → same row** (matched by **Column C**), append new lines in A/B/H/I/J.
+- **Update → same row** (matched by **Column C**), append new lines in A/B/H/I/K.
 - **Columns D/E/F/G never change on updates** (state/county/city/address).
 - **FD Codes:** per-incident unique set, filtered and deduped (see BNN rules).
+- **nfa-id**: assigned once per row on creation, never changes on update.
 
 ---
 
@@ -85,9 +87,9 @@ BNN alerts are delivered as **structured fields** (preferred), or as a raw pipe-
 ```
 
 #### Field Notes
-- `incidentId` is the **merge key**. It is **7 digits**, currently starts with `1`, and will start with `2` in the future.
+- `incidentId` is the **merge key**. It is **7 digits** (no `#` stored in the Sheet), currently starts with `1`, and will start with `2` in the future.
 - `fdCodes` are lowercase tokens, often prefixed with state (`nj`, `ny`, `pa`).
-- `originalBody` is stored in Column J (appended per update).
+- `originalBody` is stored in Column K (appended per update).
 
 ### 2.2) Raw BNN Message Format (if using `originalBody` parsing)
 
@@ -102,11 +104,20 @@ NJ | Atlantic | Atlantic City | 31 Virginia Ave | Fire Department Activity | ...
 - The incident ID appears at the end, prefixed with `#`.
 - FD codes appear near the end, often inside the `<C>` segment.
 
+#### NYC borough variant (BNN)
+Some BNN rows omit a distinct City field and look like:
+
+```
+NY | Manhattan | Water Main Break | Pearl St & Water St | DEP on the scene | <C> BNN | BNNDESK | #1848577
+```
+
+For these, treat the borough token (`Manhattan`, `Brooklyn`, `Queens`, `Bronx`, `Staten Island`) as **City** and leave **County blank** (don’t guess).
+
 ### 2.3) BNN Parsing Rules (Apps Script)
 
 **Incident ID extraction (required):**
-- Extract last `#` + 7 digits: `/#(\d{7})/`.
-- Store as `#1825784` in Column C.
+- Extract the **last** `#` + 7 digits (future-proof for 1→2): `/#([12]\d{6})/` and take the last match.
+- Store **digits only** (e.g., `1825784`) in Column C.
 
 **New vs Update:**
 - If `status` contains `Update`, `U/D`, or starts with `U/` → treat as Update.
@@ -122,7 +133,7 @@ NJ | Atlantic | Atlantic City | 31 Virginia Ave | Fire Department Activity | ...
 - Column B: append `\n` + timestamp.
 - Column H: append `\n` + incident type **only if different/new**.
 - Column I: append `\n` + incident details.
-- Column J: append `\n` + original body.
+- Column K: append `\n` + original body (raw full text).
 
 **Address fields immutability:**
 - Columns D/E/F/G are written on New Incident only.
@@ -146,7 +157,7 @@ NJ | Atlantic | Atlantic City | 31 Virginia Ave | Fire Department Activity | ...
 - Only write codes not already stored.
 
 **Storage:**
-- One FD code per cell across columns K+.
+- One FD code per cell across columns L+.
 
 ---
 
@@ -178,7 +189,7 @@ From the message we want:
 - **County**: from the fire alert header line.
 - **Address / City / State**: from the 📍 line.
 - **Incident type / details**: from the 📋 line.
-- **Original Full Notification**: full message appended into Column J.
+- **Original Full Notification**: full message appended into Column K.
 
 ### 3.3) SMS Incident ID Rules (critical)
 
@@ -231,7 +242,7 @@ AdjustLeads SMS can include updates (format varies). For now:
   - right side → Column I (details)
 - If no delimiter exists, use `Fire Alert` as type and set details to the full line.
 
-**Original (Column J):**
+**Original (Column K):**
 - Always append:
   - `From: <sender>\n<full message>`
 
@@ -242,7 +253,7 @@ If row exists for the same `AL-xxxxxx`:
 - Column B: append `\n<timestamp>`
 - Column H: append the new type only if not already present
 - Column I: append `\n<incidentDetails>` (or a safe fallback)
-- Column J: append `\n\nFrom: <sender>\n<message>`
+- Column K: append `\n\nFrom: <sender>\n<message>`
 
 **Do not modify Columns D/E/F/G** on updates.
 

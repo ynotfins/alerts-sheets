@@ -49,10 +49,10 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main_dashboard)
-        
+
         sourceManager = SourceManager(this)
         endpointRepo = EndpointRepository(this)
-        
+
         // Initialize UI
         gridCards = findViewById(R.id.grid_cards)
         cardPermissions = findViewById(R.id.card_permissions)
@@ -63,10 +63,10 @@ class MainActivity : AppCompatActivity() {
         textBuildId = findViewById(R.id.text_build_id)
         textSourcesHeader = findViewById(R.id.text_sources_header)
         emptyState = findViewById(R.id.empty_state)
-        
-        // ✅ Set Build ID
-        textBuildId.text = "Build: v${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE}) ${BuildConfig.GIT_SHA} ${BuildConfig.BUILD_TIME_UTC}"
-        
+
+        // ✅ Set Build ID (version + build date)
+        textBuildId.text = "v${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE}) • ${BuildConfig.BUILD_DATE_UTC}"
+
         setupPermanentCards()
     }
     

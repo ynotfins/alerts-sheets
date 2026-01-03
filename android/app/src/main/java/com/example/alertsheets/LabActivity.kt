@@ -17,8 +17,11 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.cardview.widget.CardView
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import com.example.alertsheets.PrefsManager
 import com.example.alertsheets.data.repositories.EndpointRepository
+import com.example.alertsheets.data.repositories.SourceTestStatusRepository
 import com.example.alertsheets.data.repositories.TemplateRepository
+import com.example.alertsheets.domain.DeliveryPipeline
 import com.example.alertsheets.domain.SourceManager
 import com.example.alertsheets.domain.models.Source
 import com.example.alertsheets.domain.models.SourceType
@@ -29,6 +32,9 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.UUID
+import android.util.Log
+import com.google.gson.JsonParser
+import java.security.MessageDigest
 
 /**
  * ⚗️ Lab Activity - Full-featured source creation with testing
@@ -57,12 +63,25 @@ class LabActivity : AppCompatActivity() {
     private lateinit var btnManageEndpoints: Button
     private lateinit var previewIcon: ImageView
     private lateinit var previewColor: View
+    private lateinit var btnDeleteSource: Button
+
+    private lateinit var statusStep1: TextView
+    private lateinit var statusStep2: TextView
+    private lateinit var statusStep3: TextView
+    private lateinit var statusStep4: TextView
+    private lateinit var statusStep5: TextView
+    private lateinit var statusStep6: TextView
     
     private var sourceId: String? = null
     private var selectedPhoneNumber: String? = null // For SMS source
     private var selectedIcon = "notification"
     private var selectedColor = 0xFF4A9EFF.toInt()
     private var selectedEndpointIds = mutableListOf<String>()
+
+    // Guards to prevent async template reload from overwriting user/source JSON
+    private var isLoadingSource = false
+    private var suppressTemplateEditor = false
+    private lateinit var testStatusRepo: SourceTestStatusRepository
     
     // Per-source custom test payloads (loaded from existing source)
     private var customTestPayload: String = ""
@@ -106,6 +125,7 @@ class LabActivity : AppCompatActivity() {
         sourceManager = SourceManager(this)
         templateRepo = TemplateRepository(this)
         endpointRepo = EndpointRepository(this)
+        testStatusRepo = SourceTestStatusRepository(this)
         
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.title = "Lab"
@@ -133,6 +153,14 @@ class LabActivity : AppCompatActivity() {
         btnManageEndpoints = findViewById(R.id.btn_manage_endpoints)
         previewIcon = findViewById(R.id.preview_icon)
         previewColor = findViewById(R.id.preview_color)
+        btnDeleteSource = findViewById(R.id.btn_delete_source)
+
+        statusStep1 = findViewById(R.id.status_step1)
+        statusStep2 = findViewById(R.id.status_step2)
+        statusStep3 = findViewById(R.id.status_step3)
+        statusStep4 = findViewById(R.id.status_step4)
+        statusStep5 = findViewById(R.id.status_step5)
+        statusStep6 = findViewById(R.id.status_step6)
     }
     
     private fun setupListeners() {
@@ -143,6 +171,7 @@ class LabActivity : AppCompatActivity() {
         
         // Radio group change - reload templates for type
         radioGroup.setOnCheckedChangeListener { _, _ ->
+            if (isLoadingSource) return@setOnCheckedChangeListener
             loadTemplates()
             updateVariablesHelp()
         }
@@ -161,7 +190,21 @@ class LabActivity : AppCompatActivity() {
             override fun onItemSelected(parent: android.widget.AdapterView<*>?, view: android.view.View?, position: Int, id: Long) {
                 val selected = parent?.getItemAtPosition(position) as? com.example.alertsheets.JsonTemplate
                 selected?.let {
-                    inputJson.setText(it.content)
+                    if (!suppressTemplateEditor) {
+                        inputJson.setText(it.content)
+                    }
+                    // Persist active template selection per mode (survives restarts)
+                    runCatching {
+                        PrefsManager.setActiveTemplateName(this@LabActivity, it.mode, it.name)
+                    }
+                    // region agent log (TplDbg) - hypothesisId=H1 (selection overwritten / not persisted)
+                    runCatching {
+                        Log.i(
+                            "TplDbg",
+                            """{"sessionId":"debug-session","runId":"pre-fix","hypothesisId":"H1","location":"LabActivity.kt:templateSelected","message":"Spinner template selected; editor updated","data":{"templateName":"${it.name}","mode":"${it.mode}","isRockSolid":${it.isRockSolid},"contentLen":${it.content.length},"radio":"${radioGroup.checkedRadioButtonId}"},"timestamp":${System.currentTimeMillis()}}"""
+                        )
+                    }
+                    // endregion
                 }
             }
             override fun onNothingSelected(parent: android.widget.AdapterView<*>?) {}
@@ -198,19 +241,56 @@ class LabActivity : AppCompatActivity() {
         findViewById<Button>(R.id.btn_save_source).setOnClickListener {
             saveSource()
         }
+
+        btnDeleteSource.setOnClickListener {
+            val id = sourceId
+            if (id.isNullOrBlank()) return@setOnClickListener
+            AlertDialog.Builder(this)
+                .setTitle("Delete Source?")
+                .setMessage("Delete this card?\n\nThis cannot be undone.")
+                .setPositiveButton("Delete") { _, _ ->
+                    sourceManager.deleteSource(id)
+                    Toast.makeText(this, "Source deleted", Toast.LENGTH_SHORT).show()
+                    finish()
+                }
+                .setNegativeButton("Cancel", null)
+                .show()
+        }
+
+        inputName.addTextChangedListener(SimpleTextWatcher { updateStepLights() })
+        inputJson.addTextChangedListener(SimpleTextWatcher { updateStepLights() })
     }
     
     private fun loadTemplates() {
+        loadTemplates(preserveEditor = false, preferredTemplateName = null, preferredJson = null)
+    }
+
+    private fun loadTemplates(
+        preserveEditor: Boolean,
+        preferredTemplateName: String?,
+        preferredJson: String?
+    ) {
         scope.launch(Dispatchers.IO) {
             val type = when (radioGroup.checkedRadioButtonId) {
                 R.id.radio_app -> SourceType.APP
                 R.id.radio_sms -> SourceType.SMS
                 else -> SourceType.APP
             }
-            
-            val mode = if (type == SourceType.APP) com.example.alertsheets.TemplateMode.APP else com.example.alertsheets.TemplateMode.SMS
+
+            val mode =
+                if (type == SourceType.APP) com.example.alertsheets.TemplateMode.APP else com.example.alertsheets.TemplateMode.SMS
             val templates = templateRepo.getByMode(mode)
-            
+
+            // region agent log (TplDbg) - hypothesisId=H3 (templates not persisted / not loaded)
+            runCatching {
+                val names = templates.take(5).map { it.name }.joinToString("|")
+                Log.i(
+                    "TplDbg",
+                    """{"sessionId":"debug-session","runId":"pre-fix","hypothesisId":"H3","location":"LabActivity.kt:loadTemplates","message":"Templates loaded for mode","data":{"mode":"$mode","count":${templates.size},"firstNames":"$names","sourceId":"${sourceId ?: ""}"},"timestamp":${System.currentTimeMillis()}}"""
+                )
+            }
+            // endregion
+
             withContext(Dispatchers.Main) {
                 val adapter = ArrayAdapter(
                     this@LabActivity,
@@ -219,11 +299,36 @@ class LabActivity : AppCompatActivity() {
                 )
                 adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
                 spinnerTemplate.adapter = adapter
-                
-                // Load first template if available
-                if (templates.isNotEmpty()) {
-                    inputJson.setText(templates[0].content)
+
+                if (templates.isEmpty()) return@withContext
+
+                val desiredName = preferredTemplateName ?: runCatching {
+                    PrefsManager.getActiveTemplateName(this@LabActivity, mode)
+                }.getOrNull()
+
+                val byNameIndex = desiredName?.let { dn -> templates.indexOfFirst { it.name == dn } }?.takeIf { it >= 0 }
+                val byContentIndex = preferredJson?.let { pj -> templates.indexOfFirst { it.content == pj } }?.takeIf { it >= 0 }
+                val targetIndex = (byContentIndex ?: byNameIndex ?: 0).coerceIn(0, templates.lastIndex)
+
+                // Prevent selection-triggered overwrite while restoring editor content
+                suppressTemplateEditor = preserveEditor
+                spinnerTemplate.setSelection(targetIndex)
+
+                if (!preserveEditor) {
+                    inputJson.setText(templates[targetIndex].content)
+                    // region agent log (TplDbg) - hypothesisId=H2 (loadTemplates overwrites editor after async)
+                    runCatching {
+                        Log.i(
+                            "TplDbg",
+                            """{"sessionId":"debug-session","runId":"pre-fix","hypothesisId":"H2","location":"LabActivity.kt:loadTemplatesMain","message":"loadTemplates set editor to templates[0] (potential overwrite)","data":{"mode":"$mode","template0":"${templates[targetIndex].name}","contentLen":${templates[targetIndex].content.length}},"timestamp":${System.currentTimeMillis()}}"""
+                        )
+                    }
+                    // endregion
+                } else if (preferredJson != null) {
+                    inputJson.setText(preferredJson)
                 }
+
+                suppressTemplateEditor = false
             }
         }
     }
@@ -264,6 +369,7 @@ class LabActivity : AppCompatActivity() {
                             } else {
                                 selectedEndpointIds.remove(endpoint.id)
                             }
+                            updateStepLights()
                         }
                     }
                     
@@ -278,6 +384,8 @@ class LabActivity : AppCompatActivity() {
                     checkboxLayout.addView(urlText)
                     endpointsCheckboxes.addView(checkboxLayout)
                 }
+
+                updateStepLights()
             }
         }
     }
@@ -348,7 +456,7 @@ class LabActivity : AppCompatActivity() {
                 val number = inputNumber.text.toString().trim()
                 if (number.isNotEmpty()) {
                     selectedPhoneNumber = number
-                    sourceId = "sms:$number"
+                    sourceId = canonicalSmsSourceId(number)
                     Toast.makeText(this, "SMS source configured: $number", Toast.LENGTH_SHORT).show()
                 }
             }
@@ -375,7 +483,7 @@ class LabActivity : AppCompatActivity() {
                     if (it.moveToFirst()) {
                         val phoneNumber = it.getString(0)
                         selectedPhoneNumber = phoneNumber
-                        sourceId = "sms:$phoneNumber"
+                        sourceId = canonicalSmsSourceId(phoneNumber)
                         Toast.makeText(this, "Selected: $phoneNumber", Toast.LENGTH_SHORT).show()
                         // Re-show dialog with selected number
                         showSmsConfigDialog()
@@ -432,8 +540,18 @@ class LabActivity : AppCompatActivity() {
                     )
                     
                     templateRepo.saveUserTemplate(template)
-                    loadTemplates() // Reload spinner
+                    // region agent log (TplDbg) - hypothesisId=H4 (save succeeds but UI reload resets selection)
+                    runCatching {
+                        Log.i(
+                            "TplDbg",
+                            """{"sessionId":"debug-session","runId":"pre-fix","hypothesisId":"H4","location":"LabActivity.kt:saveTemplate","message":"User template saved","data":{"templateName":"$name","mode":"$mode","contentLen":${json.length}},"timestamp":${System.currentTimeMillis()}}"""
+                        )
+                    }
+                    // endregion
+                    // Reload spinner and keep selection + editor on the newly saved template
+                    loadTemplates(preserveEditor = true, preferredTemplateName = name, preferredJson = json)
                     Toast.makeText(this, "✅ Template '$name' saved!", Toast.LENGTH_SHORT).show()
+                    updateStepLights()
                 }
             }
             .setNegativeButton("Cancel", null)
@@ -624,14 +742,55 @@ class LabActivity : AppCompatActivity() {
     }
     
     private fun sendTestPayload(json: String) {
-        // Send to all selected endpoints
+        // ✅ Send to all selected endpoints via Golden Path (no fake "sent")
         scope.launch(Dispatchers.IO) {
             selectedEndpointIds.forEach { endpointId ->
                 val endpoint = endpointRepo.getById(endpointId)
-                endpoint?.let {
-                    // TODO: Integrate with actual HTTP sender
+                if (endpoint == null) {
                     withContext(Dispatchers.Main) {
-                        Toast.makeText(this@LabActivity, "✓ Sent to ${it.name}", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this@LabActivity, "Test FAILED: endpoint not found ($endpointId)", Toast.LENGTH_SHORT).show()
+                    }
+                    return@forEach
+                }
+
+                // region agent log (TplDbg) - hypothesisId=H5 (tests weren't actually sending)
+                runCatching {
+                    Log.i(
+                        "TplDbg",
+                        """{"sessionId":"debug-session","runId":"pre-fix","hypothesisId":"H5","location":"LabActivity.kt:sendTestPayload","message":"Sending test payload via DeliveryPipeline","data":{"endpointId":"${endpoint.id}","endpointName":"${endpoint.name}","urlPrefix":"${endpoint.url.take(40)}","jsonLen":${json.length}},"timestamp":${System.currentTimeMillis()}}"""
+                    )
+                }
+                // endregion
+
+                val result = DeliveryPipeline.deliverTestEventWithAuth(endpoint, json)
+                val currentSourceId = sourceId ?: ""
+                if (currentSourceId.isNotBlank()) {
+                    val configHash = computeConfigHash(currentSourceId, radioGroup.checkedRadioButtonId, json, selectedEndpointIds)
+                    val confirmed = isConfirmedSuccessResponse(result.httpCode, result.responseBody)
+                    testStatusRepo.record(
+                        sourceId = currentSourceId,
+                        endpointId = endpoint.id,
+                        configHash = configHash,
+                        timestampMs = System.currentTimeMillis(),
+                        httpCode = result.httpCode,
+                        confirmed = confirmed
+                    )
+                }
+                updateStepLights()
+
+                withContext(Dispatchers.Main) {
+                    if (result.success) {
+                        Toast.makeText(
+                            this@LabActivity,
+                            "✓ Test SUCCESS (${endpoint.name}) HTTP ${result.httpCode}",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    } else {
+                        Toast.makeText(
+                            this@LabActivity,
+                            "Test FAILED (${endpoint.name}): ${result.errorClass ?: "Error"}",
+                            Toast.LENGTH_SHORT
+                        ).show()
                     }
                 }
             }
@@ -729,6 +888,16 @@ class LabActivity : AppCompatActivity() {
             R.id.radio_sms -> SourceType.SMS
             else -> SourceType.APP
         }
+
+        // Prevent duplicate "cards": SMS sources MUST have a configured phone number (stable ID).
+        if (type == SourceType.SMS) {
+            val number = selectedPhoneNumber?.trim().orEmpty()
+            if (number.isEmpty()) {
+                Toast.makeText(this, "Configure SMS number first (Step 2)", Toast.LENGTH_SHORT).show()
+                return
+            }
+            sourceId = canonicalSmsSourceId(number)
+        }
         
         // Determine final source ID
         val finalId = when {
@@ -757,6 +926,16 @@ class LabActivity : AppCompatActivity() {
             createdAt = System.currentTimeMillis(),
             updatedAt = System.currentTimeMillis()
         )
+
+        // region agent log (TplDbg) - hypothesisId=H1/H2 (saved json differs from selected template due to overwrite)
+        runCatching {
+            val selectedTemplate = spinnerTemplate.selectedItem as? com.example.alertsheets.JsonTemplate
+            Log.i(
+                "TplDbg",
+                """{"sessionId":"debug-session","runId":"pre-fix","hypothesisId":"H1","location":"LabActivity.kt:saveSource","message":"Saving source (templateJson snapshot)","data":{"sourceId":"$finalId","type":"$type","selectedTemplate":"${selectedTemplate?.name ?: ""}","selectedTemplateLen":${selectedTemplate?.content?.length ?: -1},"jsonLen":${json.length},"endpointsCount":${selectedEndpointIds.size}},"timestamp":${System.currentTimeMillis()}}"""
+            )
+        }
+        // endregion
         
         sourceManager.saveSource(source)
         Toast.makeText(this, "✅ Source '$name' saved!", Toast.LENGTH_SHORT).show()
@@ -768,8 +947,17 @@ class LabActivity : AppCompatActivity() {
             val source = sourceManager.getAllSources().find { it.id == sourceId }
             withContext(Dispatchers.Main) {
                 source?.let { src ->
+                    // region agent log (TplDbg) - hypothesisId=H2 (async loadTemplates overwrites loaded source template)
+                    runCatching {
+                        Log.i(
+                            "TplDbg",
+                            """{"sessionId":"debug-session","runId":"pre-fix","hypothesisId":"H2","location":"LabActivity.kt:loadExistingSource","message":"Loading existing source into UI","data":{"sourceId":"${src.id}","type":"${src.type}","templateJsonLen":${src.templateJson.length},"endpointIdsCount":${src.endpointIds.size}},"timestamp":${System.currentTimeMillis()}}"""
+                        )
+                    }
+                    // endregion
                     // ✅ LOAD ALL source-specific configuration
                     inputName.setText(src.name)
+                    isLoadingSource = true
                     when (src.type) {
                         SourceType.APP -> radioGroup.check(R.id.radio_app)
                         SourceType.SMS -> {
@@ -777,6 +965,16 @@ class LabActivity : AppCompatActivity() {
                             selectedPhoneNumber = src.id.removePrefix("sms:")
                         }
                     }
+                    isLoadingSource = false
+
+                    // Load templates for this type, but preserve the source's saved templateJson in the editor
+                    val mode =
+                        if (src.type == SourceType.APP) com.example.alertsheets.TemplateMode.APP else com.example.alertsheets.TemplateMode.SMS
+                    loadTemplates(
+                        preserveEditor = true,
+                        preferredTemplateName = PrefsManager.getActiveTemplateName(this@LabActivity, mode),
+                        preferredJson = src.templateJson
+                    )
                     inputJson.setText(src.templateJson)
                     checkAutoClean.isChecked = src.autoClean
                     selectedEndpointIds.clear()
@@ -793,9 +991,109 @@ class LabActivity : AppCompatActivity() {
                     previewColor.setBackgroundColor(selectedColor)
                     
                     loadEndpoints() // Reload to check correct boxes
+
+                    btnDeleteSource.visibility = View.VISIBLE
+                    updateStepLights()
                 }
             }
         }
+    }
+
+    private fun updateStepLights() {
+        // Step 1: name
+        setDot(statusStep1, inputName.text.toString().trim().isNotEmpty())
+
+        // Step 2: app/sms selection valid
+        val type = when (radioGroup.checkedRadioButtonId) {
+            R.id.radio_sms -> SourceType.SMS
+            else -> SourceType.APP
+        }
+        val step2Ok = when (type) {
+            SourceType.SMS -> isValidPhoneNumber(selectedPhoneNumber)
+            SourceType.APP -> isLikelyAppId(sourceId)
+        }
+        setDot(statusStep2, step2Ok)
+
+        // Step 3: template selected
+        val selectedTemplate = spinnerTemplate.selectedItem as? com.example.alertsheets.JsonTemplate
+        setDot(statusStep3, selectedTemplate?.name?.isNotBlank() == true)
+
+        // Step 4: JSON valid
+        val json = inputJson.text.toString()
+        setDot(statusStep4, isValidJsonForType(json, type))
+
+        // Step 5: endpoints selected
+        val endpointsOk = selectedEndpointIds.isNotEmpty()
+        setDot(statusStep5, endpointsOk)
+
+        // Step 6: test confirmed for current config
+        val sid = sourceId ?: ""
+        val configHash = if (sid.isNotBlank()) computeConfigHash(sid, radioGroup.checkedRadioButtonId, json, selectedEndpointIds) else ""
+        val testOk = sid.isNotBlank() && endpointsOk && testStatusRepo.hasAnyConfirmedForConfig(sid, selectedEndpointIds, configHash)
+        setDot(statusStep6, testOk)
+    }
+
+    private fun setDot(view: TextView, ok: Boolean) {
+        view.setTextColor(if (ok) Color.parseColor("#00D980") else Color.parseColor("#F44336"))
+    }
+
+    private fun isValidPhoneNumber(raw: String?): Boolean {
+        val digits = raw?.filter { it.isDigit() }.orEmpty()
+        // User requirement: 10 digits (allow leading '1' as country code)
+        return digits.length == 10 || (digits.length == 11 && digits.startsWith("1"))
+    }
+
+    private fun isLikelyAppId(id: String?): Boolean {
+        val s = id?.trim().orEmpty()
+        if (s.isEmpty()) return false
+        if (s.startsWith("sms:", ignoreCase = true)) return false
+        // crude: package names contain at least one dot
+        if (!s.contains(".")) return false
+        // avoid UUIDs
+        return !Regex("^[0-9a-fA-F]{8}-").containsMatchIn(s)
+    }
+
+    private fun isValidJsonForType(json: String, type: SourceType): Boolean {
+        val t = json.trim()
+        if (!t.startsWith("{")) return false
+        return try {
+            JsonParser.parseString(t).asJsonObject
+            when (type) {
+                SourceType.SMS -> t.contains("{{sender}}") && (t.contains("{{message}}") || t.contains("{{body}}"))
+                SourceType.APP -> t.contains("{{package}}") && (t.contains("{{text}}") || t.contains("{{bigText}}"))
+            }
+        } catch (_: Exception) {
+            false
+        }
+    }
+
+    private fun computeConfigHash(sourceId: String, radioId: Int, json: String, endpointIds: List<String>): String {
+        val input = buildString {
+            append(sourceId)
+            append("|")
+            append(radioId)
+            append("|")
+            append(json.trim())
+            append("|")
+            endpointIds.sorted().forEach { append(it).append(",") }
+        }
+        val bytes = MessageDigest.getInstance("SHA-256").digest(input.toByteArray())
+        return bytes.joinToString("") { b -> "%02x".format(b) }.take(16)
+    }
+
+    private fun isConfirmedSuccessResponse(httpCode: Int, body: String?): Boolean {
+        if (httpCode !in 200..299) return false
+        val b = (body ?: "").lowercase()
+        return b.contains("\"result\"") && b.contains("success") ||
+            b.contains("\"ok\":true") ||
+            b.contains("\"success\":true") ||
+            b.contains("\"saved\":true")
+    }
+
+    private class SimpleTextWatcher(private val onAnyChange: () -> Unit) : android.text.TextWatcher {
+        override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+        override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+        override fun afterTextChanged(s: android.text.Editable?) = onAnyChange()
     }
     
     override fun onResume() {
@@ -806,5 +1104,11 @@ class LabActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         scope.cancel()
+    }
+
+    private fun canonicalSmsSourceId(rawNumber: String): String {
+        // Digits-only normalization (stable ID across formatting differences)
+        val digits = rawNumber.filter { it.isDigit() }
+        return if (digits.isNotEmpty()) "sms:+$digits" else "sms:$rawNumber"
     }
 }

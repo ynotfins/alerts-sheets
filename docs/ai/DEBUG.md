@@ -71,29 +71,25 @@ These appear in `android/app/src/main/java/com/example/alertsheets/domain/DataPi
 
 ### 4) Apps Script: SMS handler diagnostics (`Code.gs`)
 
-These are **Apps Script `Logger.log()` markers** (not `StructuredLogger` events). They are emitted by the SMS-only path in `Code.gs`.
+These are **Apps Script `Logger.log()` markers** (not `StructuredLogger` events).
+
+**Current status:** The SMS `Logger.log()` instrumentation and test harness were **removed after fix confirmation** to keep production logs clean.
 
 #### IncidentId extraction markers
 
-- **`[SMS] incidentId_extracted`**
-  - method=`adjustleads_url` | `fallback_digits` | `hash`
-  - line snippet is digits-redacted (PII-safe)
+- **Previously used during RCA**:
+  - `incidentId_extracted` (method=`adjustleads_url|fallback_digits|hash`)
 
 #### Upsert suppression / anti-merge guards
 
-- **`[SMS] upsert_suppressed`**
-  - method was not `adjustleads_url` → **no upsert allowed**
-- **`[SMS] id_match_non_sms_row_skipped`**
-  - Column C matched incidentId, but Column A did not contain `SMS` → skip to avoid cross-type collisions
-- **`[SMS] upsert_guard_block`**
-  - Column C matched incidentId, but Column J did not contain the same `/alerts/<digits>` → block update to prevent accidental merges
+- **Previously used during RCA**:
+  - `upsert_suppressed` (method not `adjustleads_url`)
+  - `id_match_non_sms_row_skipped` (Column A not SMS)
+  - `upsert_guard_block` (Column J mismatch on `/alerts/<digits>`)
 
 #### Suggested quick-run harness
 
-- Run `testSmsWiringDiagnostics()` inside Apps Script editor to print:
-  - normalized timestamp outputs
-  - incidentId + method
-  - parsed state/county/city/address (NYC borough normalization)
+- If SMS debugging is needed again, temporarily add a `testSmsWiringDiagnostics()` function and minimal `Logger.log()` lines **only in the Apps Script editor** for the duration of investigation, then remove them after confirmation.
 
 ---
 

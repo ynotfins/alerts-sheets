@@ -1,19 +1,19 @@
 # MCP Quick Reference Card 🚀
 
-**10 MCP Servers Configured | 7 Active | 70+ Tools | Optimized Workflow**
+**MCP Quick Reference | Optimized Workflow (optional MCPs depend on your `mcp.json`)**
 
-**Last Updated:** December 23, 2025  
-**Status:** Gmail, Google Super, Google Sheets disabled via UI toggle  
-**Note:** Serena MCP requires Cursor restart to become active---
+**Last Updated:** January 3, 2026  
+**Status:** Gmail, Google Super, Google Sheets disabled via UI toggle (if toggled off)  
+**Note:** Serena/MCP changes may require a Cursor restart---
 
 ## 🎯 WHEN TO USE EACH MCP
 
 | Need | Use This MCP | Key Tool | Status |
 |------|--------------|----------|--------|
 | 🧩 Plan complex task | **Sequential Thinking** | `sequential_thinking` | ✅ Active |
-| 🔧 Navigate code | **Serena** | `find_symbol` | ⏸️ Requires restart |
-| 🔧 Edit code precisely | **Serena** | `replace_symbol_body` | ⏸️ Requires restart |
-| 🔧 Find all usages | **Serena** | `find_referencing_symbols` | ⏸️ Requires restart |
+| 🔧 Navigate code | **Serena** | `find_symbol` | ✅ Active (when configured) |
+| 🔧 Edit code precisely | **Serena** | `replace_symbol_body` | ✅ Active (when configured) |
+| 🔧 Find all usages | **Serena** | `find_referencing_symbols` | ✅ Active (when configured) |
 | 📚 Get library docs | **Context7** | `get-library-docs` | ✅ Active |
 | 🔍 Search web/code | **Exa** | `get_code_context_exa` | ✅ Active |
 | 🐙 Commit code | **GitHub** | `push_files` | ✅ Active |
@@ -24,6 +24,8 @@
 | 🔥 Write to Firestore | **Firestore** | `create_document` | ✅ Active |
 | 📊 Query spreadsheet | **Sheets** | `execute_sql` | ❌ Disabled |
 | 📧 Send email | **Gmail** | `create_email_draft` | ❌ Disabled |
+| 🧱 Generate/refine web UI component | **MagicMCP (21st.dev)** | `21st_magic_component_*` | ✅ If installed |
+| 🌐 Web automation/testing | **Playwright MCP** | browser actions | ✅ If installed |
 
 ---
 
@@ -222,8 +224,8 @@ Exa get_code_context_exa → Serena replace_content → Done
 
 ### 5. Web Feature Testing
 ```
-Browser navigate → Browser snapshot → Browser click → 
-Browser console_messages → Memory add_memory → Done
+Playwright (preferred) or Browser MCP:
+navigate → snapshot → click/type → console_messages/network_requests → Done
 ```
 
 ### 6. Data Analysis + Report
@@ -338,6 +340,14 @@ get_code_context_exa(query="Next.js 15 architecture", tokensNum=20000)
 - [ ] Cite memories used
 - [ ] Commit with meaningful message
 - [ ] Store reasoning pattern if complex
+
+---
+
+## 🧯 TOOL FAILURE POLICY (NO SILENT DEGRADATION)
+If an MCP/tool is degraded or unavailable:
+- **Say so explicitly** (PASS/WARN/FAIL + what’s impacted)
+- **Switch to fallback immediately** (e.g., Serena indexing → pattern search + targeted reads/edits; Playwright → Browser MCP/manual)
+- **Provide exact restore steps** (restart Cursor/MCP server, fix config, reindex, etc.)
 
 ---
 

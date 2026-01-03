@@ -50,9 +50,11 @@ android {
         }
         
         def buildTime = new Date().format("yyyy-MM-dd'T'HH:mm:ss'Z'", TimeZone.getTimeZone("UTC"))
+        def buildDate = new Date().format("yyyy-MM-dd", TimeZone.getTimeZone("UTC"))
         
         buildConfigField "String", "GIT_SHA", "\"${gitSha}\""
         buildConfigField "String", "BUILD_TIME_UTC", "\"${buildTime}\""
+        buildConfigField "String", "BUILD_DATE_UTC", "\"${buildDate}\""
     }
 
     buildTypes {

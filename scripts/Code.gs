@@ -469,30 +469,6 @@ function handleGenericApp(data, sheet) {
   ).setMimeType(ContentService.MimeType.JSON);
 }
 
-/**
- * Test function for SMS Parser
- * Run this in Apps Script Editor to verify parsing logic
- */
-function testSmsParser() {
-  const testMessage = `🔥 New Fire Alert in Morris County
-📍 31 Grand Avenue, Cedar Knolls, NJ
-🗺️ https://maps.google.com/?q=31+Grand+Avenue+Cedar+Knolls+NJ
-📋 Residential Fire - Possible structure fire with smoke showing
-ℹ️ https://www.adjustleads.com/app/alerts/294966`;
-
-  const result = parseAdjustLeadsSms(testMessage, "+1 888-660-1455");
-  
-  Logger.log("=== SMS Parser Test ===");
-  Logger.log("Incident ID: " + result.incidentId);  // Should be: AL-294966
-  Logger.log("County: " + result.county);            // Should be: Morris
-  Logger.log("Address: " + result.address);          // Should be: 31 Grand Avenue
-  Logger.log("City: " + result.city);                // Should be: Cedar Knolls
-  Logger.log("State: " + result.state);              // Should be: NJ
-  Logger.log("Type: " + result.incidentType);        // Should be: Residential Fire
-  Logger.log("Details: " + result.incidentDetails);  // Should be: Possible structure...
-  Logger.log("Is AdjustLeads: " + result.isAdjustLeads); // Should be: true
-}
-
 function getNonEmptyLines(text) {
   return (text || "")
     .toString()
@@ -639,47 +615,5 @@ function normalizeNyBoroughsInPlace(parsed) {
   }
 }
 
-// Diagnostics
-function testSmsWiringDiagnostics() {
-  const examples = [
-    {
-      name: "AdjustLeads standard",
-      sender: "+1 888-660-1455",
-      message: `🔥 New Fire Alert in Morris County
-📍 31 Grand Avenue, Cedar Knolls, NJ
-🗺️ https://maps.google.com/?q=31+Grand+Avenue+Cedar+Knolls+NJ
-📋 Residential Fire - Possible structure fire with smoke showing
-ℹ️ https://www.adjustleads.com/app/alerts/294966`,
-      ts: "2025-12-30T20:01:21Z"
-    },
-    {
-      name: "NYC Manhattan normalization",
-      sender: "+1 888-660-1455",
-      message: `🔥 New Fire Alert in New York County
-📍 10 Whitehall St, Manhattan, NY
-📋 Electrical Fire - Small fire on the wall with crews opening up.
-ℹ️ https://www.adjustleads.com/app/alerts/12554444`,
-      ts: 1767138546261
-    },
-    {
-      name: "No URL noisy digits (no upsert)",
-      sender: "+1 888-660-1455",
-      message: `🔥 New Fire Alert
-📍 719 East 11th Street, Ocean City, NJ 08226
-🗺️ https://maps.google.com/?q=719+East+11th+Street+Ocean+City+NJ+08226
-📋 Structural Fire - reported in a structure at the addressed location`,
-      ts: "12/30/2025 08:01:21 PM"
-    }
-  ];
-
-  Logger.log("=== SMS Wiring Diagnostics ===");
-  for (const ex of examples) {
-    const parsed = parseAdjustLeadsSms(ex.message, ex.sender);
-    const ts = formatScriptTimestampFromPayload(ex.ts);
-    Logger.log("--- %s ---", ex.name);
-    Logger.log("timestamp=%s", ts);
-    Logger.log("incidentId=%s method=%s snippet=%s", parsed.incidentId, parsed.incidentIdMethod, parsed.incidentIdLineSnippet);
-    Logger.log("state=%s county=%s city=%s address=%s", parsed.state, parsed.county, parsed.city, parsed.address);
-    Logger.log("type=%s details=%s", parsed.incidentType, parsed.incidentDetails);
-  }
-}
+// (Instrumentation cleaned up after fix confirmation)
+clasp login

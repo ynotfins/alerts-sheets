@@ -801,3 +801,4 @@
 {"file": "functions/lib/utils/addressUtils.js.map", "archived_as": "functions_lib_utils_addressUtils.js.map_2025-12-29_01-07-05.bak", "timestamp": "2025-12-29_01-07-05", "size": 3672}
 {"file": "functions/lib/utils/featureFlags.js", "archived_as": "functions_lib_utils_featureFlags.js_2025-12-29_01-07-05.bak", "timestamp": "2025-12-29_01-07-05", "size": 5476}
 {"file": "functions/lib/utils/featureFlags.js.map", "archived_as": "functions_lib_utils_featureFlags.js.map_2025-12-29_01-07-05.bak", "timestamp": "2025-12-29_01-07-05", "size": 2925}
+{"file": "devlimelabs-firestore-mcp.mcpb", "archived_as": "devlimelabs-firestore-mcp.mcpb_2026-01-04_02-01-41.bak", "timestamp": "2026-01-04_02-01-41", "size": 1132687}

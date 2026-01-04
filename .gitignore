@@ -44,6 +44,7 @@ mcp-credentials.json
 api-keys.json
 **/api-keys*.json
 **/mcp-credentials*.json
+*.mcpb
 
 # Android local properties
 local.properties

@@ -38,7 +38,7 @@ The target Google Sheet has fixed headers (columns are 1-indexed):
 - **Update → same row** (matched by **Column C**), append new lines in A/B/H/I/K.
 - **Columns D/E/F/G never change on updates** (state/county/city/address).
 - **FD Codes:** per-incident unique set, filtered and deduped (see BNN rules).
-- **nfa-id**: assigned once per row on creation, never changes on update.
+- **nfa-id**: assigned once per row on creation (only when inserting a previously unseen Incident ID); updates must reuse the existing nfa-id for that row.
 
 ---
 
@@ -111,13 +111,22 @@ Some BNN rows omit a distinct City field and look like:
 NY | Manhattan | Water Main Break | Pearl St & Water St | DEP on the scene | <C> BNN | BNNDESK | #1848577
 ```
 
-For these, treat the borough token (`Manhattan`, `Brooklyn`, `Queens`, `Bronx`, `Staten Island`) as **City** and leave **County blank** (don’t guess).
+For these:
+- Sometimes the borough is in the **County** token, sometimes in the **City** token, and sometimes City is blank.
+- If **any** token matches one of `{Manhattan, Brooklyn, Queens, Bronx, Staten Island}`, treat that token as **City**.
+- Never infer `County = New York`; leave **County blank** when ambiguous (don’t guess).
 
 ### 2.3) BNN Parsing Rules (Apps Script)
 
 **Incident ID extraction (required):**
 - Extract the **last** `#` + 7 digits (future-proof for 1→2): `/#([12]\d{6})/` and take the last match.
 - Store **digits only** (e.g., `1825784`) in Column C.
+
+**BNN Incident ID invariants (do not relax):**
+- BNN Incident ID must be derived only from the trailing `#([12]\d{6})` (**last match**).
+- Apps Script must never accept or generate `APP-*` IDs for BNN incidents.
+- If a row shows `APP-<13digit>` in Column C for what should be BNN: treat it as an Android routing/source-identity failure (e.g., event routed as generic app), not a Sheet schema issue.
+- `APP-*` IDs may exist only for generic non-BNN app notifications (Apps Script fallback); they must not appear for BNN.
 
 **New vs Update:**
 - If `status` contains `Update`, `U/D`, or starts with `U/` → treat as Update.
@@ -144,6 +153,10 @@ For these, treat the borough token (`Manhattan`, `Brooklyn`, `Queens`, `Bronx`, 
 **Extraction sources:**
 - Prefer `fdCodes` array from JSON.
 - Otherwise parse from the `<C>` / tail segment where tokens are separated by `/` or `|`.
+
+**Position variability (BNN):**
+- FD codes may appear after `BNNDESK`, after `BNN`, alone (no `BNNDESK`), delimited by `/`, `|`, or spaces, or not at all (~20%).
+- Never assume `BNNDESK` is present or that `fdCodes` exist.
 
 **Normalization:**
 - Lowercase.
@@ -201,6 +214,7 @@ From the message we want:
   - `https://adjustleads.net/alerts/294966`
 
 **Extraction:**
+- Trim whitespace before extracting trailing digits (defensive; prevents future regex tightening bugs).
 - Regex: `/https?:\/\/(?:www\.)?adjustleads\.(?:com|net)\/(?:app\/)?alerts\/(\d{6,})/i`
 - Store as: `AL-294966` in Column C.
 
@@ -275,7 +289,7 @@ Apps Script should return JSON for observability.
 ### 4.1) BNN Response
 
 ```json
-{ "result": "success", "type": "bnn", "incidentId": "#1825784", "action": "new" | "update" }
+{ "result": "success", "type": "bnn", "incidentId": "1825784", "action": "new" | "update" }
 ```
 
 ### 4.2) SMS Response
@@ -304,10 +318,10 @@ NJ | Atlantic | Atlantic City | 31 Virginia Ave | Fire Department Activity | FD 
 Output Row:
 - A: `New Incident`
 - B: timestamp
-- C: `#1825784`
+- C: `1825784`
 - D/E/F/G populated
 - H/I populated
-- J contains full original
+- K contains full original
 - FD codes filled and deduped
 
 ### 5.2) SMS AdjustLeads Example
@@ -329,7 +343,7 @@ Parsed:
 - D/F/G from 📍 line
 - H: `Structural Fire`
 - I: `First engine on scene...`
-- J: `From: +1561...\n<full message>`
+- K: `From: +1561...\n<full message>`
 
 ---
 
@@ -353,4 +367,11 @@ To support geocoding later without breaking current logic:
 - **Row merge is always by Column C.**
 - **Updates never rewrite D/E/F/G.**
 - **FD codes are unique per incident.**
+
+---
+
+## 8) Not a parsing.md problem
+
+- `APP-<timestamp>` IDs, duplicate dashboard cards, or wrong IDs only for APP events are **Android delivery/source identity/persistence issues**, not Apps Script parsing issues.
+- `parsing.md` should not be used to justify adding Apps Script fallbacks that **mask Android bugs**.
 

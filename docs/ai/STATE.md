@@ -1,6 +1,6 @@
 # PROJECT STATE - Single Source of Truth
 
-**Last Updated:** 2026-01-03 (BNN: switched raw parsing to right-to-left field assignment to tolerate missing city/county; added multi-variant diagnostics)  
+**Last Updated:** 2026-01-03 (BNN: switched raw parsing to right-to-left field assignment to tolerate missing city/county; added multi-variant diagnostics; parsing.md invariants clarified)  
 **Branch:** `fix/wiring-sources-endpoints`  
 **Status:** 🟡 Verifying Lab endpoint test gating + sheet writes; 🟢 Lab has truthful step status lights (no false greens); 🟢 Serena Kotlin symbol indexing verified (PASS)
 
@@ -47,6 +47,7 @@ Cursor/Serena MCP server must be restarted to reload the updated `.serena/projec
 - Updated docs to reflect newly-available optional MCPs and the required “no silent degradation” fallback rule:
   - `docs/ai/CURSOR_WORKFLOW.md` (added MagicMCP + Playwright MCP usage + fallback policy)
   - `MCP_QUICK_REFERENCE.md` (added MagicMCP + Playwright rows + failure policy section)
+- Updated `parsing.md` (doc-only): clarified BNN incident ID invariants (no `APP-*` for BNN), FD code position variability, NYC borough handling, nfa-id insert-only increment rule, SMS whitespace trimming note; corrected the BNN example Incident ID to digits-only; added “Not a parsing.md problem”; fixed SMS example to store the raw `From:` blob in Column **K** (not J).
 
 ### MCP GAS Server Removal (2026-01-03)
 - Removed the attempted **GAS MCP server** setup per user request:

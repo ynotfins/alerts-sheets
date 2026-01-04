@@ -60,11 +60,8 @@ class DebugActivity : AppCompatActivity() {
         btnCopyLast10 = findViewById(R.id.btnCopyLast10)
         tvStatus = findViewById(R.id.tvDebugStatus)
         
-        // Setup RecyclerView (newest-first)
-        recyclerView.layoutManager = LinearLayoutManager(this).apply {
-            reverseLayout = true
-            stackFromEnd = true
-        }
+        // Setup RecyclerView (newest-first at TOP)
+        recyclerView.layoutManager = LinearLayoutManager(this)
         adapter = DebugLogsAdapter()
         recyclerView.adapter = adapter
         
@@ -123,7 +120,9 @@ class DebugActivity : AppCompatActivity() {
             )
         }
         
-        adapter.setLogs(structuredLogs.reversed()) // reverseLayout expects newest at top
+        // Sort newest-first so the most recent entry is at position 0 (top).
+        adapter.setLogs(structuredLogs.sortedByDescending { it.timestamp })
+        recyclerView.scrollToPosition(0)
         
         tvStatus.text = "Showing ${logs.size} real deliveries from pipeline"
     }

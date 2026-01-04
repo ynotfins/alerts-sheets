@@ -12,7 +12,7 @@ function doPost(e) {
     // 0. Verification Ping (App Health Check)
     if (data.type === "verify") {
       return ContentService.createTextOutput(
-        JSON.stringify({ result: "verified" })
+        JSON.stringify({ result: "verified", debug: getSheetDebugInfo_(sheet) })
       ).setMimeType(ContentService.MimeType.JSON);
     }
 
@@ -80,8 +80,21 @@ function doPost(e) {
       }
     }
 
+    let writeDebug = {
+      action: "unknown",
+      rowIndex: null,
+      lastRowBefore: null,
+      lastRowAfter: null,
+      wroteRow: null
+    };
+
     if (foundRow !== -1) {
       // --- UPDATE EXISTING ROW (APPEND MODE) ---
+      writeDebug.action = "update";
+      writeDebug.rowIndex = foundRow;
+      writeDebug.lastRowBefore = sheet.getLastRow();
+      writeDebug.lastRowAfter = writeDebug.lastRowBefore;
+      writeDebug.wroteRow = false;
 
       // Normalize stored Incident ID in Column C to digits-only (remove leading '#')
       // This is safe because lookup already tolerates existing '#'.
@@ -197,11 +210,16 @@ function doPost(e) {
         }
       });
 
+      writeDebug.action = "new";
+      writeDebug.lastRowBefore = sheet.getLastRow();
       sheet.appendRow(row);
+      writeDebug.lastRowAfter = sheet.getLastRow();
+      writeDebug.wroteRow = writeDebug.lastRowAfter === writeDebug.lastRowBefore + 1;
+      writeDebug.rowIndex = writeDebug.lastRowAfter;
     }
 
     return ContentService.createTextOutput(
-      JSON.stringify({ result: "success", id: incidentId })
+      JSON.stringify({ result: "success", id: incidentId, debug: Object.assign(getSheetDebugInfo_(sheet), writeDebug) })
     ).setMimeType(ContentService.MimeType.JSON);
   } catch (err) {
     return ContentService.createTextOutput(
@@ -209,6 +227,23 @@ function doPost(e) {
     ).setMimeType(ContentService.MimeType.JSON);
   } finally {
     lock.releaseLock();
+  }
+}
+
+function getSheetDebugInfo_(sheet) {
+  try {
+    const ss = sheet.getParent();
+    const sheets = ss.getSheets();
+    return {
+      spreadsheetId: ss.getId(),
+      spreadsheetUrl: ss.getUrl(),
+      sheetName: sheet.getName(),
+      sheetIndex: sheets.indexOf(sheet),
+      lastRow: sheet.getLastRow(),
+      lastColumn: sheet.getLastColumn()
+    };
+  } catch (e) {
+    return { error: String(e) };
   }
 }
 
@@ -227,6 +262,7 @@ function handleSmsMessage(data, sheet) {
 
   // Generic SMS (non-AdjustLeads) - backward compatible append-only
   if (!parsed.isAdjustLeads) {
+    const lastRowBefore = sheet.getLastRow();
     const row = [
       "SMS",
       timestamp,
@@ -241,12 +277,20 @@ function handleSmsMessage(data, sheet) {
       `From: ${sender}\n${message}`
     ];
     sheet.appendRow(row);
+    const lastRowAfter = sheet.getLastRow();
 
     return ContentService.createTextOutput(JSON.stringify({
       result: "success",
       type: "sms",
       sender,
-      parsed: false
+      parsed: false,
+      debug: Object.assign(getSheetDebugInfo_(sheet), {
+        action: "new",
+        rowIndex: lastRowAfter,
+        lastRowBefore,
+        lastRowAfter,
+        wroteRow: lastRowAfter === lastRowBefore + 1
+      })
     })).setMimeType(ContentService.MimeType.JSON);
   }
 
@@ -312,11 +356,19 @@ function handleSmsMessage(data, sheet) {
       sender,
       incidentId,
       action: "update",
-      parsed: true
+      parsed: true,
+      debug: Object.assign(getSheetDebugInfo_(sheet), {
+        action: "update",
+        rowIndex: foundRow,
+        lastRowBefore: sheet.getLastRow(),
+        lastRowAfter: sheet.getLastRow(),
+        wroteRow: false
+      })
     })).setMimeType(ContentService.MimeType.JSON);
   }
 
   // NEW ROW
+  const lastRowBefore = sheet.getLastRow();
   const row = [
     "SMS Fire Alert",
     timestamp,
@@ -331,6 +383,7 @@ function handleSmsMessage(data, sheet) {
     `From: ${sender}\n${message}`
   ];
   sheet.appendRow(row);
+  const lastRowAfter = sheet.getLastRow();
 
   return ContentService.createTextOutput(JSON.stringify({
     result: "success",
@@ -339,7 +392,14 @@ function handleSmsMessage(data, sheet) {
     incidentId,
     action: "new",
     parsed: true,
-    incidentIdMethod: parsed.incidentIdMethod
+    incidentIdMethod: parsed.incidentIdMethod,
+    debug: Object.assign(getSheetDebugInfo_(sheet), {
+      action: "new",
+      rowIndex: lastRowAfter,
+      lastRowBefore,
+      lastRowAfter,
+      wroteRow: lastRowAfter === lastRowBefore + 1
+    })
   })).setMimeType(ContentService.MimeType.JSON);
 }
 

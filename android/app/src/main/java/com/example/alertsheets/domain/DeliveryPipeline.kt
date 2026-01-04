@@ -14,10 +14,14 @@ import com.example.alertsheets.utils.EndpointValidators
 import com.example.alertsheets.utils.SmsSenderNormalizer
 import com.example.alertsheets.utils.StructuredLogger
 import com.example.alertsheets.utils.TemplateEngine
+import com.example.alertsheets.LogEntry
+import com.example.alertsheets.LogRepository
+import com.example.alertsheets.LogStatus
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import com.google.gson.Gson
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -64,6 +68,26 @@ object DeliveryPipeline {
             val senderShape = getSenderShape(senderRaw)
             
             Log.d(TAG, "Normalized sender: $senderShape (${senderNormalized.length} digits)")
+
+            // Notifications Log: record every SMS quickly (even if later ignored)
+            runCatching {
+                LogRepository.addLog(
+                    LogEntry(
+                        id = alertId,
+                        packageName = "sms",
+                        title = "SMS from $senderShape",
+                        content = message.take(200),
+                        status = LogStatus.PENDING,
+                        rawJson = Gson().toJson(
+                            mapOf(
+                                "source" to "sms",
+                                "senderShape" to senderShape,
+                                "messagePreview" to message.take(200)
+                            )
+                        )
+                    )
+                )
+            }
             
             // Step 2: Match source (SMS type)
             val sourceRepo = SourceRepository(context)
@@ -98,6 +122,7 @@ object DeliveryPipeline {
                         payloadPreview = redactPhoneNumbers(message.take(500))
                     )
                 )
+                runCatching { LogRepository.updateStatus(alertId, LogStatus.IGNORED) }
                 return@launch
             }
             
@@ -127,6 +152,7 @@ object DeliveryPipeline {
                         details = null
                     )
                 )
+                runCatching { LogRepository.updateStatus(alertId, LogStatus.IGNORED) }
                 return@launch
             }
             
@@ -179,6 +205,7 @@ object DeliveryPipeline {
                         details = "selected=${source.endpointIds.size} selectable=${summary["selectable"]}"
                     )
                 )
+                runCatching { LogRepository.updateStatus(alertId, LogStatus.FAILED) }
                 return@launch
             }
             
@@ -208,6 +235,7 @@ object DeliveryPipeline {
                         details = "endpointIds=${source.endpointIds.size}"
                     )
                 )
+                runCatching { LogRepository.updateStatus(alertId, LogStatus.FAILED) }
                 return@launch
             }
             
@@ -455,6 +483,7 @@ object DeliveryPipeline {
                         responsePreview = (result.responseBody ?: "").take(1000)
                     )
                 )
+                runCatching { LogRepository.updateStatus(alertId, LogStatus.SENT) }
                 
             } else {
                 Log.e(TAG, "❌ HTTP FAIL | code=${result.httpCode} error=${result.errorClass}: ${result.errorMessage}")
@@ -484,6 +513,7 @@ object DeliveryPipeline {
                         responsePreview = (result.responseBody ?: "").take(1000)
                     )
                 )
+                runCatching { LogRepository.updateStatus(alertId, LogStatus.FAILED) }
             }
         }
     }
@@ -765,11 +795,34 @@ object DeliveryPipeline {
         timestamp: Long = System.currentTimeMillis()
     ) {
         scope.launch {
+            com.example.alertsheets.utils.DeliveryLogBuffer.init(context.applicationContext)
             val alertId = "app_${System.currentTimeMillis()}"
             val startTime = System.currentTimeMillis()
             
             Log.d(TAG, "📱 APP event received | alertId=$alertId package=$packageName")
             Log.d(TAG, "   Title: ${title.take(50)}")
+
+            // Notifications Log: record every notification quickly (even if later ignored)
+            runCatching {
+                LogRepository.addLog(
+                    LogEntry(
+                        id = alertId,
+                        packageName = packageName,
+                        title = title.take(80).ifBlank { "(no title)" },
+                        content = (bigText.ifBlank { text }).take(200),
+                        status = LogStatus.PENDING,
+                        rawJson = Gson().toJson(
+                            mapOf(
+                                "source" to "app",
+                                "package" to packageName,
+                                "title" to title,
+                                "textPreview" to text.take(200),
+                                "bigTextPreview" to bigText.take(200)
+                            )
+                        )
+                    )
+                )
+            }
             
             // Step 1: Match source by packageName
             val sourceRepo = SourceRepository(context)
@@ -803,11 +856,13 @@ object DeliveryPipeline {
                         details = "package=$packageName"
                     )
                 )
+                runCatching { LogRepository.updateStatus(alertId, LogStatus.IGNORED) }
                 return@launch
             }
             
             if (!source.enabled) {
                 Log.w(TAG, "❌ Source disabled: ${source.name}")
+                runCatching { LogRepository.updateStatus(alertId, LogStatus.IGNORED) }
                 return@launch
             }
             
@@ -863,6 +918,7 @@ object DeliveryPipeline {
                         details = "selected=${source.endpointIds.size} selectable=${selectableEndpoints.size}"
                     )
                 )
+                runCatching { LogRepository.updateStatus(alertId, LogStatus.FAILED) }
                 return@launch
             }
             
@@ -870,6 +926,8 @@ object DeliveryPipeline {
             Log.d(TAG, "   Endpoint IDs: ${selectableEndpoints.map { it.id }.joinToString(", ")}")
             
             // Step 4: Multi-endpoint fanout (one HTTP POST per endpoint)
+            var anySuccess = false
+            var allSuccess = true
             for ((index, endpoint) in selectableEndpoints.withIndex()) {
                 Log.d(TAG, "📤 Delivering to endpoint ${index + 1}/${selectableEndpoints.size}: ${endpoint.name}")
                 
@@ -915,6 +973,7 @@ object DeliveryPipeline {
                             details = "count=${unresolvedPlaceholders.size} missingKeys=$missingKeys"
                         )
                     )
+                    allSuccess = false
                     continue // Skip this endpoint, try next
                 }
                 
@@ -1009,6 +1068,7 @@ object DeliveryPipeline {
                             details = "response=${result.responseBody?.take(100)}"
                         )
                     )
+                    anySuccess = true
                 } else {
                     val details = "code=${result.httpCode} error=${result.errorClass}: ${result.errorMessage}"
                     Log.e(TAG, "❌ HTTP FAIL | $details")
@@ -1036,8 +1096,16 @@ object DeliveryPipeline {
                             details = details
                         )
                     )
+                    allSuccess = false
                 }
             }
+
+            val finalStatus = when {
+                allSuccess && anySuccess -> LogStatus.SENT
+                anySuccess -> LogStatus.PARTIAL
+                else -> LogStatus.FAILED
+            }
+            runCatching { LogRepository.updateStatus(alertId, finalStatus) }
             
             val totalTime = System.currentTimeMillis() - startTime
             Log.d(TAG, "✅ APP delivery complete | alertId=$alertId totalTime=${totalTime}ms endpoints=${selectableEndpoints.size}")
@@ -1099,4 +1167,5 @@ object DeliveryPipeline {
         return result
     }
 }
+
 

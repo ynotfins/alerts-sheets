@@ -74,7 +74,7 @@ BNN alerts are delivered as **structured fields** (preferred), or as a raw pipe-
   "source": "bnn",
   "status": "New Incident" | "Update" | "New Incident Update" | "U/D",
   "timestamp": "MM/dd/yyyy hh:mm:ss a",
-  "incidentId": "#1825784",
+  "incidentId": "1825784",
   "state": "NJ",
   "county": "Atlantic",
   "city": "Atlantic City",
@@ -88,6 +88,7 @@ BNN alerts are delivered as **structured fields** (preferred), or as a raw pipe-
 
 #### Field Notes
 - `incidentId` is the **merge key**. It is **7 digits** (no `#` stored in the Sheet), currently starts with `1`, and will start with `2` in the future.
+- If payload includes a leading `#`, Apps Script strips it before merge/storage.
 - `fdCodes` are lowercase tokens, often prefixed with state (`nj`, `ny`, `pa`).
 - `originalBody` is stored in Column K (appended per update).
 
@@ -98,6 +99,8 @@ BNN bodies typically look like:
 ```
 NJ | Atlantic | Atlantic City | 31 Virginia Ave | Fire Department Activity | ... | <C> BNN | BNNDESK/nj79/njvx6 | #1825784
 ```
+
+`originalBody` may arrive as a 3-line block (status/date/pipes) or as a single normalized line; parsing must handle both.
 
 **Rules:**
 - `|` pipes separate fields.
@@ -310,7 +313,7 @@ Apps Script should return JSON for observability.
 Input (`originalBody` style):
 
 ```
-New Alert BNN
+New Incident
 09/18/2025 11:29 AM
 NJ | Atlantic | Atlantic City | 31 Virginia Ave | Fire Department Activity | FD O/S ... | <C> BNN | BNNDESK | #1825784
 ```

@@ -1,8 +1,8 @@
 # PROJECT STATE - Single Source of Truth
 
-**Last Updated:** 2026-01-04 (Android: ⭐ Rock Solid default templates aligned to parsing.md; Lab Test defaults to real write-test with optional verify-only toggle; versionCode/versionName auto-bump from git commit count; BNN parser now emits status for template; both phones sideloaded successfully)  
+**Last Updated:** 2026-01-04 (Android: DebugActivity newest-first fix; DeliveryPipeline now writes to Notification Logs for every SMS/notification; Apps Script responses now include sheet write-proof debug fields (sheetName/url + lastRow before/after))  
 **Branch:** `fix/wiring-sources-endpoints`  
-**Status:** 🟡 Verifying Apps Script write path (200 must equal new row); 🟢 Debug screen redesigned (persistent logs + newest-first + high contrast + payload/response); 🟢 Lab step-6 gating fixed (records against editor config; verify-only no longer counts)
+**Status:** 🟡 Verifying Apps Script write path with returned write-proof fields; 🟢 Debug screen readable + newest-first; 🟢 Notification Logs now record every SMS/notification attempt
 
 ---
 

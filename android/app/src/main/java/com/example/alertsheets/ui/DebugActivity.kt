@@ -14,6 +14,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.alertsheets.BuildConfig
 import com.example.alertsheets.R
+import com.example.alertsheets.data.repositories.DeliveryLogRepository
 import com.example.alertsheets.utils.StructuredLogger
 import java.io.File
 
@@ -59,8 +60,11 @@ class DebugActivity : AppCompatActivity() {
         btnCopyLast10 = findViewById(R.id.btnCopyLast10)
         tvStatus = findViewById(R.id.tvDebugStatus)
         
-        // Setup RecyclerView
-        recyclerView.layoutManager = LinearLayoutManager(this)
+        // Setup RecyclerView (newest-first)
+        recyclerView.layoutManager = LinearLayoutManager(this).apply {
+            reverseLayout = true
+            stackFromEnd = true
+        }
         adapter = DebugLogsAdapter()
         recyclerView.adapter = adapter
         
@@ -89,8 +93,12 @@ class DebugActivity : AppCompatActivity() {
     }
     
     private fun loadLogs() {
-        // ✅ GOLDEN PATH: Read from DeliveryLogBuffer
-        val logs = com.example.alertsheets.utils.DeliveryLogBuffer.getRecent(limit = 20)
+        // Ensure persistence is initialized
+        com.example.alertsheets.utils.DeliveryLogBuffer.init(applicationContext)
+
+        // Read from persistent storage first (survives restarts)
+        val repo = DeliveryLogRepository(applicationContext)
+        val logs = repo.getRecent(limit = 50)
         
         // Convert DeliveryLogBuffer entries to StructuredLogger.LogEntry format for adapter
         val structuredLogs = logs.map { entry ->
@@ -106,13 +114,23 @@ class DebugActivity : AppCompatActivity() {
                 endpoint_id = entry.endpointId,
                 alert_id = entry.alertId,
                 event = entry.event,
-                details = entry.details ?: "httpCode=${entry.httpCode} latencyMs=${entry.latencyMs}"
+                details = buildString {
+                    append(entry.details ?: "httpCode=${entry.httpCode} latencyMs=${entry.latencyMs}")
+                    entry.url?.let { append("\nurl=").append(it) }
+                    entry.payloadPreview?.let { append("\npayload=").append(it) }
+                    entry.responsePreview?.let { append("\nresponse=").append(it) }
+                }
             )
         }
         
-        adapter.setLogs(structuredLogs)
+        adapter.setLogs(structuredLogs.reversed()) // reverseLayout expects newest at top
         
         tvStatus.text = "Showing ${logs.size} real deliveries from pipeline"
+    }
+
+    override fun onResume() {
+        super.onResume()
+        loadLogs()
     }
     
     private fun copyAllLogsToClipboard() {

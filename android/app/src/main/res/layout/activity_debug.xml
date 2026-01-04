@@ -5,6 +5,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:padding="16dp"
+    android:background="#000000"
     tools:context=".ui.DebugActivity">
 
     <TextView
@@ -13,7 +14,7 @@
         android:layout_height="wrap_content"
         android:text="Loading logs..."
         android:textSize="14sp"
-        android:textColor="#666666"
+        android:textColor="#E0E0E0"
         android:paddingBottom="8dp"/>
 
     <androidx.recyclerview.widget.RecyclerView

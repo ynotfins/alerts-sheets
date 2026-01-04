@@ -1,5 +1,7 @@
 package com.example.alertsheets.utils
 
+import android.content.Context
+import com.example.alertsheets.data.repositories.DeliveryLogRepository
 import java.util.concurrent.ConcurrentLinkedQueue
 
 /**
@@ -17,6 +19,13 @@ object DeliveryLogBuffer {
     
     private val buffer = ConcurrentLinkedQueue<DeliveryLogEntry>()
     private const val MAX_SIZE = 100
+
+    @Volatile private var repo: DeliveryLogRepository? = null
+
+    fun init(context: Context) {
+        if (repo != null) return
+        repo = DeliveryLogRepository(context.applicationContext)
+    }
     
     data class DeliveryLogEntry(
         val timestamp: Long,
@@ -28,7 +37,11 @@ object DeliveryLogBuffer {
         val latencyMs: Long?,
         val errorClass: String?,
         val errorMessage: String?,
-        val details: String?
+        val details: String?,
+        // Optional debug payloads (for on-device debugging)
+        val url: String? = null,
+        val payloadPreview: String? = null,
+        val responsePreview: String? = null
     )
     
     /**
@@ -37,6 +50,8 @@ object DeliveryLogBuffer {
      */
     fun append(entry: DeliveryLogEntry) {
         buffer.add(entry)
+        // Persist for reliable debugging across restarts (best-effort)
+        runCatching { repo?.append(entry) }
         
         // Trim to max size
         while (buffer.size > MAX_SIZE) {
@@ -63,6 +78,7 @@ object DeliveryLogBuffer {
      */
     fun clear() {
         buffer.clear()
+        runCatching { repo?.clear() }
     }
 }
 

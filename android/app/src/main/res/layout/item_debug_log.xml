@@ -6,7 +6,8 @@
     android:layout_height="wrap_content"
     android:layout_margin="4dp"
     app:cardCornerRadius="4dp"
-    app:cardElevation="2dp">
+    app:cardElevation="2dp"
+    app:cardBackgroundColor="#2C2C2E">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -27,7 +28,7 @@
                 android:layout_weight="1"
                 android:text="12:34:56"
                 android:textSize="12sp"
-                android:textColor="#999999"/>
+                android:textColor="#E0E0E0"/>
 
             <TextView
                 android:id="@+id/tvLogLevel"
@@ -63,7 +64,7 @@
                 android:layout_height="wrap_content"
                 android:text="Source: "
                 android:textSize="12sp"
-                android:textColor="#666666"/>
+                android:textColor="#B0B0B0"/>
 
             <TextView
                 android:id="@+id/tvLogSourceId"
@@ -72,14 +73,14 @@
                 android:layout_weight="1"
                 android:text="bnn_app"
                 android:textSize="12sp"
-                android:textColor="#333333"/>
+                android:textColor="#FFFFFF"/>
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Endpoint: "
                 android:textSize="12sp"
-                android:textColor="#666666"
+                android:textColor="#B0B0B0"
                 android:paddingStart="12dp"
                 android:paddingEnd="0dp"/>
 
@@ -89,7 +90,7 @@
                 android:layout_height="wrap_content"
                 android:text="apps_script"
                 android:textSize="12sp"
-                android:textColor="#333333"/>
+                android:textColor="#FFFFFF"/>
 
         </LinearLayout>
 
@@ -100,9 +101,9 @@
             android:layout_height="wrap_content"
             android:text="code=200 latency=234ms"
             android:textSize="12sp"
-            android:textColor="#666666"
+            android:textColor="#D0D0D0"
             android:paddingTop="4dp"
-            android:maxLines="2"
+            android:maxLines="10"
             android:ellipsize="end"/>
 
     </LinearLayout>

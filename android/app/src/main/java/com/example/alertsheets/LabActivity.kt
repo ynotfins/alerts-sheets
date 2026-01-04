@@ -785,8 +785,11 @@ class LabActivity : AppCompatActivity() {
                 val result = DeliveryPipeline.deliverTestEventWithAuth(endpoint, json)
                 val currentSourceId = sourceId ?: ""
                 if (currentSourceId.isNotBlank()) {
-                    val configHash = computeConfigHash(currentSourceId, radioGroup.checkedRadioButtonId, json, selectedEndpointIds)
-                    val confirmed = isConfirmedSuccessResponse(result.httpCode, result.responseBody)
+                    // Persist test result against the CURRENT SOURCE CONFIG (editor JSON), not the outgoing payload,
+                    // so Step 6 reflects the actual saved configuration.
+                    val editorJson = inputJson.text.toString()
+                    val configHash = computeConfigHash(currentSourceId, radioGroup.checkedRadioButtonId, editorJson, selectedEndpointIds)
+                    val confirmed = isConfirmedWriteResponse(result.httpCode, result.responseBody)
                     testStatusRepo.record(
                         sourceId = currentSourceId,
                         endpointId = endpoint.id,
@@ -967,6 +970,8 @@ class LabActivity : AppCompatActivity() {
             val source = sourceManager.getAllSources().find { it.id == sourceId }
             withContext(Dispatchers.Main) {
                 source?.let { src ->
+                    // ✅ Ensure Lab has a stable sourceId for Step 6 gating and test persistence
+                    this@LabActivity.sourceId = src.id
                     // region agent log (TplDbg) - hypothesisId=H2 (async loadTemplates overwrites loaded source template)
                     runCatching {
                         Log.i(
@@ -1101,9 +1106,11 @@ class LabActivity : AppCompatActivity() {
         return bytes.joinToString("") { b -> "%02x".format(b) }.take(16)
     }
 
-    private fun isConfirmedSuccessResponse(httpCode: Int, body: String?): Boolean {
+    private fun isConfirmedWriteResponse(httpCode: Int, body: String?): Boolean {
         if (httpCode !in 200..299) return false
         val b = (body ?: "").lowercase()
+        // Verify-only responses MUST NOT count as "write test confirmed"
+        if (b.contains("\"result\":\"verified\"")) return false
         return b.contains("\"result\"") && b.contains("success") ||
             b.contains("\"ok\":true") ||
             b.contains("\"success\":true") ||

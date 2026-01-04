@@ -2,7 +2,7 @@
 
 **Last Updated:** 2026-01-04 (Android: ⭐ Rock Solid default templates aligned to parsing.md; Lab Test defaults to real write-test with optional verify-only toggle; versionCode/versionName auto-bump from git commit count; BNN parser now emits status for template; both phones sideloaded successfully)  
 **Branch:** `fix/wiring-sources-endpoints`  
-**Status:** 🟡 Verifying Lab endpoint test gating + sheet writes; 🟢 Lab has truthful step status lights (no false greens); 🟢 Serena Kotlin symbol indexing verified (PASS)
+**Status:** 🟡 Verifying Apps Script write path (200 must equal new row); 🟢 Debug screen redesigned (persistent logs + newest-first + high contrast + payload/response); 🟢 Lab step-6 gating fixed (records against editor config; verify-only no longer counts)
 
 ---
 

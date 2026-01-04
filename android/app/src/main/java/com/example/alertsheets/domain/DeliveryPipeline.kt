@@ -52,6 +52,8 @@ object DeliveryPipeline {
      */
     fun deliverSmsEvent(context: Context, senderRaw: String, message: String, timestamp: Long = System.currentTimeMillis()) {
         scope.launch {
+            // Ensure persistent debug logs are available even when started via SMS receiver
+            com.example.alertsheets.utils.DeliveryLogBuffer.init(context.applicationContext)
             val alertId = "alert_${System.currentTimeMillis()}"
             val startTime = System.currentTimeMillis()
             
@@ -92,7 +94,8 @@ object DeliveryPipeline {
                         latencyMs = null,
                         errorClass = "NoMatchingSource",
                         errorMessage = "No configured source for $senderShape",
-                        details = reason
+                        details = reason,
+                        payloadPreview = redactPhoneNumbers(message.take(500))
                     )
                 )
                 return@launch
@@ -446,7 +449,10 @@ object DeliveryPipeline {
                         latencyMs = result.latencyMs,
                         errorClass = null,
                         errorMessage = null,
-                        details = "totalLatency=${totalLatency}ms response=${result.responseBody?.take(120) ?: ""}"  // ✅ Add response snippet
+                        details = "totalLatency=${totalLatency}ms response=${result.responseBody?.take(120) ?: ""}",  // ✅ Add response snippet
+                        url = endpoint.url,
+                        payloadPreview = redactPhoneNumbers(json.take(1000)),
+                        responsePreview = (result.responseBody ?: "").take(1000)
                     )
                 )
                 
@@ -472,7 +478,10 @@ object DeliveryPipeline {
                         latencyMs = result.latencyMs,
                         errorClass = result.errorClass,
                         errorMessage = result.errorMessage,
-                        details = "totalLatency=${totalLatency}ms response=${result.responseBody?.take(120) ?: ""}"  // ✅ Add response snippet
+                        details = "totalLatency=${totalLatency}ms response=${result.responseBody?.take(120) ?: ""}",  // ✅ Add response snippet
+                        url = endpoint.url,
+                        payloadPreview = redactPhoneNumbers(json.take(1000)),
+                        responsePreview = (result.responseBody ?: "").take(1000)
                     )
                 )
             }

@@ -58,8 +58,14 @@ class DebugLogsAdapter : RecyclerView.Adapter<DebugLogsAdapter.LogViewHolder>() 
                 "http_ok", "success" -> tvEvent.setTextColor(Color.parseColor("#4CAF50"))
                 "http_fail" -> tvEvent.setTextColor(Color.RED)
                 "retry_scheduled" -> tvEvent.setTextColor(Color.parseColor("#FFA500"))
-                else -> tvEvent.setTextColor(Color.GRAY)
+                else -> tvEvent.setTextColor(Color.WHITE) // high contrast for dark mode
             }
+
+            // Ensure details are readable in dark mode
+            tvTimestamp.setTextColor(Color.parseColor("#E0E0E0"))
+            tvSourceId.setTextColor(Color.parseColor("#E0E0E0"))
+            tvEndpointId.setTextColor(Color.parseColor("#E0E0E0"))
+            tvDetails.setTextColor(Color.parseColor("#D0D0D0"))
         }
     }
 }

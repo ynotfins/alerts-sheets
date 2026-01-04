@@ -95,6 +95,9 @@ object AppConstants {
     
     /** Activity logs JSON file name */
     const val FILE_LOGS = "logs.json"
+
+    /** Delivery debug logs JSON file name (persistent) */
+    const val FILE_DELIVERY_LOGS = "delivery_logs.json"
     
     // ============================================================
     // PACKAGE NAMES

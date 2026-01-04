@@ -4,6 +4,29 @@
 **Branch:** `fix/wiring-sources-endpoints`  
 **Status:** 🟡 Verifying Apps Script write path with returned write-proof fields; 🟢 Debug screen readable + newest-first; 🟢 Notification Logs now record every SMS/notification attempt
 
+## Pause point (end of day)
+
+**Latest pushed commit:** `533fc68` — "Write-proof responses + logs: newest-first debug, notification log for all events"
+
+### What is DONE (shipped)
+- **Apps Script**: Responses now include `debug` write-proof fields (`spreadsheetUrl`, `sheetName`, `sheetIndex`, `lastRowBefore/After`, `wroteRow`, `rowIndex`) for `verify`, `sms`, and `bnn` flows (repo copies: `apps_script_current/code.gs.txt`, `scripts/Code.gs`).
+- **Android Debug Logs**: Newest-first display + auto-scroll to newest; high contrast; includes `url`, `payload`, `response`.
+- **Android Notifications Log**: Delivery pipeline now records **every SMS + every app notification** (even ignored) so the log cannot appear “stale”.
+
+### What is NOT DONE (needs runtime proof tomorrow)
+- **Sheet writes**: User reports `HTTP 200` + `result:"success"` but “no new row”. We must confirm via Apps Script `debug.wroteRow` and `debug.sheetName/url` to identify whether:
+  - the script is writing to a different **tab** (`getSheets()[0]`), or
+  - a different **spreadsheet ID**, or
+  - verify-only / non-write path.
+- **God Mode / capture priority**: Confirm on-device that SMS + notifications are captured immediately on Android 15 via fresh Notification Log entries + Debug Logs.
+
+### Tomorrow's exact verification steps (copy/paste checklist)
+1. Force-close app → reopen (ensures new build + repos initialized).
+2. Run **Lab test** with Verify-only OFF (write test).
+3. In **Debug Logs**, open newest `http_ok` entry and copy the `response=` JSON, especially `debug.{spreadsheetUrl,sheetName,lastRowBefore,lastRowAfter,wroteRow,rowIndex}`.
+4. Check that spreadsheet URL + sheet name match the sheet you’re viewing; if mismatch, fix target tab selection (replace `getSheets()[0]` with `getSheetByName(...)`).
+5. Open **Notifications Log** and confirm new entries appear within 1 minute for the test + any recent notifications/SMS.
+
 ---
 
 ## 🧰 SESSION 10 SUMMARY: Serena Kotlin/Java Indexing Enabled (Tooling)

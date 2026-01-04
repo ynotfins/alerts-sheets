@@ -57,7 +57,8 @@ class TemplateRepository(private val context: Context) {
      */
     fun getAppTemplate(): String {
         return try {
-            PrefsManager.getAppJsonTemplate(context)
+            // Prefer Rock Solid generic app payload for new sources / defaults.
+            PrefsManager.getRockSolidAppTemplate().content
         } catch (e: Exception) {
             Log.e(TAG, "Failed to get app template, using fallback", e)
             getFallbackAppTemplate()
@@ -65,11 +66,26 @@ class TemplateRepository(private val context: Context) {
     }
     
     /**
+     * Get BNN template (APP mode, parserId=bnn)
+     * Matches parsing.md contract.
+     */
+    fun getBnnTemplate(): String {
+        return try {
+            PrefsManager.getRockSolidBnnTemplate().content
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to get BNN template, using fallback", e)
+            // Fall back to app template as last resort (still delivers, but loses structured fields)
+            getAppTemplate()
+        }
+    }
+
+    /**
      * Get SMS template
      */
     fun getSmsTemplate(): String {
         return try {
-            PrefsManager.getSmsJsonTemplate(context)
+            // Prefer Rock Solid SMS payload for new sources / defaults.
+            PrefsManager.getRockSolidSmsTemplate().content
         } catch (e: Exception) {
             Log.e(TAG, "Failed to get SMS template, using fallback", e)
             getFallbackSmsTemplate()

@@ -15,8 +15,24 @@ android {
         applicationId "com.example.alertsheets"
         minSdk 26
         targetSdk 34
-        versionCode 1
-        versionName "1.0"
+        // ✅ Auto-bump version on every commit (prevents stale builds when shipping multiple times/day)
+        // versionCode must be monotonically increasing for installs.
+        def gitCount = 1
+        try {
+            def stdout = new ByteArrayOutputStream()
+            exec {
+                commandLine 'git', 'rev-list', '--count', 'HEAD'
+                standardOutput = stdout
+                ignoreExitValue = true
+            }
+            def s = stdout.toString().trim()
+            if (s.isInteger()) {
+                gitCount = Integer.parseInt(s)
+            }
+        } catch (Exception ignored) {}
+
+        versionCode (1000 + gitCount)
+        versionName "1.0.${gitCount}"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         

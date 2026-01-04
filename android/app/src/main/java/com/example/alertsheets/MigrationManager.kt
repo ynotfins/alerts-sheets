@@ -126,8 +126,12 @@ object MigrationManager {
         templateRepo: com.example.alertsheets.data.repositories.TemplateRepository
     ): String {
         return when (source.type) {
-            SourceType.APP -> templateRepo.getAppTemplate()
             SourceType.SMS -> templateRepo.getSmsTemplate()
+            SourceType.APP -> {
+                // Preserve BNN special-case: parserId=bnn must use BNN contract payload
+                if (source.parserId.equals("bnn", ignoreCase = true)) templateRepo.getBnnTemplate()
+                else templateRepo.getAppTemplate()
+            }
         }
     }
     

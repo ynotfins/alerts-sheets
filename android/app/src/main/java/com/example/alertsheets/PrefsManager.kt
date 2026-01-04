@@ -165,9 +165,9 @@ object PrefsManager {
      */
     fun getTemplateById(context: Context, templateId: String): String? {
         return when (templateId) {
-            "rock-solid-app-default" -> getAppJsonTemplate(context)
-            "rock-solid-sms-default" -> getSmsJsonTemplate(context)
-            "rock-solid-bnn-format" -> getAppJsonTemplate(context) // BNN uses app template
+            "rock-solid-app-default" -> getRockSolidAppTemplate().content
+            "rock-solid-sms-default" -> getRockSolidSmsTemplate().content
+            "rock-solid-bnn-format" -> getRockSolidBnnTemplate().content
             else -> null // Custom template, not yet implemented
         }
     }
@@ -223,7 +223,8 @@ object PrefsManager {
     // Rock Solid Templates (Hardcoded, Immutable)
     fun getRockSolidAppTemplate(): JsonTemplate {
         return JsonTemplate(
-            name = "🪨 Rock Solid App Default",
+            // Generic App payload (non-BNN)
+            name = "🪨 Rock Solid App (Generic)",
             content = """
 {
   "source": "app",
@@ -242,7 +243,8 @@ object PrefsManager {
 
     fun getRockSolidSmsTemplate(): JsonTemplate {
         return JsonTemplate(
-            name = "🪨 Rock Solid SMS Default",
+            // ⭐ Recommended default for SMS sources (matches parsing.md contract)
+            name = "⭐ 🪨 Rock Solid SMS Default",
             content = """
 {
   "source": "sms",
@@ -259,20 +261,22 @@ object PrefsManager {
 
     fun getRockSolidBnnTemplate(): JsonTemplate {
         return JsonTemplate(
-            name = "🪨 Rock Solid BNN Format",
+            // ⭐ Recommended default for BNN sources (matches parsing.md contract)
+            name = "⭐ 🪨 Rock Solid BNN Default",
             content = """
 {
-  "incidentId": "{{id}}",
+  "source": "bnn",
   "status": "{{status}}",
+  "timestamp": "{{timestamp}}",
+  "incidentId": "{{incidentId}}",
   "state": "{{state}}",
   "county": "{{county}}",
   "city": "{{city}}",
-  "type": "{{type}}",
   "address": "{{address}}",
-  "details": "{{details}}",
-  "originalBody": "{{original}}",
-  "codes": {{codes}},
-  "timestamp": "{{timestamp}}"
+  "originalBody": "{{originalBody}}",
+  "incidentType": "{{incidentType}}",
+  "incidentDetails": "{{incidentDetails}}",
+  "fdCodes": {{fdCodes}}
 }
             """.trimIndent(),
             isRockSolid = true,
@@ -328,9 +332,21 @@ object PrefsManager {
     fun getActiveTemplateName(context: Context, mode: TemplateMode): String {
         val prefs = context.getSharedPreferences(AppConstants.PREFS_NAME, Context.MODE_PRIVATE)
         val key = "active_template_${mode.name.lowercase()}"
-        return prefs.getString(key, null) ?: when (mode) {
-            TemplateMode.APP -> "🪨 Rock Solid App Default"
-            TemplateMode.SMS -> "🪨 Rock Solid SMS Default"
+        val stored = prefs.getString(key, null)
+        val migrated = when (stored) {
+            // Legacy names (pre-star + pre-split)
+            "🪨 Rock Solid SMS Default" -> "⭐ 🪨 Rock Solid SMS Default"
+            "🪨 Rock Solid BNN Format" -> "⭐ 🪨 Rock Solid BNN Default"
+            "🪨 Rock Solid App Default" -> "🪨 Rock Solid App (Generic)"
+            else -> stored
+        }
+        if (migrated != null && migrated != stored) {
+            prefs.edit().putString(key, migrated).apply()
+        }
+        return migrated ?: when (mode) {
+            // APP mode default stays generic; BNN sources default by their saved templateJson.
+            TemplateMode.APP -> "🪨 Rock Solid App (Generic)"
+            TemplateMode.SMS -> "⭐ 🪨 Rock Solid SMS Default"
         }
     }
 

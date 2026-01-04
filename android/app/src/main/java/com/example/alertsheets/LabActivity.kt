@@ -599,7 +599,6 @@ class LabActivity : AppCompatActivity() {
             if (type == SourceType.APP) {
                 """
                 {
-                  "type": "verify",
                   "source": "app",
                   "package": "com.example.test",
                   "title": "Test Notification",
@@ -610,7 +609,6 @@ class LabActivity : AppCompatActivity() {
             } else {
                 """
                 {
-                  "type": "verify",
                   "source": "sms",
                   "sender": "+15551234567",
                   "message": "This is a clean SMS test without emojis",
@@ -637,7 +635,6 @@ class LabActivity : AppCompatActivity() {
             if (type == SourceType.APP) {
                 """
                 {
-                  "type": "verify",
                   "source": "app",
                   "package": "com.example.test",
                   "title": "🔥 Emoji Test Alert 🚨",
@@ -648,7 +645,6 @@ class LabActivity : AppCompatActivity() {
             } else {
                 """
                 {
-                  "type": "verify",
                   "source": "sms",
                   "sender": "+15551234567",
                   "message": "🔥 SMS with emojis: 😀😃😄 🚀🎉 ⭐✨ and symbols: ™®©",
@@ -703,6 +699,15 @@ class LabActivity : AppCompatActivity() {
         }
         scrollView.addView(preview)
         dialogView.addView(scrollView)
+
+        // Toggle between real WRITE test (creates a sheet row) vs verify-only ping (no writes)
+        val verifyOnlySwitch = androidx.appcompat.widget.SwitchCompat(this).apply {
+            text = "Verify only (no sheet write)"
+            isChecked = false
+            setTextColor(Color.LTGRAY)
+            setPadding(0, 12, 0, 0)
+        }
+        dialogView.addView(verifyOnlySwitch)
         
         val btnLayout = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
@@ -728,7 +733,8 @@ class LabActivity : AppCompatActivity() {
                 val finalJson = preview.text.toString()
                 // Save as duplicate payload for next time
                 customDuplicatePayload = finalJson
-                sendTestPayload(finalJson)
+                val outgoing = if (verifyOnlySwitch.isChecked) addVerifyFlagToJson(finalJson) else finalJson
+                sendTestPayload(outgoing)
                 (parent as? android.view.ViewGroup)?.let { 
                     ((it.parent as? android.view.ViewGroup)?.parent as? AlertDialog)?.dismiss()
                 }
@@ -743,6 +749,16 @@ class LabActivity : AppCompatActivity() {
             .setView(dialogView)
             .setNegativeButton("✗ Cancel", null)
             .show()
+    }
+
+    private fun addVerifyFlagToJson(json: String): String {
+        return try {
+            val obj = org.json.JSONObject(json)
+            obj.put("type", "verify")
+            obj.toString(2)
+        } catch (_: Exception) {
+            json
+        }
     }
     
     private fun sendTestPayload(json: String) {

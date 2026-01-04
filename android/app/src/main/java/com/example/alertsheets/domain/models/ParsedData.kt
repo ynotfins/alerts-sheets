@@ -9,6 +9,7 @@ import com.google.gson.Gson
  * This matches the existing ParsedData structure from v1
  */
 data class ParsedData(
+    var status: String = "",               // Status (e.g., "New Incident", "Update")
     var incidentId: String = "",           // Unique incident identifier (e.g., "#12345")
     var state: String = "",                // State (e.g., "NY", "NJ")
     var county: String = "",               // County (e.g., "Kings", "Bergen")
@@ -34,6 +35,7 @@ data class ParsedData(
      */
     fun toVariableMap(): Map<String, String> {
         return mapOf(
+            "status" to status,
             "incidentId" to incidentId,
             "state" to state,
             "county" to county,

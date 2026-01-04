@@ -1,6 +1,6 @@
 # PROJECT STATE - Single Source of Truth
 
-**Last Updated:** 2026-01-04 (Apps Script: normalize timestamps for new rows + updates using payload timestamp variants; guard unknown sources to prevent blank-ID test rows; Android: treat Apps Script `result:success|verified` as confirmed; seed 4axe webhook endpoint)  
+**Last Updated:** 2026-01-04 (Android: ⭐ Rock Solid default templates aligned to parsing.md; Lab Test defaults to real write-test with optional verify-only toggle; versionCode/versionName auto-bump from git commit count; BNN parser now emits status for template; both phones sideloaded successfully)  
 **Branch:** `fix/wiring-sources-endpoints`  
 **Status:** 🟡 Verifying Lab endpoint test gating + sheet writes; 🟢 Lab has truthful step status lights (no false greens); 🟢 Serena Kotlin symbol indexing verified (PASS)
 

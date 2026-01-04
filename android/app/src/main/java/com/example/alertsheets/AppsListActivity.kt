@@ -306,8 +306,9 @@ class AppsListActivity : AppCompatActivity() {
         }
         
         // ✅ Get default template JSON from TemplateRepository
+        // BNN sources must default to the BNN contract payload (parsing.md)
         val templateRepo = com.example.alertsheets.data.repositories.TemplateRepository(this)
-        val defaultTemplateJson = templateRepo.getAppTemplate()
+        val defaultTemplateJson = if (isBnn) templateRepo.getBnnTemplate() else templateRepo.getAppTemplate()
         
         // Create Source with smart defaults
         val source = Source(

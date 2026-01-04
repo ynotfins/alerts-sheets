@@ -279,6 +279,7 @@ class BnnParser : Parser {
             Log.d(TAG, "✓ Parsed: ID=$incidentId, State=$state, City=$city")
             
             return ParsedData(
+                status = status,
                 incidentId = incidentId,
                 state = state,
                 county = county,

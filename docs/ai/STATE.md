@@ -49,10 +49,10 @@ Cursor/Serena MCP server must be restarted to reload the updated `.serena/projec
   - `MCP_QUICK_REFERENCE.md` (added MagicMCP + Playwright rows + failure policy section)
 - Updated `parsing.md` (doc-only): clarified BNN incident ID invariants (no `APP-*` for BNN), FD code position variability, NYC borough handling, nfa-id insert-only increment rule, SMS whitespace trimming note; corrected the BNN example Incident ID to digits-only; added “Not a parsing.md problem”; fixed SMS example to store the raw `From:` blob in Column **K** (not J).
 
-### MCP GAS Server Removal (2026-01-03)
-- Removed the attempted **GAS MCP server** setup per user request:
-  - `mcpServers.gas` entry removed/absent in `C:\Users\ynotf\.cursor\mcp.json`
-  - Deleted local folder: `C:\Users\ynotf\Dropbox\.mcp\gas_mcp`
+### MCP GAS Server Cleanup (2026-01-04)
+- Removed all **repo-local GAS MCP** install artifacts per user request:
+  - Deleted: `gas_mcp_install.sh`
+  - Deleted: `devlimelabs-firestore-mcp.mcpb` (stale MCP bundle artifact)
 
 ---
 

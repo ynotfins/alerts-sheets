@@ -1,6 +1,6 @@
 # PROJECT STATE - Single Source of Truth
 
-**Last Updated:** 2026-01-03 (BNN: switched raw parsing to right-to-left field assignment to tolerate missing city/county; added multi-variant diagnostics; parsing.md invariants clarified)  
+**Last Updated:** 2026-01-04 (Apps Script: normalize timestamps for new rows + updates using payload timestamp variants; guard unknown sources to prevent blank-ID test rows; Android: treat Apps Script `result:success|verified` as confirmed; seed 4axe webhook endpoint)  
 **Branch:** `fix/wiring-sources-endpoints`  
 **Status:** 🟡 Verifying Lab endpoint test gating + sheet writes; 🟢 Lab has truthful step status lights (no false greens); 🟢 Serena Kotlin symbol indexing verified (PASS)
 

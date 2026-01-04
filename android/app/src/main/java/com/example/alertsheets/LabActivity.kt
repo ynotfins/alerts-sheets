@@ -599,7 +599,8 @@ class LabActivity : AppCompatActivity() {
             if (type == SourceType.APP) {
                 """
                 {
-                  "source": "test",
+                  "type": "verify",
+                  "source": "app",
                   "package": "com.example.test",
                   "title": "Test Notification",
                   "text": "This is a clean test notification without emojis",
@@ -609,7 +610,8 @@ class LabActivity : AppCompatActivity() {
             } else {
                 """
                 {
-                  "source": "sms-test",
+                  "type": "verify",
+                  "source": "sms",
                   "sender": "+15551234567",
                   "message": "This is a clean SMS test without emojis",
                   "timestamp": "${System.currentTimeMillis()}"
@@ -635,7 +637,8 @@ class LabActivity : AppCompatActivity() {
             if (type == SourceType.APP) {
                 """
                 {
-                  "source": "dirty-test",
+                  "type": "verify",
+                  "source": "app",
                   "package": "com.example.test",
                   "title": "🔥 Emoji Test Alert 🚨",
                   "text": "Test with emojis: 😀😃😄😁 🚀🎉 ⭐✨ symbols: ™®© special chars: \"quoted\" and 'single'",
@@ -645,7 +648,8 @@ class LabActivity : AppCompatActivity() {
             } else {
                 """
                 {
-                  "source": "dirty-sms-test",
+                  "type": "verify",
+                  "source": "sms",
                   "sender": "+15551234567",
                   "message": "🔥 SMS with emojis: 😀😃😄 🚀🎉 ⭐✨ and symbols: ™®©",
                   "timestamp": "${System.currentTimeMillis()}"

@@ -36,13 +36,14 @@ class EndpointRepository(private val context: Context) {
             val json = storage.read()
             if (json == null) {
                 Log.i(TAG, "No endpoints file found, creating default")
-                val defaults = listOf(createDefaultEndpoint())
+                val defaults = listOf(createDefaultEndpoint(), create4axeWebhookEndpoint())
                 saveAll(defaults)
                 return defaults
             }
             
             val type = object : TypeToken<List<Endpoint>>() {}.type
-            gson.fromJson<List<Endpoint>>(json, type) ?: emptyList()
+            val parsed = gson.fromJson<List<Endpoint>>(json, type) ?: emptyList()
+            ensureBuiltins(parsed)
             
         } catch (e: JsonSyntaxException) {
             Log.e(TAG, "Failed to parse endpoints JSON", e)
@@ -229,5 +230,31 @@ class EndpointRepository(private val context: Context) {
             createdAt = System.currentTimeMillis(),
             updatedAt = System.currentTimeMillis()
         )
+    }
+
+    private fun create4axeWebhookEndpoint(): Endpoint {
+        return Endpoint(
+            id = java.util.UUID.randomUUID().toString(),
+            name = "4axe Firestore Webhook",
+            url = "https://www.4axe.com/api/webhook",
+            enabled = false, // safe default; user can enable/select explicitly
+            timeout = 30000,
+            retryCount = 3,
+            headers = emptyMap(),
+            stats = EndpointStats(),
+            createdAt = System.currentTimeMillis(),
+            updatedAt = System.currentTimeMillis()
+        )
+    }
+
+    private fun ensureBuiltins(existing: List<Endpoint>): List<Endpoint> {
+        val needs4axe = existing.none { it.url.equals("https://www.4axe.com/api/webhook", ignoreCase = true) }
+        if (!needs4axe) return existing
+
+        val updated = existing.toMutableList()
+        updated.add(create4axeWebhookEndpoint())
+        saveAll(updated)
+        Log.i(TAG, "Added builtin endpoint: 4axe Firestore Webhook")
+        return updated
     }
 }

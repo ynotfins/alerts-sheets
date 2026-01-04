@@ -525,9 +525,17 @@ object DeliveryPipeline {
             if (result.success) {
                 // ✅ Check if response contains confirmation
                 val responseBody = result.responseBody ?: ""
-                val isConfirmed = responseBody.contains("\"ok\":true", ignoreCase = true) ||
-                                  responseBody.contains("\"success\":true", ignoreCase = true) ||
-                                  responseBody.contains("\"saved\":true", ignoreCase = true)
+                // Treat Apps Script / Cloud Function success responses as confirmed.
+                // - Apps Script: {"result":"verified"} for verify ping, {"result":"success", ...} for writes
+                // - Some webhooks: {"ok":true} / {"success":true} / {"saved":true}
+                val isConfirmed =
+                    (result.httpCode in 200..299) && (
+                        responseBody.contains("\"ok\":true", ignoreCase = true) ||
+                            responseBody.contains("\"success\":true", ignoreCase = true) ||
+                            responseBody.contains("\"saved\":true", ignoreCase = true) ||
+                            responseBody.contains("\"result\":\"success\"", ignoreCase = true) ||
+                            responseBody.contains("\"result\":\"verified\"", ignoreCase = true)
+                        )
                 
                 val event = if (isConfirmed) "test_http_ok_confirmed" else "test_http_ok_unconfirmed"
                 val details = "code=${result.httpCode} latency=${result.latencyMs}ms confirmed=$isConfirmed body=${responseBody.take(300)}"
@@ -660,9 +668,17 @@ object DeliveryPipeline {
         if (result.success) {
             // ✅ Check if response contains confirmation
             val responseBody = result.responseBody ?: ""
-            val isConfirmed = responseBody.contains("\"ok\":true", ignoreCase = true) ||
-                              responseBody.contains("\"success\":true", ignoreCase = true) ||
-                              responseBody.contains("\"saved\":true", ignoreCase = true)
+            // Treat Apps Script / Cloud Function success responses as confirmed.
+            // - Apps Script: {"result":"verified"} for verify ping, {"result":"success", ...} for writes
+            // - Some webhooks: {"ok":true} / {"success":true} / {"saved":true}
+            val isConfirmed =
+                (result.httpCode in 200..299) && (
+                    responseBody.contains("\"ok\":true", ignoreCase = true) ||
+                        responseBody.contains("\"success\":true", ignoreCase = true) ||
+                        responseBody.contains("\"saved\":true", ignoreCase = true) ||
+                        responseBody.contains("\"result\":\"success\"", ignoreCase = true) ||
+                        responseBody.contains("\"result\":\"verified\"", ignoreCase = true)
+                    )
             
             val event = if (isConfirmed) "test_http_ok_confirmed" else "test_http_ok_unconfirmed"
             val details = "code=${result.httpCode} latency=${result.latencyMs}ms confirmed=$isConfirmed body=${responseBody.take(300)}"

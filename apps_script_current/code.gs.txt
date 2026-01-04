@@ -26,6 +26,15 @@ function doPost(e) {
       return handleGenericApp(data, sheet);
     }
 
+    // Guard: unknown sources without an incidentId should never fall into the BNN flow.
+    // This prevents Lab "test"/"dirty test" payloads (or typos) from creating blank-ID rows.
+    // Contract sources are: "sms" and "bnn" (and "app" for generic notifications).
+    if (!data.incidentId && data.source !== "bnn") {
+      return ContentService.createTextOutput(
+        JSON.stringify({ result: "error", error: `Unknown source without incidentId: ${data.source || ""}` })
+      ).setMimeType(ContentService.MimeType.JSON);
+    }
+
     // 3. BNN Incident Handling (structured data with incident ID)
     // Key Fields
     const rawId = data.incidentId ? data.incidentId.toString().trim() : "";
@@ -36,14 +45,8 @@ function doPost(e) {
     const incomingCodes =
       data.fdCodes && Array.isArray(data.fdCodes) ? data.fdCodes : [];
 
-    // Timestamp Generation (User requested: Date + Time)
-    // Format: "MM/dd/yyyy HH:mm:ss"
-    const now = new Date();
-    const formattedTime = Utilities.formatDate(
-      now,
-      Session.getScriptTimeZone(),
-      "MM/dd/yyyy hh:mm:ss a"
-    );
+    // Timestamp: always normalize to Script TZ display format, supporting multiple payload variants.
+    const formattedTime = formatScriptTimestampFromPayload(data.timestamp || data.time || new Date());
 
     // Generate the "Incident" text block prefix
     // User requested: "space bullet space" then update message.
@@ -478,19 +481,14 @@ function normalizeStateToAbbrev(stateRaw) {
  * For apps that don't have BNN-style structured data
  */
 function handleGenericApp(data, sheet) {
-  const now = new Date();
-  const formattedTime = Utilities.formatDate(
-    now,
-    Session.getScriptTimeZone(),
-    "MM/dd/yyyy hh:mm:ss a"
-  );
+  const formattedTime = formatScriptTimestampFromPayload(data.timestamp || data.time || new Date());
 
   // Extract app notification fields
   const packageName = data.package || "Unknown App";
   const title = data.title || "";
   const text = data.text || "";
   const bigText = data.bigText || "";
-  const timestamp = data.timestamp || formattedTime;
+  const timestamp = formattedTime;
   
   // Combine text fields for details
   const details = bigText || text || title || "(No content)";
@@ -750,8 +748,7 @@ function handleBnnStructured(data, sheet) {
   const displayId = incidentId; // digits only
   const incomingCodes = data.fdCodes && Array.isArray(data.fdCodes) ? data.fdCodes : [];
 
-  const now = new Date();
-  const formattedTime = Utilities.formatDate(now, Session.getScriptTimeZone(), "MM/dd/yyyy hh:mm:ss a");
+  const formattedTime = formatScriptTimestampFromPayload(data.timestamp || data.time || new Date());
 
   const incomingDetail = data.incidentDetails || "";
   const cleanDetail = incomingDetail

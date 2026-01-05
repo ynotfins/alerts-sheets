@@ -38,6 +38,8 @@ object DeliveryLogBuffer {
         val errorClass: String?,
         val errorMessage: String?,
         val details: String?,
+        // App build identifier for debugging (helps distinguish stale logs from old APKs)
+        val appBuild: String? = null,
         // Optional debug payloads (for on-device debugging)
         val url: String? = null,
         val payloadPreview: String? = null,

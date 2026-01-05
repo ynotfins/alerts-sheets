@@ -84,6 +84,26 @@ class SourceRepository(private val context: Context) {
 
         sources.forEach { src ->
             if (src.type != SourceType.SMS) {
+                // APP sources: drop invalid IDs created by old Lab bug (UUID / non-package IDs).
+                if (src.type == SourceType.APP) {
+                    val isUuid = Regex("^[0-9a-fA-F]{8}-").containsMatchIn(src.id)
+                    val isLikelyPackage = src.id.contains(".") && !src.id.startsWith("sms:", ignoreCase = true)
+                    if (!isLikelyPackage || isUuid) {
+                        Log.w(TAG, "Dropping invalid APP source id='${src.id}' name='${src.name}' (won't ever match notifications)")
+                        return@forEach
+                    }
+
+                    // Auto-heal parserId if template clearly expects BNN fields.
+                    val t = src.templateJson.lowercase()
+                    val looksLikeBnnTemplate = t.contains("{{incidentid}}") || t.contains("{{fdcodes}}") || t.contains("{{originalbody}}")
+                    val looksLikeBnnPackage = src.id.contains("bnn", ignoreCase = true)
+                    val healed = if (looksLikeBnnTemplate || looksLikeBnnPackage) {
+                        if (src.parserId != "bnn") src.copy(parserId = "bnn") else src
+                    } else src
+                    result.add(healed)
+                    return@forEach
+                }
+
                 result.add(src)
                 return@forEach
             }

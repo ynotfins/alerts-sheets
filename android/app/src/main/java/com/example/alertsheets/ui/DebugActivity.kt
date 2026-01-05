@@ -113,6 +113,7 @@ class DebugActivity : AppCompatActivity() {
                 event = entry.event,
                 details = buildString {
                     append(entry.details ?: "httpCode=${entry.httpCode} latencyMs=${entry.latencyMs}")
+                    entry.appBuild?.let { append("\nbuild=").append(it) }
                     entry.url?.let { append("\nurl=").append(it) }
                     entry.payloadPreview?.let { append("\npayload=").append(it) }
                     entry.responsePreview?.let { append("\nresponse=").append(it) }

@@ -24,6 +24,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import com.google.gson.Gson
+import com.example.alertsheets.BuildConfig
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -52,6 +53,7 @@ object DeliveryPipeline {
     private val TAG = "DeliveryPipeline"
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     private val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.US)
+    private val buildStamp: String = "v${BuildConfig.VERSION_NAME} ${BuildConfig.GIT_SHA}"
     
     /**
      * Deliver SMS event (Golden Path v1)
@@ -121,6 +123,7 @@ object DeliveryPipeline {
                         errorClass = "NoMatchingSource",
                         errorMessage = "No configured source for $senderShape",
                         details = reason,
+                        appBuild = buildStamp,
                         payloadPreview = redactPhoneNumbers(message.take(500))
                     )
                 )
@@ -151,6 +154,7 @@ object DeliveryPipeline {
                         latencyMs = null,
                         errorClass = "SourceDisabled",
                         errorMessage = "Source ${source.name} is disabled",
+                        appBuild = buildStamp,
                         details = null
                     )
                 )
@@ -204,6 +208,7 @@ object DeliveryPipeline {
                         latencyMs = null,
                         errorClass = "NoEnabledEndpoint",
                         errorMessage = "No enabled endpoints with valid URL for ${source.name} (${source.endpointIds.size} selected, ${summary["selectable"]} valid)",
+                        appBuild = buildStamp,
                         details = "selected=${source.endpointIds.size} selectable=${summary["selectable"]}"
                     )
                 )
@@ -347,7 +352,8 @@ object DeliveryPipeline {
                         latencyMs = null,
                         errorClass = "UnresolvedPlaceholders",
                         errorMessage = "Template has ${unresolvedPlaceholders.size} unresolved placeholder(s): $placeholderList",
-                        details = "missingKeys=${missingKeys.joinToString(",")} availableKeys=$availableKeys"
+                        details = "missingKeys=${missingKeys.joinToString(",")} availableKeys=$availableKeys",
+                        appBuild = buildStamp
                     )
                 )
                 
@@ -1014,7 +1020,8 @@ object DeliveryPipeline {
                             latencyMs = null,
                             errorClass = "TemplateError",
                             errorMessage = "Unresolved placeholders in payload",
-                            details = "count=${unresolvedPlaceholders.size} missingKeys=$missingKeys"
+                            details = "count=${unresolvedPlaceholders.size} missingKeys=$missingKeys",
+                            appBuild = buildStamp
                         )
                     )
                     allSuccess = false

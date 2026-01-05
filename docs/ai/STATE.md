@@ -25,6 +25,12 @@
 - DeliveryPipeline: APP events now respect `source.parserId` (BNN sources are parsed via `BnnParser`, preventing `payload_render_unresolved_placeholders`).
 - Apps Script: Sheet tab selection prefers `"FD-Codes-Analytics"` instead of `getSheets()[0]`.
 
+### Additional hardening (in progress)
+- Debug Logs now include `build=<VERSION_NAME> <GIT_SHA>` per entry so stale logs from older APKs can’t be confused with current behavior.
+- Sources auto-heal on load:
+  - Drop invalid APP sources with UUID/non-package IDs (legacy Lab bug).
+  - If template looks like BNN, auto-set `parserId="bnn"` so BNN template never renders with generic app variables.
+
 ### What is DONE (shipped)
 - **Apps Script**: Responses now include `debug` write-proof fields (`spreadsheetUrl`, `sheetName`, `sheetIndex`, `lastRowBefore/After`, `wroteRow`, `rowIndex`) for `verify`, `sms`, and `bnn` flows (repo copies: `apps_script_current/code.gs.txt`, `scripts/Code.gs`).
 - **Android Debug Logs**: Newest-first display + auto-scroll to newest; high contrast; includes `url`, `payload`, `response`.

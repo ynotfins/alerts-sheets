@@ -7,6 +7,7 @@ import com.example.alertsheets.domain.models.SourceStats
 import com.example.alertsheets.domain.models.SourceType
 import com.example.alertsheets.data.storage.JsonStorage
 import com.example.alertsheets.utils.AppConstants
+import com.example.alertsheets.utils.SmsSenderNormalizer
 import com.google.gson.Gson
 import com.google.gson.JsonSyntaxException
 import com.google.gson.reflect.TypeToken
@@ -45,8 +46,15 @@ class SourceRepository(private val context: Context) {
                 return emptyList()
             }
             
-            Log.d(TAG, "Successfully loaded ${sources.size} sources")
-            sources
+            val normalized = normalizeAndDedupeSources(sources)
+            if (normalized.size != sources.size || normalized.map { it.id } != sources.map { it.id }) {
+                // Best-effort persist so the app stops oscillating between duplicate IDs across screens.
+                runCatching { storage.write(gson.toJson(normalized)) }
+                Log.w(TAG, "Normalized/deduped sources: ${sources.size} -> ${normalized.size}")
+            } else {
+                Log.d(TAG, "Successfully loaded ${sources.size} sources")
+            }
+            normalized
             
         } catch (e: JsonSyntaxException) {
             Log.e(TAG, "${AppConstants.Errors.CORRUPT_SOURCES_JSON}: ${e.message}", e)
@@ -61,6 +69,47 @@ class SourceRepository(private val context: Context) {
             Log.e(TAG, "${AppConstants.Errors.JSON_PARSE_FAILED}: sources.json", e)
             emptyList()
         }
+    }
+
+    /**
+     * Enforce invariants:
+     * - SMS sources must be unique per canonical sender (sms:+1XXXXXXXXXX).
+     * - If duplicates exist, merge them into one Source so UI edits don't "fight".
+     */
+    private fun normalizeAndDedupeSources(sources: List<Source>): List<Source> {
+        if (sources.isEmpty()) return sources
+
+        val result = mutableListOf<Source>()
+        val smsByCanonical = linkedMapOf<String, Source>()
+
+        sources.forEach { src ->
+            if (src.type != SourceType.SMS) {
+                result.add(src)
+                return@forEach
+            }
+
+            val canonicalId = SmsSenderNormalizer.toCanonicalSourceId(src.id)
+            val existing = smsByCanonical[canonicalId]
+            if (existing == null) {
+                // normalize ID to canonical
+                smsByCanonical[canonicalId] = if (src.id == canonicalId) src else src.copy(id = canonicalId)
+            } else {
+                // merge duplicate SMS sources for same sender
+                val mergedEndpoints = (existing.endpointIds + src.endpointIds).distinct()
+                val merged = existing.copy(
+                    enabled = existing.enabled || src.enabled,
+                    name = if (existing.updatedAt >= src.updatedAt) existing.name else src.name,
+                    templateJson = if (existing.updatedAt >= src.updatedAt) existing.templateJson else src.templateJson,
+                    endpointIds = mergedEndpoints,
+                    updatedAt = maxOf(existing.updatedAt, src.updatedAt),
+                    createdAt = minOf(existing.createdAt, src.createdAt)
+                )
+                smsByCanonical[canonicalId] = merged
+            }
+        }
+
+        result.addAll(smsByCanonical.values)
+        return result
     }
     
     /**

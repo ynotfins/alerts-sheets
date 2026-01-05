@@ -928,6 +928,30 @@ class LabActivity : AppCompatActivity() {
             type == SourceType.SMS && selectedPhoneNumber != null -> "sms:$selectedPhoneNumber"
             else -> UUID.randomUUID().toString()
         }
+
+        // ✅ HARD GUARD: one SMS source per canonical sender.
+        // If user tries to create a second "card" for the same phone number, that would overwrite the same Source ID
+        // and look like "fields keep reverting". Instead, instruct to fan-out to multiple endpoints on ONE card.
+        if (type == SourceType.SMS) {
+            val existing = sourceManager.getSource(finalId)
+            val isEditingSame = existing != null && existing.id == finalId && this@LabActivity.sourceId == finalId
+            val isCreatingDuplicate = existing != null && !isEditingSame
+            if (isCreatingDuplicate) {
+                AlertDialog.Builder(this)
+                    .setTitle("SMS number already has a card")
+                    .setMessage(
+                        "You can only have ONE SMS card per phone number. " +
+                            "To send to multiple destinations, select multiple endpoints on the same card (fan-out). " +
+                            "We'll open the existing card now."
+                    )
+                    .setPositiveButton("Open existing") { _, _ ->
+                        loadExistingSource(finalId)
+                    }
+                    .setNegativeButton("Cancel", null)
+                    .show()
+                return
+            }
+        }
         
         // ✅ CRITICAL: Each source maintains its own independent configuration
         val source = Source(

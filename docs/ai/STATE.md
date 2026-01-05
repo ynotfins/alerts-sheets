@@ -11,6 +11,15 @@
 - Apps Script: AdjustLeads URL extraction now accepts `/alerts/# 302544` and debug now includes `scriptVersion:"2026-01-05-writeproof-v2"` to confirm correct deployment.
 - Android: Canonical SMS source IDs enforced app-wide (`sms:+1XXXXXXXXXX`) to prevent duplicate cards across Lab/SMS config/migrations.
 
+**Latest pushed commit:** `34bd7c2` — "SMS ID hardening + Apps Script versioned write-proof (adjustleads # url)"
+
+### New known root cause (confirmed by runtime payload + UI behavior)
+- Two SMS “cards” with the same phone number cannot be independent. With canonical IDs (`sms:+1XXXXXXXXXX`), they map to the SAME `Source.id`, so saving one overwrites the other, making fields appear to “revert”.
+
+### Fix in progress (next commit)
+- Auto-dedupe legacy SMS sources on load and persist normalized `sources.json`.
+- Hard guard in Lab: block creating a second SMS card for the same number and guide user to fan-out endpoints on a single card.
+
 ### What is DONE (shipped)
 - **Apps Script**: Responses now include `debug` write-proof fields (`spreadsheetUrl`, `sheetName`, `sheetIndex`, `lastRowBefore/After`, `wroteRow`, `rowIndex`) for `verify`, `sms`, and `bnn` flows (repo copies: `apps_script_current/code.gs.txt`, `scripts/Code.gs`).
 - **Android Debug Logs**: Newest-first display + auto-scroll to newest; high contrast; includes `url`, `payload`, `response`.

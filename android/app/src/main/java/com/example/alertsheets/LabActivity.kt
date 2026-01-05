@@ -1134,8 +1134,6 @@ class LabActivity : AppCompatActivity() {
     }
 
     private fun canonicalSmsSourceId(rawNumber: String): String {
-        // Digits-only normalization (stable ID across formatting differences)
-        val digits = rawNumber.filter { it.isDigit() }
-        return if (digits.isNotEmpty()) "sms:+$digits" else "sms:$rawNumber"
+        return com.example.alertsheets.utils.SmsSenderNormalizer.toCanonicalSourceId(rawNumber)
     }
 }

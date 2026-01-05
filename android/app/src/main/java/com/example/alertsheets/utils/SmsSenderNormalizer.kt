@@ -68,5 +68,31 @@ object SmsSenderNormalizer {
         val digitsLen = sender.filter { it.isDigit() }.length
         return "hasPlus=$hasPlus digitsLen=$digitsLen"
     }
+
+    /**
+     * Canonical SMS Source ID format used across the app.
+     *
+     * Goal: prevent duplicates like "sms:561..." vs "sms:+1561..." across different screens/migrations.
+     * Rule:
+     * - digits-only normalization
+     * - if 10 digits → assume US and prefix "1"
+     * - if 11 digits and starts with "1" → keep
+     * - else keep digits as-is
+     *
+     * Returns: "sms:+<digits>"
+     */
+    fun toCanonicalSourceId(raw: String): String {
+        val digits = normalize(raw)
+        if (digits.isEmpty() || digits.any { !it.isDigit() }) {
+            // Non-digit senders (rare): keep stable but still namespaced
+            return "sms:${raw.trim()}"
+        }
+        val canonicalDigits = when {
+            digits.length == 10 -> "1$digits"
+            digits.length == 11 && digits.startsWith("1") -> digits
+            else -> digits
+        }
+        return "sms:+$canonicalDigits"
+    }
 }
 

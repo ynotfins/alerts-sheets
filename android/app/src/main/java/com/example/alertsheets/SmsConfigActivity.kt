@@ -304,10 +304,11 @@ class SmsConfigActivity : AppCompatActivity() {
         endpointIds: List<String>,
         templateJson: String
     ) {
+        val canonicalId = com.example.alertsheets.utils.SmsSenderNormalizer.toCanonicalSourceId(number)
         val newSource = if (source == null) {
             // New SMS source
             Source(
-                id = "sms:$number",
+                id = canonicalId,
                 type = SourceType.SMS,
                 name = name,
                 enabled = true,
@@ -323,7 +324,7 @@ class SmsConfigActivity : AppCompatActivity() {
         } else {
             // Update existing
             source.copy(
-                id = "sms:$number",
+                id = canonicalId,
                 name = name,
                 templateJson = templateJson,
                 endpointIds = endpointIds,

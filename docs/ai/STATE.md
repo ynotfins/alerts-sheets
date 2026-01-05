@@ -7,6 +7,9 @@
 ## Pause point (end of day)
 
 **Latest pushed commit:** `533fc68` — "Write-proof responses + logs: newest-first debug, notification log for all events"
+**Unpushed WIP (local changes after pause point):**
+- Apps Script: AdjustLeads URL extraction now accepts `/alerts/# 302544` and debug now includes `scriptVersion:"2026-01-05-writeproof-v2"` to confirm correct deployment.
+- Android: Canonical SMS source IDs enforced app-wide (`sms:+1XXXXXXXXXX`) to prevent duplicate cards across Lab/SMS config/migrations.
 
 ### What is DONE (shipped)
 - **Apps Script**: Responses now include `debug` write-proof fields (`spreadsheetUrl`, `sheetName`, `sheetIndex`, `lastRowBefore/After`, `wroteRow`, `rowIndex`) for `verify`, `sms`, and `bnn` flows (repo copies: `apps_script_current/code.gs.txt`, `scripts/Code.gs`).

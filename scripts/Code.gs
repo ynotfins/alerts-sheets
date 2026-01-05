@@ -235,6 +235,7 @@ function getSheetDebugInfo_(sheet) {
     const ss = sheet.getParent();
     const sheets = ss.getSheets();
     return {
+      scriptVersion: "2026-01-05-writeproof-v2",
       spreadsheetId: ss.getId(),
       spreadsheetUrl: ss.getUrl(),
       sheetName: sheet.getName(),
@@ -979,7 +980,12 @@ function epochNumberToDate(n) {
 }
 
 function extractAdjustLeadsIncidentId(message, sender) {
-  const urlRegex = /https?:\/\/(?:www\.)?adjustleads\.(?:com|net)\/(?:app\/)?alerts\/(\d{6,})/i;
+  // Accept common URL variants, including malformed "/alerts/# 302544" seen in the wild.
+  // Examples:
+  // - https://www.adjustleads.com/app/alerts/294966
+  // - https://adjustleads.net/alerts/294966
+  // - https://www.adjustleads.com/app/alerts/# 302544
+  const urlRegex = /https?:\/\/(?:www\.)?adjustleads\.(?:com|net)\/(?:app\/)?alerts\/#?\s*(\d{6,})/i;
   const lines = getNonEmptyLines(message);
 
   // Prefer: bottom-most line containing the AdjustLeads URL

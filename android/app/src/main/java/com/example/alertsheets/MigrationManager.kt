@@ -224,7 +224,7 @@ object MigrationManager {
             }
             
             val source = Source(
-                id = "sms:${target.phoneNumber}",
+                id = com.example.alertsheets.utils.SmsSenderNormalizer.toCanonicalSourceId(target.phoneNumber),
                 type = SourceType.SMS,
                 name = target.name,
                 enabled = target.isEnabled,

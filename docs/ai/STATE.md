@@ -31,6 +31,12 @@
   - Drop invalid APP sources with UUID/non-package IDs (legacy Lab bug).
   - If template looks like BNN, auto-set `parserId="bnn"` so BNN template never renders with generic app variables.
 
+## Restart checklist (next session)
+1. **Force-close** AlertsToSheets on both phones, then reopen (runs source auto-heal + loads persisted logs).
+2. Confirm Android build shows in Debug Logs entries as `build=v<versionName> <gitSha>`.
+3. Trigger one **BNN notification** and confirm Debug Logs show `http_ok` (not `payload_render_unresolved_placeholders`).
+4. Run one **SMS write-test** to Sheet endpoint and copy the Apps Script `response=` JSON; confirm it includes `debug.scriptVersion` and `debug.sheetName="FD-Codes-Analytics"` and `debug.wroteRow=true`.
+
 ### What is DONE (shipped)
 - **Apps Script**: Responses now include `debug` write-proof fields (`spreadsheetUrl`, `sheetName`, `sheetIndex`, `lastRowBefore/After`, `wroteRow`, `rowIndex`) for `verify`, `sms`, and `bnn` flows (repo copies: `apps_script_current/code.gs.txt`, `scripts/Code.gs`).
 - **Android Debug Logs**: Newest-first display + auto-scroll to newest; high contrast; includes `url`, `payload`, `response`.

@@ -4,7 +4,9 @@ function doPost(e) {
     lock.waitLock(30000); // Wait for up to 30 seconds for concurrent interactions
 
     const sheetId = "1yKUvWtG7wBdjBhLpmM78vWhUoxiKMIryczIUt_Z2wOE";
-    const sheet = SpreadsheetApp.openById(sheetId).getSheets()[0];
+    const SHEET_TAB_NAME = "FD-Codes-Analytics";
+    const ss = SpreadsheetApp.openById(sheetId);
+    const sheet = ss.getSheetByName(SHEET_TAB_NAME) || ss.getSheets()[0];
 
     // Parse Incoming Data
     const data = JSON.parse(e.postData.contents);

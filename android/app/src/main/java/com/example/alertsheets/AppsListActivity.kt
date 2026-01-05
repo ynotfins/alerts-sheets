@@ -45,6 +45,8 @@ class AppsListActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_apps_list)
+
+        val pickMode = intent.getBooleanExtra("pick_mode", false)
         
         // ✅ V2: Use SourceManager
         sourceManager = SourceManager(applicationContext)
@@ -66,6 +68,13 @@ class AppsListActivity : AppCompatActivity() {
 
             adapter =
                     AppsAdapter(filteredApps, selectedApps) { pkg, isSelected ->
+                        // Pick-mode: return selected package to LabActivity (do NOT mutate sources here)
+                        if (pickMode) {
+                            setResult(RESULT_OK, Intent().putExtra("picked_package", pkg))
+                            finish()
+                            return@AppsAdapter
+                        }
+
                         // ✅ FIX: Save on IO thread
                         scope.launch(Dispatchers.IO) {
                             if (isSelected) {

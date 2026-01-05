@@ -20,6 +20,11 @@
 - Auto-dedupe legacy SMS sources on load and persist normalized `sources.json`.
 - Hard guard in Lab: block creating a second SMS card for the same number and guide user to fan-out endpoints on a single card.
 
+### New fixes staged (not yet verified on device)
+- Lab: contact picker now populates the visible phone field (no “disappearing number”) and app picker returns to Lab with selected package.
+- DeliveryPipeline: APP events now respect `source.parserId` (BNN sources are parsed via `BnnParser`, preventing `payload_render_unresolved_placeholders`).
+- Apps Script: Sheet tab selection prefers `"FD-Codes-Analytics"` instead of `getSheets()[0]`.
+
 ### What is DONE (shipped)
 - **Apps Script**: Responses now include `debug` write-proof fields (`spreadsheetUrl`, `sheetName`, `sheetIndex`, `lastRowBefore/After`, `wroteRow`, `rowIndex`) for `verify`, `sms`, and `bnn` flows (repo copies: `apps_script_current/code.gs.txt`, `scripts/Code.gs`).
 - **Android Debug Logs**: Newest-first display + auto-scroll to newest; high contrast; includes `url`, `payload`, `response`.

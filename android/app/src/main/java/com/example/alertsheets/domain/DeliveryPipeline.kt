@@ -9,6 +9,8 @@ import com.example.alertsheets.domain.models.Endpoint
 import com.example.alertsheets.domain.models.ParsedData
 import com.example.alertsheets.domain.models.Source
 import com.example.alertsheets.domain.models.SourceType
+import com.example.alertsheets.domain.models.RawNotification
+import com.example.alertsheets.domain.parsers.ParserRegistry
 import com.example.alertsheets.utils.DeliveryLogBuffer
 import com.example.alertsheets.utils.EndpointValidators
 import com.example.alertsheets.utils.SmsSenderNormalizer
@@ -868,7 +870,18 @@ object DeliveryPipeline {
             
             Log.d(TAG, "✓ Source matched: ${source.name} (ID: ${source.id})")
             
-            // Step 2: Create APP variable map (like smsVariables)
+            // Step 2: Build parsed variables (BNN sources must parse into ParsedData; generic app uses raw variables)
+            val raw = RawNotification.fromNotification(
+                packageName = packageName,
+                title = title,
+                text = text,
+                bigText = bigText
+            )
+
+            val parsed: ParsedData? = ParserRegistry.get(source.parserId)?.parse(raw)
+            val parsedWithTimestamp = parsed?.copy(timestamp = TemplateEngine.getTimestamp())
+
+            // Fallback generic variables (for generic parser / legacy templates)
             val dateFormat = SimpleDateFormat("MM/dd/yyyy hh:mm:ss a", Locale.US)
             val appVariables = mapOf(
                 "package" to packageName,
@@ -879,8 +892,34 @@ object DeliveryPipeline {
                 "time" to SimpleDateFormat("MM/dd/yyyy HH:mm:ss", Locale.US).format(Date(timestamp)),
                 "timestamp" to dateFormat.format(Date(timestamp))
             )
-            
-            Log.d(TAG, "✓ APP variables created: ${appVariables.keys.joinToString(", ")}")
+
+            if (source.parserId != "generic" && parsedWithTimestamp == null) {
+                // Parser expected but failed -> surface clearly (this is what was causing silent non-writes)
+                StructuredLogger.logEvent(
+                    level = "ERROR",
+                    sourceId = source.id,
+                    endpointId = null,
+                    alertId = alertId,
+                    event = "parse_failed",
+                    details = "parserId=${source.parserId} package=$packageName title=${title.take(40)}"
+                )
+                DeliveryLogBuffer.append(
+                    DeliveryLogBuffer.DeliveryLogEntry(
+                        timestamp = System.currentTimeMillis(),
+                        alertId = alertId,
+                        sourceId = source.id,
+                        endpointId = null,
+                        event = "parse_failed",
+                        httpCode = null,
+                        latencyMs = null,
+                        errorClass = "ParseFailed",
+                        errorMessage = "Parser ${source.parserId} returned null",
+                        details = "package=$packageName"
+                    )
+                )
+                runCatching { LogRepository.updateStatus(alertId, LogStatus.FAILED) }
+                return@launch
+            }
             
             // Step 3: Resolve endpoints (filter for enabled + valid URL)
             val endpointRepo = EndpointRepository(context)
@@ -933,9 +972,14 @@ object DeliveryPipeline {
                 
                 // Render template for this endpoint
                 val templateContent = source.templateJson.ifEmpty { "{}" }
-                
-                // Use applyGeneric (supports both {{key}} and {key} syntax)
-                val json = TemplateEngine.applyGeneric(templateContent, appVariables, source.autoClean)
+
+                // If we have parsed data (BNN/SMS-style templates), apply against ParsedData.
+                // Else, use generic appVariables (supports both {{key}} and {key} syntax).
+                val json = if (parsedWithTimestamp != null) {
+                    TemplateEngine.apply(templateContent, parsedWithTimestamp, source)
+                } else {
+                    TemplateEngine.applyGeneric(templateContent, appVariables, source.autoClean)
+                }
                 
                 // Check for unresolved placeholders
                 val unresolvedPlaceholders = detectUnresolvedPlaceholders(json)

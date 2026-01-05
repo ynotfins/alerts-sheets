@@ -45,6 +45,7 @@ class LabActivity : AppCompatActivity() {
     companion object {
         private const val REQUEST_CONTACT_PICK = 1001
         private const val REQUEST_READ_CONTACTS = 1002
+        private const val REQUEST_APP_PICK = 1003
     }
 
     private val scope = CoroutineScope(Dispatchers.Main + SupervisorJob())
@@ -61,6 +62,7 @@ class LabActivity : AppCompatActivity() {
     private lateinit var textVariablesHelp: TextView
     private lateinit var endpointsCheckboxes: LinearLayout
     private lateinit var btnManageEndpoints: Button
+    private lateinit var btnConfigureSource: Button
     private lateinit var previewIcon: ImageView
     private lateinit var previewColor: View
     private lateinit var btnDeleteSource: Button
@@ -82,6 +84,10 @@ class LabActivity : AppCompatActivity() {
     private var isLoadingSource = false
     private var suppressTemplateEditor = false
     private lateinit var testStatusRepo: SourceTestStatusRepository
+
+    // Keep SMS config dialog state so contact-pick can populate the visible field
+    private var smsDialogNumberInput: EditText? = null
+    private var smsDialog: AlertDialog? = null
     
     // Per-source custom test payloads (loaded from existing source)
     private var customTestPayload: String = ""
@@ -151,6 +157,7 @@ class LabActivity : AppCompatActivity() {
         textVariablesHelp = findViewById(R.id.text_variables_help)
         endpointsCheckboxes = findViewById(R.id.endpoints_checkboxes)
         btnManageEndpoints = findViewById(R.id.btn_manage_endpoints)
+        btnConfigureSource = findViewById(R.id.btn_configure_source)
         previewIcon = findViewById(R.id.preview_icon)
         previewColor = findViewById(R.id.preview_color)
         btnDeleteSource = findViewById(R.id.btn_delete_source)
@@ -397,10 +404,11 @@ class LabActivity : AppCompatActivity() {
             else -> SourceType.APP
         }
         
-        val vars = if (type == SourceType.APP) {
-            "{{package}}, {{title}}, {{text}}, {{bigText}}, {{time}}"
-        } else {
-            "{{sender}}, {{message}}, {{time}}"
+        val parserId = inferParserId(type, inputJson.text.toString(), sourceId)
+        val vars = when {
+            type == SourceType.SMS -> "{{sender}}, {{message}}, {{time}}, {{timestamp}}"
+            parserId == "bnn" -> "{{status}}, {{incidentId}}, {{state}}, {{county}}, {{city}}, {{address}}, {{incidentType}}, {{incidentDetails}}, {{fdCodes}}, {{originalBody}}, {{timestamp}}"
+            else -> "{{package}}, {{title}}, {{text}}, {{bigText}}, {{time}}, {{timestamp}}"
         }
         
         textVariablesHelp.text = "Variables: $vars"
@@ -415,9 +423,12 @@ class LabActivity : AppCompatActivity() {
         
         when (type) {
             SourceType.APP -> {
-                // Launch apps list
-                startActivity(Intent(this, AppsListActivity::class.java))
-                Toast.makeText(this, "Select an app from the list", Toast.LENGTH_SHORT).show()
+                // Pick an app package for this Lab card (AppsListActivity has a pick-mode).
+                val intent = Intent(this, AppsListActivity::class.java).apply {
+                    putExtra("pick_mode", true)
+                }
+                startActivityForResult(intent, REQUEST_APP_PICK)
+                Toast.makeText(this, "Pick an app (returns to Lab)", Toast.LENGTH_SHORT).show()
             }
             SourceType.SMS -> {
                 showSmsConfigDialog()
@@ -429,10 +440,13 @@ class LabActivity : AppCompatActivity() {
         val dialogView = layoutInflater.inflate(R.layout.dialog_sms_source, null)
         val inputNumber = dialogView.findViewById<EditText>(R.id.input_phone_number)
         val btnPickContact = dialogView.findViewById<Button>(R.id.btn_pick_contact)
+
+        // Allow contact picker to populate the currently visible input field
+        smsDialogNumberInput = inputNumber
         
         // Pre-fill if editing existing SMS source
         selectedPhoneNumber?.let { phone ->
-            inputNumber.setText(phone.removePrefix("sms:"))
+            inputNumber.setText(phone)
         }
         
         btnPickContact.setOnClickListener {
@@ -449,19 +463,31 @@ class LabActivity : AppCompatActivity() {
             }
         }
         
-        AlertDialog.Builder(this)
+        val dialog = AlertDialog.Builder(this)
             .setTitle("Configure SMS Source")
             .setView(dialogView)
-            .setPositiveButton("OK") { _, _ ->
-                val number = inputNumber.text.toString().trim()
-                if (number.isNotEmpty()) {
-                    selectedPhoneNumber = number
-                    sourceId = canonicalSmsSourceId(number)
-                    Toast.makeText(this, "SMS source configured: $number", Toast.LENGTH_SHORT).show()
-                }
-            }
             .setNegativeButton("Cancel", null)
-            .show()
+            .setPositiveButton("OK", null)
+            .create()
+
+        dialog.setOnShowListener {
+            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+                val number = inputNumber.text.toString().trim()
+                if (number.isBlank()) {
+                    Toast.makeText(this, "Pick or enter a phone number", Toast.LENGTH_SHORT).show()
+                    return@setOnClickListener
+                }
+                selectedPhoneNumber = number
+                sourceId = canonicalSmsSourceId(number)
+                btnConfigureSource.text = "SMS: $number"
+                Toast.makeText(this, "SMS configured: $number", Toast.LENGTH_SHORT).show()
+                updateStepLights()
+                dialog.dismiss()
+            }
+        }
+
+        smsDialog = dialog
+        dialog.show()
     }
     
     private fun pickContact() {
@@ -482,13 +508,21 @@ class LabActivity : AppCompatActivity() {
                 cursor?.use {
                     if (it.moveToFirst()) {
                         val phoneNumber = it.getString(0)
-                        selectedPhoneNumber = phoneNumber
-                        sourceId = canonicalSmsSourceId(phoneNumber)
                         Toast.makeText(this, "Selected: $phoneNumber", Toast.LENGTH_SHORT).show()
-                        // Re-show dialog with selected number
-                        showSmsConfigDialog()
+                        // Populate the visible input instead of opening a new dialog (prevents "disappearing number")
+                        smsDialogNumberInput?.setText(phoneNumber)
                     }
                 }
+            }
+        }
+
+        if (requestCode == REQUEST_APP_PICK && resultCode == Activity.RESULT_OK) {
+            val pkg = data?.getStringExtra("picked_package")?.trim().orEmpty()
+            if (pkg.isNotBlank()) {
+                sourceId = pkg
+                btnConfigureSource.text = "App: $pkg"
+                Toast.makeText(this, "App selected: $pkg", Toast.LENGTH_SHORT).show()
+                updateStepLights()
             }
         }
     }
@@ -929,6 +963,15 @@ class LabActivity : AppCompatActivity() {
             else -> UUID.randomUUID().toString()
         }
 
+        // ✅ HARD GUARD: APP sources must have a selected package (no UUID fallbacks)
+        if (type == SourceType.APP) {
+            val pkg = sourceId?.trim().orEmpty()
+            if (pkg.isBlank() || !isLikelyAppId(pkg)) {
+                Toast.makeText(this, "Pick an app first (Step 2)", Toast.LENGTH_SHORT).show()
+                return
+            }
+        }
+
         // ✅ HARD GUARD: one SMS source per canonical sender.
         // If user tries to create a second "card" for the same phone number, that would overwrite the same Source ID
         // and look like "fields keep reverting". Instead, instruct to fan-out to multiple endpoints on ONE card.
@@ -962,7 +1005,7 @@ class LabActivity : AppCompatActivity() {
             autoClean = checkAutoClean.isChecked,
             templateJson = json,
             templateId = "", // Deprecated
-            parserId = "generic",
+            parserId = inferParserId(type, json, finalId),
             endpointIds = selectedEndpointIds.toList(), // Independent endpoint list
             iconName = selectedIcon,
             iconColor = selectedColor,
@@ -1109,10 +1152,27 @@ class LabActivity : AppCompatActivity() {
             JsonParser.parseString(t).asJsonObject
             when (type) {
                 SourceType.SMS -> t.contains("{{sender}}") && (t.contains("{{message}}") || t.contains("{{body}}"))
-                SourceType.APP -> t.contains("{{package}}") && (t.contains("{{text}}") || t.contains("{{bigText}}"))
+                SourceType.APP -> {
+                    // Allow either generic app templates OR BNN templates (which do not contain {{package}}/{{text}}).
+                    val looksLikeApp = t.contains("{{package}}") && (t.contains("{{text}}") || t.contains("{{bigText}}"))
+                    val looksLikeBnn = t.contains("{{incidentId}}") && t.contains("{{originalBody}}")
+                    looksLikeApp || looksLikeBnn
+                }
             }
         } catch (_: Exception) {
             false
+        }
+    }
+
+    private fun inferParserId(type: SourceType, json: String, sourceId: String?): String {
+        return when (type) {
+            SourceType.SMS -> "sms"
+            SourceType.APP -> {
+                val j = json.lowercase()
+                val looksLikeBnnTemplate = j.contains("incidentid") || j.contains("fdcodes") || j.contains("originalbody")
+                val looksLikeBnnSource = (sourceId ?: "").contains("bnn", ignoreCase = true)
+                if (looksLikeBnnTemplate || looksLikeBnnSource) "bnn" else "generic"
+            }
         }
     }
 
